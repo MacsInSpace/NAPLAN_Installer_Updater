@@ -8,21 +8,21 @@
 $TaskName = "InstallNaplan"
 $TaskDescription = "Installs the latest version of Naplan"
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/InstallNaplan.ps1"
-$LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
 
 # 🔹 Create the script file to run the command
 # Define the PowerShell script as a string
 $PowerShellCommand = @"
+$LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Start-Transcript -Path '$LogFile' -Append
 
 Write-Host "Running live Naplan installer..."
 try {
-    $Response = Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL -Headers @{
+    $Headers = @{
         "Cache-Control" = "no-cache"
         "Pragma"        = "no-cache"
-    } | ConvertFrom-Json
-Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL -Headers $Headers | Invoke-Expression
+    }
+    Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL -Headers $Headers | Invoke-Expression
     } catch {
     Write-Host "Failed to retrieve or execute the script: $_"
     exit 1
