@@ -41,14 +41,6 @@ else
  echo "Apple Processor is not present. Rosetta not required."
 fi
 
-# Check the result of Rosetta install command
-if [[ $? -eq 0 ]]; then
- echo "Rosetta installed successfully."
-else
- echo "Rosetta installation failed."
- exit 1
-fi
-
 # Fetch the latest version from the website
 LATEST_URL=$(curl -s "$PKG_URL" | grep -oE 'https://[^"]+\.pkg' | head -n 1)
 if [ -z "$LATEST_URL" ]; then
