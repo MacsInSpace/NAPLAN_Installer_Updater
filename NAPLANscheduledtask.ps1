@@ -2,12 +2,12 @@
 # Run this with 
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://gitlab.edustar.tech/TSSP/windows-client-scripts/-/raw/main/Applications/Naplan/NAPLANscheduledtask.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/NAPLANscheduledtask.ps1" | iex
 
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
 $TaskDescription = "Installs the latest version of Naplan"
-$ScriptURL = "https://gitlab.edustar.tech/TSSP/windows-client-scripts/-/raw/main/Applications/Naplan/InstallNaplan.ps1"
+$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/InstallNaplan.ps1"
 $LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
 
 # 🔹 Create the script file to run the command
