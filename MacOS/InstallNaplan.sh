@@ -71,7 +71,8 @@ echo "Uninstall Complete"
 
 # Download the new version
 log "Downloading $LATEST_URL..."
-curl -L -o "$PKG_PATH" "$LATEST_URL"
+ENCODED_URL="${LATEST_URL// /%20}"
+curl -L -o "$PKG_PATH" "$ENCODED_URL"
 if [ $? -ne 0 ]; then
     log "Failed to download package."
     exit 1
