@@ -34,7 +34,16 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "$(date) - Downloading and executing InstallNaplan.sh..." >> "$LOG_FILE"
-curl -sSL "$INSTALL_SCRIPT_URL" | bash 2>&1 >> "$LOG_FILE"
+
+curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
+    -H "Accept-Language: en-US,en;q=0.9" \
+    -H "Referer: $PKG_URL" \
+    -H "Connection: keep-alive" \
+    -H "Cache-Control: no-cache, no-store, must-revalidate" \
+    -H "Pragma: no-cache" \
+    -H "Expires: 0" \
+    --compressed "$INSTALL_SCRIPT_URL" | bash 2>&1 >> "$LOG_FILE"
+    
 exit 0
 EOF
 
