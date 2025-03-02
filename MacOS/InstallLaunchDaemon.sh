@@ -74,6 +74,8 @@ EOF
 launchctl load "$PLIST_PATH"
 
 echo "NAPLAN Update script installed and scheduled."
+chown root:wheel "$PLIST_PATH"
+chmod 644 "$PLIST_PATH"
 
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.naplan.install.plist
-sudo launchctl enable system/com.naplan.install
+launchctl bootstrap system /Library/LaunchDaemons/com.naplan.installer.plist
+launchctl enable system/com.naplan.installer
