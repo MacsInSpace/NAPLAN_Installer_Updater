@@ -11,3 +11,5 @@ irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_
 
 Or locally with the cmd script for BYOD:<BR>
 InstallNaplanTask.cmd
+<BR><BR>
+Uninstalls nicely, and then aggressively using NapNuke, developed by Rolfe Hodges in Melb, via a bat script, but translated to PS.
