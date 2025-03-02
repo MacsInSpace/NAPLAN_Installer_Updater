@@ -1,5 +1,5 @@
-# NAPLAN_Installer_Updater <BR>
-Install/update/uninstall/reinstall NAPLAN<BR>
+# NAPLAN_Installer_Updater <BR><BR>
+Install/update/uninstall/reinstall NAPLAN LDB direct from the Acara/assessform/NAPLAN site.<BR>
 Creates a scheduled task to update/uninstall/reinstall the amazingly written software that is NAPLAN. <BR>
 Checks version numbers online daily at $random time between 9 and 4.<BR>
 Installs imediately. <BR>
