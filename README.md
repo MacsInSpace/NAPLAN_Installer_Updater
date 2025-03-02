@@ -2,6 +2,8 @@
 Update/uninstall/reinstall NAPLAN<BR>
 Creates a scheduled task to update/uninstall/reinstall the amazingly written software that is NAPLAN. <BR>
 Checks version numbers online daily at $random time between 9 and 4.<BR>
+Installs imediately. <BR>
+Runs live from gitlab. <BR>
 Optionally forces a reinstall for when a version is supersceeded but the version number doesnt change. Like when their cert expired <BR><BR>
 Install this task with NAPLANscheduledtask.ps1<BR>
 To Install:<BR>
