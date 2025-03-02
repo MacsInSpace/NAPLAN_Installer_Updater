@@ -3,7 +3,7 @@
 Install this task for Windows with NAPLANscheduledtask.ps1 below.<BR><BR>
 To Install:<BR>
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/NAPLANscheduledtask.ps1" | iex
+irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/NAPLANscheduledtask.ps1" | iex
 <BR>
 Or locally with the cmd script for BYOD:<BR>
 InstallNaplanTask.cmd
