@@ -73,6 +73,13 @@ if [[ -z "$FORCE_NEW_VERSION" && "$LATEST_VERSION" == "$INSTALLED_VERSION" ]]; t
     log "Versions match, not forcing an update, No update required."
     exit 0
 fi
+# Uninstall NAPLAN Locked Down Browser if it exists
+echo "Uninstalling App"
+rm -r "$HOME/.config/NAP Locked down browser"
+rm -r "$HOME/.local/share/NAP Locked down browser"
+rm -r "/Applications/NAP Locked down browser.app"
+rm -r "/Applications/NAP Locked down browser Uninstaller.app"
+echo "Uninstalling Completed"
 
 # Download the new version
 log "Downloading $LATEST_URL..."
@@ -84,7 +91,7 @@ fi
 
 # Install the new package
 log "Installing new version..."
-sudo installer -pkg "$PKG_PATH" -target /
+installer -pkg "$PKG_PATH" -target /
 if [ $? -eq 0 ]; then
     log "Installation successful."
     rm -f "$PKG_PATH"
