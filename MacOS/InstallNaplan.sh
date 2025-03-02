@@ -16,9 +16,9 @@ FORCE_NEW_VERSION="${FORCE_NEW_VERSION:-true}"
 echo "FORCE_NEW_VERSION is set to: $FORCE_NEW_VERSION"
 
 # Function to log messages
-#log() {
-echo "$(date '+%Y-%m-%d %H:%M:%S')"  >> "$LOG_FILE"
-#}
+log() {
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
+}
 
 # Ensure we have internet
 ping -c 1 8.8.8.8 &>/dev/null
