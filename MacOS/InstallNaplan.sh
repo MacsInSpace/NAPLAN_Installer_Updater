@@ -17,7 +17,7 @@ echo "FORCE_NEW_VERSION is set to: $FORCE_NEW_VERSION"
 
 # Function to log messages
 #log() {
-#    echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"  >> "$LOG_FILE"
+echo "$(date '+%Y-%m-%d %H:%M:%S') - $1"  >> "$LOG_FILE"
 #}
 
 # Ensure we have internet
