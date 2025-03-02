@@ -42,6 +42,7 @@ else
 fi
 
 # Fetch the latest version from the website
+PKG_URL=$(echo "$PKG_URL" | sed 's/%20/ /g')
 LATEST_URL=$(curl --compressed -s "$PKG_URL" 2>/var/log/naplan_update.log | grep -oE 'https://[^"]+\.pkg' | head -n 1)
 if [ -z "$LATEST_URL" ]; then
     log "Failed to retrieve package URL."
