@@ -2,7 +2,7 @@
 
 Install this task for MacOS with NAPLANscheduledtask.sh below.<BR><BR>
 To Install:<BR>
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANscheduledtask.sh" | bash<BR>
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANscheduledtask.sh" | bash<BR>
 <BR>
 Or locally with the cmd script for BYOD:<BR>
 InstallNaplanTask.cmd
