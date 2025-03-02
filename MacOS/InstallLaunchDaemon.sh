@@ -71,13 +71,18 @@ cat << EOF > "$PLIST_PATH"
 </plist>
 EOF
 
-# Set correct permissions
-chown root:wheel "$PLIST_PATH"
-chmod 644 "$PLIST_PATH"
+plutil -lint /Library/LaunchDaemons/com.naplan.installer.plist
 
-# Load the LaunchDaemon using the correct method
-launchctl bootstrap system "$PLIST_PATH"
-launchctl enable system/com.naplan.installer
+chown root:wheel /Library/LaunchDaemons/com.naplan.installer.plist
+chmod 644 /Library/LaunchDaemons/com.naplan.installer.plist
+
+launchctl bootout system /Library/LaunchDaemons/com.naplan.installer.plist
+
+# reboot  # Uncomment this if previous steps don't work
+
+sudo launchctl bootstrap system /Library/LaunchDaemons/com.naplan.installer.plist
+sudo launchctl enable system/com.naplan.installer
+
 
 echo "NAPLAN Update script installed and scheduled successfully."
 
