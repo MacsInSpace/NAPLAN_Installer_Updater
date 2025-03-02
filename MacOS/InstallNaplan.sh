@@ -36,14 +36,13 @@ fi
 checkRosettaStatus=$(/bin/launchctl list | /usr/bin/grep "com.apple.oahd-root-helper")
 RosettaFolder="/Library/Apple/usr/share/rosetta"
 if [[ -e "${RosettaFolder}" && "${checkRosettaStatus}" != "" ]]; then
- echo "Rosetta Folder exists and Rosetta Service is running. Exiting..."
- exit 0
+ echo "Rosetta Folder exists and Rosetta Service is running."
 else
- echo "Rosetta Folder does not exist or Rosetta service is not running. Installing Rosetta..."
+ "Rosetta Folder does not exist or Rosetta service is not running. Installing Rosetta..."
+ # Install Rosetta
+/usr/sbin/softwareupdate --install-rosetta --agree-to-license
 fi
 
-# Install Rosetta
-/usr/sbin/softwareupdate --install-rosetta --agree-to-license
 
 # Check the result of Rosetta install command
 if [[ $? -eq 0 ]]; then
