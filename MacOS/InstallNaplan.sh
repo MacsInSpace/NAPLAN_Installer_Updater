@@ -67,7 +67,7 @@ rm -r "$HOME/.config/NAP Locked down browser"
 rm -r "$HOME/.local/share/NAP Locked down browser"
 rm -r "/Applications/NAP Locked down browser.app"
 rm -r "/Applications/NAP Locked down browser Uninstaller.app"
-echo "Uninstalling Completed"
+echo "Uninstall Complete"
 
 # Download the new version
 log "Downloading $LATEST_URL..."
