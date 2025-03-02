@@ -1,12 +1,18 @@
 #!/bin/bash
 # Run this with 
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANscheduledtask.sh" | bash
+# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
+
+# Ensure script runs as root, even if executed from a web download
+if [[ $EUID -ne 0 ]]; then
+    echo "This installer must be run as root. Please enter your Mac's admin password:"
+    exec sudo /bin/bash "$0" "$@"
+fi
 
 # Ensure /usr/local/bin exists
 if [ ! -d "/usr/local/bin" ]; then
     echo "Creating /usr/local/bin..."
-    sudo mkdir -p /usr/local/bin
-    sudo chown $(whoami) /usr/local/bin
+    mkdir -p /usr/local/bin
+    chown $(whoami) /usr/local/bin
 fi
 
 # Define script path
