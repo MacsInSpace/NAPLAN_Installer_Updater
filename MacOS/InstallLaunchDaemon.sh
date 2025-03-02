@@ -24,7 +24,7 @@ cat << 'EOF' > "$SCRIPT_PATH"
 #!/bin/bash
 
 LOG_FILE="/var/log/naplan_update.log"
-INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallNaplan.sh"
+INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallNaplan.sh?$(date +%s)"
 
 # Ensure /usr/local/bin exists
 mkdir -p /usr/local/bin
