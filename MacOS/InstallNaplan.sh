@@ -3,6 +3,7 @@
 # curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallNaplan.sh" | sudo bash
 
 # Define variables
+unset FORCE_NEW_VERSION
 PKG_URL="https://www.assessform.edu.au/naplan-online/locked-down-browser"
 DOWNLOAD_DIR="/tmp"
 PKG_NAME="NAP_LDB.pkg"
@@ -102,6 +103,7 @@ if [ $? -eq 0 ]; then
 else
     echo "Installation failed." >> $LOG_FILE
     exit 1
+unset FORCE_NEW_VERSION
 fi
 
 exit 0
