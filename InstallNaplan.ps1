@@ -2,7 +2,7 @@
 # run *THIS* with:
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# iwr -UseBasicParsing -Uri "https://gitlab.edustar.tech/TSSP/windows-client-scripts/-/raw/main/Applications/Naplan/InstallNaplan.ps1" | iex
+# iwr -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/InstallNaplan.ps1" | iex
 
 # Define the fallback local SMB path (only used if the internet check fails)
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
@@ -134,7 +134,7 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
         Start-Process "msiexec.exe" -ArgumentList "/X $InstalledGUID /qn /norestart" -NoNewWindow -Wait
         #Nap Nuke
         Write-Host "Calling clean-up of old versions of Naplan"
-        irm  -UseBasicParsing -Uri "https://gitlab.edustar.tech/TSSP/windows-client-scripts/-/raw/main/Applications/Naplan/NAPLANnuke.ps1" | iex
+        irm  -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/NAPLANnuke.ps1" | iex
     }
 
     Write-Host "Downloading and Installing..."
