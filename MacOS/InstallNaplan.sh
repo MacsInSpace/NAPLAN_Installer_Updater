@@ -21,6 +21,37 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Determine the architecture of the macOS device
+processorBrand=$(/usr/sbin/sysctl -n machdep.cpu.brand_string)
+if [[ "${processorBrand}" = *"Apple"* ]]; then
+ echo "Apple Processor is present."
+else
+ echo "Apple Processor is not present. Rosetta not required."
+ exit 0
+fi
+
+# Check if Rosetta is installed
+checkRosettaStatus=$(/bin/launchctl list | /usr/bin/grep "com.apple.oahd-root-helper")
+RosettaFolder="/Library/Apple/usr/share/rosetta"
+if [[ -e "${RosettaFolder}" && "${checkRosettaStatus}" != "" ]]; then
+ echo "Rosetta Folder exists and Rosetta Service is running. Exiting..."
+ exit 0
+else
+ echo "Rosetta Folder does not exist or Rosetta service is not running. Installing Rosetta..."
+fi
+
+# Install Rosetta
+/usr/sbin/softwareupdate --install-rosetta --agree-to-license
+
+# Check the result of Rosetta install command
+if [[ $? -eq 0 ]]; then
+ echo "Rosetta installed successfully."
+ exit 0
+else
+ echo "Rosetta installation failed."
+ exit 1
+fi
+
 # Fetch the latest version from the website
 LATEST_URL=$(curl -s "$PKG_URL" | grep -oE 'https://[^"]+\.pkg' | head -n 1)
 if [ -z "$LATEST_URL" ]; then
@@ -34,7 +65,6 @@ INSTALLED_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionStrin
 
 log "Latest version: $LATEST_VERSION"
 log "Installed version: $INSTALLED_VERSION"
-
 
 # Compare versions
 if [[ -z "$FORCE_NEW_VERSION" && "$LATEST_VERSION" == "$INSTALLED_VERSION" ]]; then
