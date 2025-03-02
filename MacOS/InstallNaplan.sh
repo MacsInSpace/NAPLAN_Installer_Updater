@@ -9,7 +9,7 @@ PKG_NAME="NAP_LDB.pkg"
 PKG_PATH="$DOWNLOAD_DIR/$PKG_NAME"
 LOG_FILE="/var/log/naplan_update.log"
 PLIST_BUNDLE="NAP Locked down browser.app"
-FORCE_NEW_VERSION=${FORCE_NEW_VERSION:-false}
+FORCE_NEW_VERSION=true
 
 # Function to log messages
 log() {
