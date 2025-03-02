@@ -7,7 +7,7 @@
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
 $TaskDescription = "Installs the latest version of Naplan"
-$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/InstallNaplan.ps1"
+$ScriptURL = https://api.github.com/repos/MacsInSpace/NAPLAN_Installer_Updater/contents/Windows/InstallNaplan.ps1"
 $LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
 
 # 🔹 Create the script file to run the command
@@ -18,14 +18,21 @@ Start-Transcript -Path '$LogFile' -Append
 
 Write-Host "Running live Naplan installer..."
 try {
-    iwr -UseBasicParsing -Uri '$ScriptURL' | iex
-    Write-Host "Naplan script executed successfully."
-    exit 0  # ✅ Ensure clean exit
-} catch {
-    Write-Host "Error executing Naplan script: $_"
+    $Response = Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL -Headers @{
+        "Cache-Control" = "no-cache"
+        "Pragma"        = "no-cache"
+    } | ConvertFrom-Json
+
+    # Extract Base64 content and decode it
+    $DecodedScript = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($Response.content))
+
+    # Execute the script
+    Invoke-Expression $DecodedScript
+}
+catch {
+    Write-Host "Failed to retrieve or execute the script: $_"
     exit 1
 }
-
 Stop-Transcript
 "@
 
