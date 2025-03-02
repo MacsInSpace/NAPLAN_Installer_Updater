@@ -42,7 +42,7 @@ curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
     -H "Cache-Control: no-cache, no-store, must-revalidate" \
     -H "Pragma: no-cache" \
     -H "Expires: 0" \
-    --compressed "$INSTALL_SCRIPT_URL"  | jq -r '.content' | base64 --decode | bash 2>&1 >> "$LOG_FILE"
+    --compressed "$INSTALL_SCRIPT_URL"  | grep -o '"content": "[^"]*' | cut -d '"' -f 4 | base64 --decode | bash 2>&1 >> "$LOG_FILE"
 exit 0
 EOF
 
