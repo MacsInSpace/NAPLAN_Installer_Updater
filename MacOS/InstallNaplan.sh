@@ -27,12 +27,7 @@ fi
 processorBrand=$(/usr/sbin/sysctl -n machdep.cpu.brand_string)
 if [[ "${processorBrand}" = *"Apple"* ]]; then
  echo "Apple Processor is present."
-else
- echo "Apple Processor is not present. Rosetta not required."
- exit 0
-fi
-
-# Check if Rosetta is installed
+ # Check if Rosetta is installed
 checkRosettaStatus=$(/bin/launchctl list | /usr/bin/grep "com.apple.oahd-root-helper")
 RosettaFolder="/Library/Apple/usr/share/rosetta"
 if [[ -e "${RosettaFolder}" && "${checkRosettaStatus}" != "" ]]; then
@@ -42,12 +37,13 @@ else
  # Install Rosetta
 /usr/sbin/softwareupdate --install-rosetta --agree-to-license
 fi
-
+else
+ echo "Apple Processor is not present. Rosetta not required."
+fi
 
 # Check the result of Rosetta install command
 if [[ $? -eq 0 ]]; then
  echo "Rosetta installed successfully."
- exit 0
 else
  echo "Rosetta installation failed."
  exit 1
