@@ -45,7 +45,7 @@ chmod +x "$SCRIPT_PATH"
 echo "Installation script saved to $SCRIPT_PATH"
 
 # Install Launch Agent
-PLIST_PATH="$HOME/Library/LaunchAgents/com.naplan.updater.plist"
+PLIST_PATH="/Library/LaunchDaemons/com.naplan.installer.plist"
 cat << EOF > "$PLIST_PATH"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
