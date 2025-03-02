@@ -4,7 +4,8 @@ Creates a scheduled task to update/uninstall/reinstall the amazingly written sof
 Checks version numbers online daily at $random time between 9 and 4.<BR>
 Installs imediately. <BR>
 Runs live from gitlab. <BR>
-Optionally forces a reinstall for when a version is supersceeded but the version number doesnt change. Like when their cert expired <BR><BR>
+Optionally forces a reinstall for when a version is supersceeded but the version number doesnt change. Like when their cert expired <BR>
+Happy to take pull requests, fixed, issues. <BR>
 Install this task with NAPLANscheduledtask.ps1<BR>
 To Install:<BR>
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
