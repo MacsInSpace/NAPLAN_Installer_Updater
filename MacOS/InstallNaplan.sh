@@ -9,7 +9,10 @@ PKG_NAME="NAP_LDB.pkg"
 PKG_PATH="$DOWNLOAD_DIR/$PKG_NAME"
 LOG_FILE="/var/log/naplan_update.log"
 PLIST_BUNDLE="NAP Locked down browser.app"
-FORCE_NEW_VERSION=true
+#FORCE_NEW_VERSION="${FORCE_NEW_VERSION:-false}"
+FORCE_NEW_VERSION="${FORCE_NEW_VERSION:-true}"
+# Debug output
+log "FORCE_NEW_VERSION is set to: $FORCE_NEW_VERSION"
 
 # Function to log messages
 log() {
@@ -56,10 +59,12 @@ INSTALLED_VERSION=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionStrin
 log "Latest version: $LATEST_VERSION"
 log "Installed version: $INSTALLED_VERSION"
 
-# Compare versions
+# Compare versions, allowing forced updates
 if [[ "$FORCE_NEW_VERSION" != "true" && "$LATEST_VERSION" == "$INSTALLED_VERSION" ]]; then
     log "Versions match, not forcing an update. No update required."
     exit 0
+else
+    log "Forcing update: $FORCE_NEW_VERSION"
 fi
 
 # Uninstall NAPLAN Locked Down Browser if it exists
