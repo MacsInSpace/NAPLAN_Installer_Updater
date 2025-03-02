@@ -29,12 +29,12 @@ INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Install
 # Ensure we have internet
 ping -c 1 8.8.8.8 &>/dev/null
 if [ $? -ne 0 ]; then
-    echo "$(date) - No internet connection. Exiting." | tee -a "$LOG_FILE"
+    echo "$(date) - No internet connection. Exiting." >> "$LOG_FILE"
     exit 1
 fi
 
-echo "$(date) - Downloading and executing InstallNaplan.sh..." | tee -a "$LOG_FILE"
-curl -sSL "$INSTALL_SCRIPT_URL" | bash 2>&1 | tee -a "$LOG_FILE"
+echo "$(date) - Downloading and executing InstallNaplan.sh..." >> "$LOG_FILE"
+curl -sSL "$INSTALL_SCRIPT_URL" | bash 2>&1"
 exit 0
 EOF
 
