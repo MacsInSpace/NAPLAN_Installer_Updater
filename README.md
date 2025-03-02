@@ -5,7 +5,7 @@ Checks version numbers online daily at $random time between 9 and 4.<BR>
 Installs immediately. <BR>
 Runs live from github. <BR>
 Optionally forces a reinstall for when a version is supersceeded but the version number doesnt change. Like when their cert expired <BR>
-Happy to take pull requests, fixed, issues. <BR><BR>
+Happy to take pull requests, additions, fixes, issues. <BR><BR>
 Install this task with NAPLANscheduledtask.ps1 below.<BR><BR>
 To Install:<BR>
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
