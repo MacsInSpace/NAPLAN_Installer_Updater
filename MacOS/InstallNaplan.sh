@@ -13,7 +13,7 @@ PLIST_BUNDLE="NAP Locked down browser.app"
 #FORCE_NEW_VERSION="${FORCE_NEW_VERSION:-false}"
 #FORCE_NEW_VERSION="${FORCE_NEW_VERSION:-true}"
 FORCE_NEW_VERSION=false
-#trest
+
 
 # Debug output
 echo "FORCE_NEW_VERSION is set to: $FORCE_NEW_VERSION" >> $LOG_FILE
