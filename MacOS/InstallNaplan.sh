@@ -51,6 +51,9 @@ LATEST_URL=$(curl -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKi
     -H "Accept-Language: en-US,en;q=0.9" \
     -H "Referer: $PKG_URL" \
     -H "Connection: keep-alive" \
+    -H "Cache-Control: no-cache, no-store, must-revalidate" \
+    -H "Pragma: no-cache" \
+    -H "Expires: 0" \
     --compressed -s "$PKG_URL" 2>/var/log/naplan_update.log | grep -oE 'https://[^"]+\.pkg' | head -n 1)
     
 if [ -z "$LATEST_URL" ]; then
