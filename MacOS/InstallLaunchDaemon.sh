@@ -34,7 +34,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "$(date) - Downloading and executing InstallNaplan.sh..." >> "$LOG_FILE"
-curl -sSL "$INSTALL_SCRIPT_URL" | bash 2>&1"
+curl -sSL "$INSTALL_SCRIPT_URL" 
 exit 0
 EOF
 
