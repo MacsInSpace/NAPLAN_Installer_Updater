@@ -47,7 +47,12 @@ fi
 
 # Fetch the latest version from the website
 PKG_URL=$(echo "$PKG_URL" | sed 's/%20/ /g')
-LATEST_URL=$(curl --compressed -s "$PKG_URL" 2>/var/log/naplan_update.log | grep -oE 'https://[^"]+\.pkg' | head -n 1)
+LATEST_URL=$(curl -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
+    -H "Accept-Language: en-US,en;q=0.9" \
+    -H "Referer: $PKG_URL" \
+    -H "Connection: keep-alive" \
+    --compressed -s "$PKG_URL" 2>/var/log/naplan_update.log | grep -oE 'https://[^"]+\.pkg' | head -n 1)
+    
 if [ -z "$LATEST_URL" ]; then
     log "Failed to retrieve package URL."
     exit 1
