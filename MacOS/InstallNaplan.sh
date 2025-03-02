@@ -1,4 +1,6 @@
 #!/bin/bash
+# Run this with:
+# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallNaplan.sh" | sudo bash
 
 # Define variables
 PKG_URL="https://www.assessform.edu.au/naplan-online/locked-down-browser"
