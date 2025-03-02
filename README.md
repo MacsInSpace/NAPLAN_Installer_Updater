@@ -16,3 +16,12 @@ Or locally with the cmd script for BYOD:<BR>
 InstallNaplanTask.cmd
 <BR><BR>
 Uninstalls nicely, and then aggressively using NapNuke, developed by Rolfe Hodges in Melb, via a bat script, but translated to PS.
+<BR><BR>
+<BR><BR>
+InstallNaplan.ps1 - Core script installs NAPLAN
+<BR><BR>
+NAPLANnuke.ps1 - Uninstalls NAPLAN thanks to Rolfe Hodges
+<BR><BR>
+NAPLANscheduledtask.ps1 - Installs the scheduled task
+<BR><BR>
+InstallNaplanTask.cmd - Calls ^NAPLANscheduledtask.ps1^. Installs the task into task scheduler - (for manually running on BYOD)
