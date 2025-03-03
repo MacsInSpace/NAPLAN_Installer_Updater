@@ -9,14 +9,14 @@ $TaskName = "InstallNaplan"
 $TaskDescription = "Installs the latest version of Naplan"
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/InstallNaplan.ps1"
 $LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
-Start-Transcript -Path '$LogFile' -Append
+Start-Transcript -Path $LogFile -Append
 
 # 🔹 Create the script file to run the command
 # Define the PowerShell script as a string
 $PowerShellCommand = @"
 $LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Start-Transcript -Path '$LogFile' -Append
+Start-Transcript -Path $LogFile -Append
 
 Write-Host "Running live Naplan installer..."
 try {
