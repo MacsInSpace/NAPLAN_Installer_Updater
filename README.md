@@ -7,4 +7,4 @@ Installs immediately.<br>
 Runs live from github.(but can be made to run locally instead)<br> 
 Optionally forces a reinstall for when a version is supersceeded but the version number hasn't changed.<br>
 ....Like when their cert expired<br><br> 
-Happy to take pull requests, feature requests, additions, fixes, issues.<br> 
+Happy to take pull requests, feature requests, additions, optimisations, fixes, issues.<br> 
