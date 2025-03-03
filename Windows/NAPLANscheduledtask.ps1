@@ -18,11 +18,7 @@ Start-Transcript -Path '$LogFile' -Append
 
 Write-Host "Running live Naplan installer..."
 try {
-    $Headers = @{
-        "Cache-Control" = "no-cache"
-        "Pragma"        = "no-cache"
-    }
-    Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL -Headers $Headers | Invoke-Expression
+    Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL | Invoke-Expression
     } catch {
     Write-Host "Failed to retrieve or execute the script: $_"
     exit 1
