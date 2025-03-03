@@ -44,7 +44,7 @@ $Triggers = @(
 )
 
 # Define Task Settings
-$Settings = New-SchedulΩedTaskSettingsSet `
+$Settings = New-ScheduledTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
     -StartWhenAvailable `
