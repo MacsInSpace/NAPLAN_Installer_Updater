@@ -4,11 +4,12 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/InstallNaplan.ps1" | iex
 
+Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
+
 # Define the fallback local SMB path (only used if the internet check fails)
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ErrorActionPreference = 'Stop'
 $ForceUpdate = $false #true will force the update regardless of version number
-Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
