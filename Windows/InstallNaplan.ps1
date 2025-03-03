@@ -8,8 +8,7 @@
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ErrorActionPreference = 'Stop'
 $ForceUpdate = $false #true will force the update regardless of version number
-$LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
-Start-Transcript -Path '$LogFile' -Append
+Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
