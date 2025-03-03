@@ -1,8 +1,10 @@
-Install/update/uninstall/reinstall NAPLAN LDB direct from the Acara/assessform/NAPLAN site.<br><br>
+Scheduled Task(Windows) or Launch Daemon(MacOS) to install, update, uninstall, or reinstall the<br>
+NAPLAN Locked Down Browser (LDB) direct from the Acara assessform NAPLAN web site.<br><br>
 Creates a scheduled task to update/uninstall/reinstall the amazingly written software that is NAPLAN.<br>
 Checks version numbers online daily at $random time between 9 and 4.<br>
+Logs locally on the device for troubleshooting.<br> 
 Installs immediately.<br>
-Runs live from github.<br>
-Optionally forces a reinstall for when a version is supersceeded but the version number doesnt change.<br>
-Like when their cert expired<br>
-Happy to take pull requests, additions, fixes, issues.
+Runs live from github.(but can be made to run locally instead)<br> 
+Optionally forces a reinstall for when a version is supersceeded but the version number hasn't changed.<br>
+....Like when their cert expired<br><br> 
+Happy to take pull requests, feature requests, additions, fixes, issues.<br> 
