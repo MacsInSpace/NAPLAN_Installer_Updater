@@ -8,8 +8,8 @@
 $TaskName = "InstallNaplan"
 $TaskDescription = "Installs the latest version of Naplan"
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/InstallNaplan.ps1"
-$LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
-Start-Transcript -Path $LogFile -Append
+
+Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 
 # 🔹 Create the script file to run the command
 # Define the PowerShell script as a string
@@ -44,7 +44,7 @@ $Triggers = @(
 )
 
 # Define Task Settings
-$Settings = New-ScheduledTaskSettingsSet `
+$Settings = New-SchedulΩedTaskSettingsSet `
     -AllowStartIfOnBatteries `
     -DontStopIfGoingOnBatteries `
     -StartWhenAvailable `
