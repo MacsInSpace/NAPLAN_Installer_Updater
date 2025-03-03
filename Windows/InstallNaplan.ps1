@@ -8,6 +8,8 @@
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ErrorActionPreference = 'Stop'
 $ForceUpdate = $false #true will force the update regardless of version number
+$LogFile = "C:\Windows\Temp\NaplanScheduledTask.log"
+Start-Transcript -Path '$LogFile' -Append
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
@@ -191,3 +193,4 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
 } 
 
 Write-Host "Naplan is up-to-date. Exiting."
+Stop-Transcript
