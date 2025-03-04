@@ -187,9 +187,9 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
     #Write-Host "Restarting Windows Explorer..."
     #Stop-Process -Name "explorer" -Force -ErrorAction SilentlyContinue
     #Start-Process "explorer.exe"
-    #(New-Object -ComObject Shell.Application).MinimizeAll()
-     #Start-Sleep -Milliseconds 500
-    #(New-Object -ComObject Shell.Application).UndoMinimizeAll()
+    (New-Object -ComObject Shell.Application).MinimizeAll()
+    Start-Sleep -Milliseconds 500
+    (New-Object -ComObject Shell.Application).UndoMinimizeAll()
     Write-Host "Icon refresh complete."
     
 } 
