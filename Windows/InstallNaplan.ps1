@@ -108,7 +108,7 @@ if (-not $success) {
     $contentString = $webContent.Content
 
     # Define a regex pattern to match test dates for the current year
-    $pattern = "$currentYear\s+(\d{1,2})–(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
+    $pattern = "$currentYear\s+(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
 
     # Search for the pattern in the content
     $matches = [regex]::Matches($contentString, $pattern)
