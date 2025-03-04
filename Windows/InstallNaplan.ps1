@@ -180,16 +180,16 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
     #        Remove-Item "$ExplorerCachePath\iconcache*" -Force -ErrorAction SilentlyContinue
     #    }
     #}
-   ie4uinit.exe -ClearIconCache
+    #ie4uinit.exe -ClearIconCache
     #Write-Host "Refreshing icon cache..."
     #& ie4uinit.exe -show
 
     #Write-Host "Restarting Windows Explorer..."
     #Stop-Process -Name "explorer" -Force -ErrorAction SilentlyContinue
     #Start-Process "explorer.exe"
-    (New-Object -ComObject Shell.Application).MinimizeAll()
-     Start-Sleep -Milliseconds 500
-    (New-Object -ComObject Shell.Application).UndoMinimizeAll()
+    #(New-Object -ComObject Shell.Application).MinimizeAll()
+     #Start-Sleep -Milliseconds 500
+    #(New-Object -ComObject Shell.Application).UndoMinimizeAll()
     Write-Host "Icon refresh complete."
     
 } 
