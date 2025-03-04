@@ -60,7 +60,7 @@ The scheduled task checks for updates **daily**, but:
 ---
 
 ## 🙌 Acknowledgments
-Shoutout to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which was adapted into PowerShell for a **more effective removal process**.
+Shoutout to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which was adapted into PowerShell.
 
 ---
 
