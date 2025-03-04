@@ -11,6 +11,10 @@ $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ErrorActionPreference = 'Stop'
 $ForceUpdate = $true #true will force the update regardless of version number
 
+
+# NAPLAN key dates page
+$url = "https://www.nap.edu.au/naplan/key-dates"
+
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
 
@@ -58,14 +62,6 @@ $PSId = @(Get-Process | Where-Object {$_.Name -like "*Powershell*"} -ErrorAction
 
 If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 
-
-# Self-elevate the script if required
-
-#if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-#    Start-Process PowerShell -Verb RunAs "-NoProfile -ExecutionPolicy Bypass -Command `"cd '$pwd'; & '$PSCommandPath';`"";
-#    exit;
-#}
-
 # Set download directory for SYSTEM compatibility
 $LocalTempDir = "$env:Windir\Temp"
 $Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
@@ -82,6 +78,102 @@ try {
 # Securely download and execute the script with TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+# Get the current year dynamically
+$currentYear = (Get-Date).Year
+
+# Retry logic for fetching the webpage
+$maxRetries = 3
+$retryCount = 0
+$webContent = $null
+$success = $false
+
+while (-not $success -and $retryCount -lt $maxRetries) {
+    try {
+        $webContent = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10
+        $success = $true
+    } catch {
+        $retryCount++
+        Write-Host "Failed to retrieve NAPLAN key dates page (Attempt $retryCount of $maxRetries): $_"
+        Start-Sleep -Seconds 5  # Wait before retrying
+    }
+}
+
+# If the request failed after retries, use fallback dates
+if (-not $success) {
+    Write-Host "ACARA website unreachable. Using fallback test dates."
+    $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
+    $testEndDate = Get-Date "$currentYear-04-30"
+} else {
+    # Convert the content to a string
+    $contentString = $webContent.Content
+
+    # Define a regex pattern to match test dates for the current year
+    $pattern = "$currentYear\s+(\d{1,2})–(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
+
+    # Search for the pattern in the content
+    $matches = [regex]::Matches($contentString, $pattern)
+
+    if ($matches.Count -gt 0) {
+        # Extract start and end dates
+        $startDay = $matches[0].Groups[1].Value
+        $endDay = $matches[0].Groups[2].Value
+        $month = $matches[0].Groups[3].Value
+
+        # Convert the month name to a numerical format
+        $monthNumber = @{
+            "January" = 1; "February" = 2; "March" = 3; "April" = 4; "May" = 5;
+            "June" = 6; "July" = 7; "August" = 8; "September" = 9;
+            "October" = 10; "November" = 11; "December" = 12
+        }[$month]
+
+        # Construct full date strings
+        $testStartDate = Get-Date "$currentYear-$monthNumber-$startDay"
+        $testEndDate = Get-Date "$currentYear-$monthNumber-$endDay"
+    } else {
+        Write-Host "Failed to parse NAPLAN test dates from the webpage. Using fallback dates."
+        $testStartDate = Get-Date "$currentYear-03-1"  # Fallback start date
+        $testEndDate = Get-Date "$currentYear-04-30"    # Fallback end date
+    }
+}
+
+Write-Host "Detected NAPLAN test window: $testStartDate to $testEndDate"
+
+# --- Now use these dates for update logic ---
+$currentDate = Get-Date
+
+# Define high-frequency update period (e.g., 60 days before test start)
+$highFreqStartDate = $testStartDate.AddDays(-60)
+$highFreqEndDate = $testEndDate
+
+# Set update interval
+if ($currentDate -ge $highFreqStartDate -and $currentDate -le $highFreqEndDate) {
+    $updateIntervalDays = 7  # Weekly updates
+} else {
+    $updateIntervalDays = 30  # Monthly updates
+}
+
+Write-Host "Update interval set to every $updateIntervalDays days."
+
+# Path to store last update date
+$lastUpdateFile = "C:\Windows\Temp\NaplanLastUpdate.txt"
+
+# Check if an update is needed
+$updateNeeded = $false
+
+if (Test-Path $lastUpdateFile) {
+    $lastUpdate = Get-Content $lastUpdateFile | Get-Date
+    $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
+
+    if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+        $updateNeeded = $true
+    }
+} else {
+    $updateNeeded = $true
+}
+
+# Perform update if needed
+if ($updateNeeded) {
+    Write-Host "Initiating NAPLAN LDB update..."
 # Try to get the latest MSI download URL if internet is available
 if ($InternetAvailable) {
     try {
@@ -195,4 +287,7 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
 } 
 
 Write-Host "Naplan is up-to-date. Exiting."
+} else {
+    Write-Host "No update needed. Last update was $daysSinceLastUpdate days ago."
+}
 Stop-Transcript
