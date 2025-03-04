@@ -2,7 +2,9 @@ Scheduled Task(Windows) or Launch Daemon(MacOS) to install, update, uninstall, o
 NAPLAN Locked Down Browser (LDB) direct from the Acara assessform NAPLAN web site.<br>
 https://www.assessform.edu.au/naplan-online/locked-down-browser<br><br>
 * Creates a scheduled task to update/uninstall/reinstall the amazingly written software that is NAPLAN.<br>
-* Checks version numbers online daily at $random time between 9 and 4.<br> 
+* Task runs daily at $random time between 9 and 4.<br>
+* Although the task runs daily, Update frequency is set online weekly during from Jan - April and monthly otherwise.<br>
+* Key Dats obtaind from https://www.nap.edu.au/naplan/key-dates
 * Uninstalls the old version and installs the new one as recommended.<br> 
 * Logs locally on the device for troubleshooting.<br>
   MacOS logging - /var/log/naplan_update.log<br>
