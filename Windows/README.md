@@ -43,6 +43,7 @@ If you need to **completely remove** all NAPLAN versions, including leftovers fr
    - Removes **all NAPLAN-related files**.
    - Clears **registry entries** and **old configurations**.
    - Ensures a **clean slate** before a fresh install.
+   - Removes the Scheduled task.
 
 ---
 
