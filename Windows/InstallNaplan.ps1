@@ -180,7 +180,7 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
     #        Remove-Item "$ExplorerCachePath\iconcache*" -Force -ErrorAction SilentlyContinue
     #    }
     #}
-
+   ie4uinit.exe -ClearIconCache
     #Write-Host "Refreshing icon cache..."
     #& ie4uinit.exe -show
 
