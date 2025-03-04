@@ -19,7 +19,7 @@ This repository automates the **installation, updating, and uninstallation** of 
 Run the following command in an **elevated PowerShell window** (**Admin mode**):
 
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/NAPLANscheduledtask.ps1")
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/bin/NAPLANscheduledtask.ps1")
 ```
 
 This will:
