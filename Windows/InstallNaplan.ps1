@@ -9,7 +9,7 @@ Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 # Define the fallback local SMB path (only used if the internet check fails)
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ErrorActionPreference = 'Stop'
-$ForceUpdate = $false #true will force the update regardless of version number
+$ForceUpdate = $true #true will force the update regardless of version number
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
