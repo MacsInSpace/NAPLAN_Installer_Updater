@@ -339,6 +339,8 @@ if ($AppPath -and (Test-Path $AppPath)) {
     Start-Sleep -Milliseconds 500
     (New-Object -ComObject Shell.Application).UndoMinimizeAll()
     Write-Host "Icon refresh complete."
+    Write-Host "Self updating the scheduled task too.."
+    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1' | iex"
     
 } 
 
