@@ -47,7 +47,7 @@ To remove **all** existing versions of NAPLAN LDB:
 ### **Windows (Deep Clean)**
 Run the following command in **PowerShell (Admin Mode)**:
 ```powershell
-Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/NAPLANnuke.ps1")
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/NAPLANnuke.ps1")
 ```
 This will:
 - Completely remove NAPLAN LDB.
