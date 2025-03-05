@@ -1,16 +1,81 @@
-Scheduled Task(Windows) or Launch Daemon(MacOS) to install, update, uninstall, or reinstall the<br>
-NAPLAN Locked Down Browser (LDB) direct from the Acara assessform NAPLAN web site.<br>
-https://www.assessform.edu.au/naplan-online/locked-down-browser<br><br>
-* Creates a scheduled task to update/uninstall/reinstall the amazingly written software that is NAPLAN.<br>
-* Task runs daily at $random time between 9 and 4.<br>
-* Although the task runs daily, Update frequency is set online weekly during from Jan - April and monthly otherwise.<br>
-* Key Dats obtaind from https://www.nap.edu.au/naplan/key-dates
-* Uninstalls the old version and installs the new one as recommended.<br> 
-* Logs locally on the device for troubleshooting.<br>
-  MacOS logging - /var/log/naplan_update.log<br>
-  Windows logging - C:\Windows\Temp\NaplanScheduledTask.log<br>
-* Installs immediately.<br>
-* Runs live from github.(but can be made to run locally instead)<br> 
-* Optionally forces a reinstall for when a version is supersceeded but the version number hasn't changed.<br>
-  ....Like when their cert expired<br><br> 
-Happy to take pull requests, feature requests, additions, optimisations, fixes, issues.<br> 
+# 📝 NAPLAN Installer & Updater
+
+This repository provides a cross-platform solution for **installing, updating, and managing** the **NAPLAN Locked-Down Browser (LDB)** on both **Windows** and **MacOS**.
+
+## 🌐 Overview
+- ✅ **Automates installation, updating, and uninstallation** of NAPLAN LDB.
+- ⏳ **Scheduled task runs daily** but intelligently adjusts update frequency.
+  - ♻️ **Weekly updates** from **January to April** (preparation & testing period).
+  - 🌞 **Monthly updates** outside of testing windows.
+- 🔍 Automatically obtains official **NAPLAN test dates** from **ACARA**:  
+  [NAPLAN Key Dates](https://www.nap.edu.au/naplan/key-dates)
+- ✈ Installs **directly from ACARA's website**:  
+  [Assessform NAPLAN Online](https://www.assessform.edu.au/naplan-online/locked-down-browser)
+- 📅 **Supports forced reinstalls** (for scenarios where the version hasn’t changed but has been updated).
+- 🔧 **Logs locally for troubleshooting**:
+  - **MacOS**: `/var/log/naplan_update.log`
+  - **Windows**: `C:\Windows\Temp\NaplanScheduledTask.log`
+
+## 🌐 Installation Methods
+### **Windows (Scheduled Task)**
+Run the following command in **PowerShell (Admin Mode)**:
+
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/NAPLANscheduledtask.ps1")
+```
+
+This will:
+- Set up a **scheduled task** that manages NAPLAN LDB.
+- Ensure **automatic updates** based on the smart scheduling system.
+
+### **MacOS (Launch Daemon)**
+Run the following command in **Terminal**:
+
+```bash
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | bash
+```
+
+This will:
+- Install a **launch daemon** to manage NAPLAN LDB updates.
+- Ensure updates follow the same smart scheduling logic as Windows.
+
+## ❌ Uninstallation
+To remove **all** existing versions of NAPLAN LDB:
+
+### **Windows (Deep Clean)**
+Run the following command in **PowerShell (Admin Mode)**:
+```powershell
+Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/NAPLANnuke.ps1")
+```
+This will:
+- Completely remove NAPLAN LDB.
+- Delete all residual files and registry entries.
+
+### **MacOS (Deep Clean)**
+Run the following command in **Terminal**:
+```bash
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANnuke.sh" | bash
+```
+This will:
+- Uninstall NAPLAN LDB.
+- Remove associated configurations and cached data.
+
+## 🌟 Features
+- **Automated install & update** (Windows: Scheduled Task, MacOS: Launch Daemon).
+- **Intelligent update frequency** (increases before testing, reduces otherwise).
+- **Full uninstall scripts available** (deep clean for problem scenarios).
+- **Compatible with both Windows & MacOS environments.**
+- **Runs live from GitHub** (or can be modified to run locally).
+
+## 🎨 Contributing
+- **Pull requests & feature requests welcome!**
+- Looking for **optimizations, fixes, and additional functionality**.
+
+## 🎉 Thanks & Credits
+Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which has been adapted for better automation and cross-platform support.
+
+---
+
+💌 **Have suggestions or issues?**  
+[Open an issue](https://github.com/MacsInSpace/NAPLAN_Installer_Updater/issues) or submit a pull request! 🚀
+
