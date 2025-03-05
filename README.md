@@ -17,7 +17,7 @@ The Online National Assessment Platform is used by schools conducting NAPLAN onl
 
 This repository provides a cross-platform solution for **installing, updating, and managing** the **NAPLAN Locked-Down Browser (LDB)** on both **Windows** and **MacOS**.
 
-[For iOS, go here!](https://apps.apple.com/au/app/nap-locked-down-browser/id1086807255)
+[For the iOS install, go here!](https://apps.apple.com/au/app/nap-locked-down-browser/id1086807255)
 
 ## 🌐 Overview
 - ✅ **Automates installation, updating, and uninstallation** of NAPLAN LDB.
