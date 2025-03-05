@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run this with 
+# Run this with:
 # curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
 
 # Ensure script runs as root
@@ -9,6 +9,11 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+# Define paths
+SCRIPT_PATH="/usr/local/bin/naplan_update.sh"
+PLIST_PATH="/Library/LaunchDaemons/com.naplan.installer.plist"
+LOG_FILE="/var/log/naplan_update.log"
+
 # Ensure /usr/local/bin exists
 if [ ! -d "/usr/local/bin" ]; then
     echo "Creating /usr/local/bin..."
@@ -16,10 +21,14 @@ if [ ! -d "/usr/local/bin" ]; then
     chown $(whoami) /usr/local/bin
 fi
 
-# Define script path
-SCRIPT_PATH="/usr/local/bin/naplan_update.sh"
+# **Remove old LaunchDaemon if it exists**
+if [ -f "$PLIST_PATH" ]; then
+    echo "Removing existing LaunchDaemon..."
+    sudo launchctl bootout system "$PLIST_PATH" 2>/dev/null
+    sudo rm -f "$PLIST_PATH"
+fi
 
-# Write update script
+# **Write update script**
 cat << 'EOF' > "$SCRIPT_PATH"
 #!/bin/bash
 
@@ -43,6 +52,7 @@ curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
     -H "Pragma: no-cache" \
     -H "Expires: 0" \
     --compressed "$INSTALL_SCRIPT_URL"  | grep -o '"content": "[^"]*' | cut -d '"' -f 4 | base64 --decode | bash 2>&1 >> "$LOG_FILE"
+
 exit 0
 EOF
 
@@ -50,8 +60,7 @@ EOF
 chmod +x "$SCRIPT_PATH"
 echo "Installation script saved to $SCRIPT_PATH"
 
-# Install LaunchDaemon (NOT LaunchAgent, since it's run as root)
-PLIST_PATH="/Library/LaunchDaemons/com.naplan.installer.plist"
+# **Write new LaunchDaemon plist**
 cat << EOF > "$PLIST_PATH"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -76,18 +85,16 @@ cat << EOF > "$PLIST_PATH"
 </plist>
 EOF
 
-plutil -lint /Library/LaunchDaemons/com.naplan.installer.plist
+# Validate the plist file
+plutil -lint "$PLIST_PATH"
 
-chown root:wheel /Library/LaunchDaemons/com.naplan.installer.plist
-chmod 644 /Library/LaunchDaemons/com.naplan.installer.plist
+# Set correct permissions
+chown root:wheel "$PLIST_PATH"
+chmod 644 "$PLIST_PATH"
 
-launchctl bootout system /Library/LaunchDaemons/com.naplan.installer.plist
-
-# reboot  # Uncomment this if previous steps don't work
-
-sudo launchctl bootstrap system /Library/LaunchDaemons/com.naplan.installer.plist
+# **Reinstall and reload the LaunchDaemon**
+sudo launchctl bootstrap system "$PLIST_PATH"
 sudo launchctl enable system/com.naplan.installer
-
 
 echo "NAPLAN Update script installed and scheduled successfully."
 
