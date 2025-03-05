@@ -3,8 +3,13 @@
 The Online National Assessment Platform is used by schools conducting NAPLAN online testing (for years 3, 5, 7 and 9)
 
 [For minimum system requirements, go here](https://www.assessform.edu.au/naplan-online/device-requirements)
+
 [For browser info and support, go here.](https://www.assessform.edu.au/naplan-online/locked-down-browser)
+
 [Here for other resources](https://www.assessform.edu.au/resources/)
+
+---
+---
 
 # VCAA NAPLAN Helpdesk 
   - [VCAA Contacts](https://www.assessform.edu.au/contacts)
@@ -32,6 +37,7 @@ Test Administration Authorities (TAAs) are responsible for the implementation an
 |-----------------|---------------|-----------------------------|
 | [Australian Government Department of Education](https://www.assessform.edu.au/contacts) | 1300 566 046 | [Contact form](https://www.assessform.edu.au/contacts) |
 
+---
 ---
 
 
