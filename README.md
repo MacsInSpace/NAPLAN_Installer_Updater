@@ -1,5 +1,6 @@
-[NAPLAN info](https://www.assessform.edu.au/naplan-online)
 The Online National Assessment Platform is used by schools conducting NAPLAN testing (for years 3, 5, 7 and 9)
+
+[NAPLAN info](https://www.assessform.edu.au/naplan-online)
 
 [For minimum system requirements, go here](https://www.assessform.edu.au/naplan-online/device-requirements)
 
