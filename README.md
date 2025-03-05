@@ -23,6 +23,7 @@ This repository provides a cross-platform solution for **installing, updating, a
 - ⏳ **Scheduled task runs daily** but intelligently adjusts update frequency.
   - ♻️ **Weekly updates** from **January to April** (preparation & testing period).
   - 🌞 **Monthly updates** outside of testing windows.
+  - NO updates during the testing window ~~unless forced~~.
 - 🔍 Automatically obtains official **NAPLAN test dates** from **ACARA**:
    - [NAPLAN Key Dates](https://www.nap.edu.au/naplan/key-dates) (please dont change the format!)
 - **Uninstalls any old version first** - as recommended by ACARA.
@@ -35,7 +36,6 @@ This repository provides a cross-platform solution for **installing, updating, a
   - **Windows**: `C:\Windows\Temp\NaplanScheduledTask.log`
 - **No third party data trasmission, logging(other than locally), or server reliance. (aside from this repo)**
   - Can be edited to run locally with SMB backup.
-- Will not update during the testing window ~~unless forced~~.
 
 ## 🌐 Installation Methods
 ### **Windows (Scheduled Task)**
