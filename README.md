@@ -8,41 +8,10 @@ The Online National Assessment Platform is used by schools conducting NAPLAN onl
 
 [Here for other resources](https://www.assessform.edu.au/resources/)
 
----
----
-
 # VCAA NAPLAN Helpdesk 
   - [VCAA Contacts](https://www.assessform.edu.au/contacts)
 
-## Contacts
-
-Test Administration Authorities (TAAs) are responsible for the implementation and administration of the NAPLAN tests in their jurisdiction. Permission for variation of dates for testing and for use of scribes and some other accessibility adjustments must be sought from the Test Administration Authority (TAA) in your state or territory, and approval received by schools prior to the national test period.
-
-### **State and Territory Test Administration Authorities (TAAs)**
-
-| State/Territory | Contact Number | Email |
-|-----------------|---------------|-----------------------------|
-| [ACT Education Directorate](https://www.assessform.edu.au/contacts) | 02 6205 2656 | [NAPOnline@act.gov.au](mailto:NAPOnline@act.gov.au) |
-| [NSW Education Standards Authority](https://www.assessform.edu.au/contacts) | 02 9367 8382 | [naplan.nsw@nesa.nsw.edu.au](mailto:naplan.nsw@nesa.nsw.edu.au) |
-| [NT Department of Education](https://www.assessform.edu.au/contacts) | 08 8944 9245 | [naplanonline.doe@nt.gov.au](mailto:naplanonline.doe@nt.gov.au) |
-| [Qld Curriculum and Assessment Authority](https://www.assessform.edu.au/contacts) | 1300 214 452 | [NAPLAN@QCAA.qld.edu.au](mailto:NAPLAN@QCAA.qld.edu.au) |
-| [SA Department for Education](https://www.assessform.edu.au/contacts) | 1800 316 777 | [education.naplan@sa.gov.au](mailto:education.naplan@sa.gov.au) |
-| [Tas Department of Education, Children and Young People](https://www.assessform.edu.au/contacts) | 03 6165 5914 | [naplan@decyp.tas.gov.au](mailto:naplan@decyp.tas.gov.au) |
-| [Vic Curriculum and Assessment Authority](https://www.assessform.edu.au/contacts) | 1800 648 637 | [vcaa.naplan.help@education.vic.gov.au](mailto:vcaa.naplan.help@education.vic.gov.au) |
-| [WA School Curriculum and Standards Authority](https://www.assessform.edu.au/contacts) | 08 9442 9442 | [naplan@scsa.wa.edu.au](mailto:naplan@scsa.wa.edu.au) |
-
-### **Australian Government Department of Education**
-
-| Department | Contact Number | Email/Link |
-|-----------------|---------------|-----------------------------|
-| [Australian Government Department of Education](https://www.assessform.edu.au/contacts) | 1300 566 046 | [Contact form](https://www.assessform.edu.au/contacts) |
-
 ---
----
-
-
-
-
 
 # 📝 NAPLAN Installer & Updater
 
@@ -130,4 +99,31 @@ Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script
 
 💌 **Have suggestions or issues?**  
 [Open an issue](https://github.com/MacsInSpace/NAPLAN_Installer_Updater/issues) or submit a pull request! 🚀
+
+
+---
+---
+
+## Contacts
+
+Test Administration Authorities (TAAs) are responsible for the implementation and administration of the NAPLAN tests in their jurisdiction. Permission for variation of dates for testing and for use of scribes and some other accessibility adjustments must be sought from the Test Administration Authority (TAA) in your state or territory, and approval received by schools prior to the national test period.
+
+### **State and Territory Test Administration Authorities (TAAs)**
+
+| State/Territory | Contact Number | Email |
+|-----------------|---------------|-----------------------------|
+| [ACT Education Directorate](https://www.assessform.edu.au/contacts) | 02 6205 2656 | [NAPOnline@act.gov.au](mailto:NAPOnline@act.gov.au) |
+| [NSW Education Standards Authority](https://www.assessform.edu.au/contacts) | 02 9367 8382 | [naplan.nsw@nesa.nsw.edu.au](mailto:naplan.nsw@nesa.nsw.edu.au) |
+| [NT Department of Education](https://www.assessform.edu.au/contacts) | 08 8944 9245 | [naplanonline.doe@nt.gov.au](mailto:naplanonline.doe@nt.gov.au) |
+| [Qld Curriculum and Assessment Authority](https://www.assessform.edu.au/contacts) | 1300 214 452 | [NAPLAN@QCAA.qld.edu.au](mailto:NAPLAN@QCAA.qld.edu.au) |
+| [SA Department for Education](https://www.assessform.edu.au/contacts) | 1800 316 777 | [education.naplan@sa.gov.au](mailto:education.naplan@sa.gov.au) |
+| [Tas Department of Education, Children and Young People](https://www.assessform.edu.au/contacts) | 03 6165 5914 | [naplan@decyp.tas.gov.au](mailto:naplan@decyp.tas.gov.au) |
+| [Vic Curriculum and Assessment Authority](https://www.assessform.edu.au/contacts) | 1800 648 637 | [vcaa.naplan.help@education.vic.gov.au](mailto:vcaa.naplan.help@education.vic.gov.au) |
+| [WA School Curriculum and Standards Authority](https://www.assessform.edu.au/contacts) | 08 9442 9442 | [naplan@scsa.wa.edu.au](mailto:naplan@scsa.wa.edu.au) |
+
+### **Australian Government Department of Education**
+
+| Department | Contact Number | Email/Link |
+|-----------------|---------------|-----------------------------|
+| [Australian Government Department of Education](https://www.assessform.edu.au/contacts) | 1300 566 046 | [Contact form](https://www.assessform.edu.au/contacts) |
 
