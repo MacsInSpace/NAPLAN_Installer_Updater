@@ -61,7 +61,7 @@ This will:
 - Ensure updates follow the same smart scheduling logic as Windows.
 
 ## ❌ Uninstallation
-To remove **all** existing versions of NAPLAN LDB:
+To remove **all** existing versions of NAPLAN LDB and update tasks:
 
 ### **Windows (Deep Clean)**
 Run the following command in **PowerShell (RunAs Admin)**:
