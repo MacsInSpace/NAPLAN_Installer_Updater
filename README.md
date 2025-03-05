@@ -13,7 +13,7 @@ The Online National Assessment Platform is used by schools conducting NAPLAN onl
 
 ---
 
-# 📝 NAPLAN Installer & Updater
+# 📝 Unofficial NAPLAN Installer & Updater
 
 This repository provides a cross-platform solution for **installing, updating, and managing** the **NAPLAN Locked-Down Browser (LDB)** on both **Windows** and **MacOS**.
 
