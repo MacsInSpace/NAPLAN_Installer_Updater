@@ -34,6 +34,7 @@ curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Update
 This will:
 - Uninstall NAPLAN LDB from your Mac.
 - Remove cached configurations and old files.
+- Remove the LaunchD task.
 
 ## 🌟 Features
 - **Automated install & update** via MacOS Launch Daemon.
