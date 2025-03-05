@@ -53,7 +53,7 @@ This will:
 Run the following command in **Terminal**:
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | bash
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
 ```
 
 This will:
@@ -75,7 +75,7 @@ This will:
 ### **MacOS (Deep Clean)**
 Run the following command in **Terminal**:
 ```bash
-curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANnuke.sh" | bash
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANnuke.sh" | sudo bash
 ```
 This will:
 - Uninstall NAPLAN LDB.
