@@ -17,7 +17,7 @@ This repository provides a cross-platform solution for **installing, updating, a
   - **Windows**: `C:\Windows\Temp\NaplanScheduledTask.log`
 - **No third party data trasmission, logging(other than locally), or server reliance. (aside from this repo)**
   - Can be edited to run locally with SMB backup.
-- Will not update during the testing window unless forced.
+- Will not update during the testing window ~~unless forced~~.
 
 ## 🌐 Installation Methods
 ### **Windows (Scheduled Task)**
