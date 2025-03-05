@@ -75,7 +75,7 @@ This will:
 - Looking for **optimizations, fixes, and additional functionality**.
 
 ## 🎉 Thanks & Credits
-Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which has been adapted for cross-platform support.
+Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which has been adapted to powershell.
 
 ---
 
