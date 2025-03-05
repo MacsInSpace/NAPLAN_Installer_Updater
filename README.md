@@ -30,7 +30,7 @@ This repository provides a cross-platform solution for **installing, updating, a
 - ✈ Installs **directly from ACARA's website**:  
   [Assessform NAPLAN Online](https://www.assessform.edu.au/naplan-online/locked-down-browser)
 - 📅 **Supports forced reinstalls** (for scenarios where the version hasn’t changed but has been updated).
-- 🔧 **Logs locally for only troubleshooting**:
+- 🔧 **Logs locally for troubleshooting**:
   - **MacOS**: `/var/log/naplan_update.log`
   - **Windows**: `C:\Windows\Temp\NaplanScheduledTask.log`
 - **No third party data trasmission, logging(other than locally), or server reliance. (aside from this repo)**
