@@ -63,6 +63,23 @@ echo "Cleaning up logs and cache..." | tee -a "$LOG_FILE"
 rm -rf /var/log/naplan_update.log
 rm -rf "$HOME/Library/Caches/NAPLAN"
 
+# Forget previous installations
+# Get a list of installed packages that match "naplan" or "ldb"
+naplan_packages=$(pkgutil --pkgs | grep -iE "naplan|ldb")
+
+if [[ -z "$naplan_packages" ]]; then
+    echo "No NAPLAN or LDB-related packages found." | tee -a "$LOG_FILE"
+    exit 0
+fi
+
+# Forget each matching package
+for pkg in $naplan_packages; do
+    echo "Forgetting package: $pkg" | tee -a "$LOG_FILE"
+    sudo pkgutil --forget "$pkg" >> "$LOG_FILE" 2>&1
+done
+
+echo "✅ Completed removal of NAPLAN/LDB packages." | tee -a "$LOG_FILE"
+
 # Final confirmation
 if [ ! -d "/Applications/NAP Locked Down Browser.app" ]; then
     echo "✅ NAPLAN LDB has been successfully removed from your system." | tee -a "$LOG_FILE"
