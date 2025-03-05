@@ -1,6 +1,5 @@
-# 📝 NAPLAN Overview
 [NAPLAN info](https://www.assessform.edu.au/naplan-online)
-The Online National Assessment Platform is used by schools conducting NAPLAN online testing (for years 3, 5, 7 and 9)
+The Online National Assessment Platform is used by schools conducting NAPLAN testing (for years 3, 5, 7 and 9)
 
 [For minimum system requirements, go here](https://www.assessform.edu.au/naplan-online/device-requirements)
 
@@ -8,12 +7,11 @@ The Online National Assessment Platform is used by schools conducting NAPLAN onl
 
 [Here for other resources](https://www.assessform.edu.au/resources/)
 
-# VCAA NAPLAN Helpdesk 
-  - [VCAA Contacts](https://www.assessform.edu.au/contacts)
+[VCAA Contacts](https://www.assessform.edu.au/contacts)
 
 ---
 
-# 📝 Unofficial NAPLAN Installer & Updater
+## 📝 Unofficial NAPLAN Installer & Updater
 
 This repository provides a cross-platform solution for **installing, updating, and managing** the **NAPLAN Locked-Down Browser (LDB)** on both **Windows** and **MacOS**.
 
