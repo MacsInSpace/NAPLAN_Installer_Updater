@@ -29,6 +29,7 @@ This repository provides a cross-platform solution for **installing, updating, a
   [NAPLAN Key Dates](https://www.nap.edu.au/naplan/key-dates) (please dont change the format!)
 - ✈ Installs **directly from ACARA's website**:  
   [Assessform NAPLAN Online](https://www.assessform.edu.au/naplan-online/locked-down-browser)
+- Signature and certificate validation checks on msi/pkg (Checksum info would be nice Acara..)
 - 📅 **Supports forced reinstalls** (for scenarios where the version hasn’t changed but has been updated).
 - 🔧 **Logs locally for troubleshooting**:
   - **MacOS**: `/var/log/naplan_update.log`
