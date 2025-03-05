@@ -48,6 +48,7 @@ Run the following command in **PowerShell (RunAs Admin)**:
 This will:
 - Set up a **scheduled task** that manages NAPLAN LDB.
 - Ensure **automatic updates** based on the smart scheduling system.
+  
 To Do:
 - Test the icon cache fix. - Try not to have to totally delete the cache.
 
@@ -61,6 +62,7 @@ curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Update
 This will:
 - Install a **launch daemon** to manage NAPLAN LDB updates.
 - Ensure updates follow the same smart scheduling logic as Windows.
+  
 To Do:
 - Test the sheduling section.
 
