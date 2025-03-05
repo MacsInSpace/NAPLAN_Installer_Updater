@@ -7,7 +7,8 @@ This repository provides a cross-platform solution for **installing, updating, a
 - ⏳ **Scheduled task runs daily** but intelligently adjusts update frequency.
   - ♻️ **Weekly updates** from **January to April** (preparation & testing period).
   - 🌞 **Monthly updates** outside of testing windows.
-- 🔍 Automatically obtains official **NAPLAN test dates** from **ACARA**:  
+- 🔍 Automatically obtains official **NAPLAN test dates** from **ACARA**:
+- **Uninstalls any old version first** - as recommended by ACARA.
   [NAPLAN Key Dates](https://www.nap.edu.au/naplan/key-dates) (please dont change the format!)
 - ✈ Installs **directly from ACARA's website**:  
   [Assessform NAPLAN Online](https://www.assessform.edu.au/naplan-online/locked-down-browser)
