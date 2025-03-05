@@ -171,6 +171,13 @@ fi
 
 
 install_naplan_ldb() {
+
+    if ! pkgutil --check-signature "$PKG_PATH"; then
+        echo "⚠️ Invalid or missing PKG signature. Exiting." | tee -a /var/log/naplan_update.log
+        exit 1
+    fi
+
+echo "✅ PKG signature is valid. Proceeding with installation..."
     check_for_rosetta
     echo "$(date): Starting NAPLAN LDB installation/update..." >> "$LOG_FILE"
     dl_naplan_ldb    
