@@ -30,7 +30,7 @@ This will:
 - Set up a **scheduled task** that manages NAPLAN LDB.
 - Ensure **automatic updates** based on the smart scheduling system.
 
-### **MacOS (Launch Daemon)**
+### **MacOS (Launch Daemon)** (still testing)
 Run the following command in **Terminal**:
 
 ```bash
