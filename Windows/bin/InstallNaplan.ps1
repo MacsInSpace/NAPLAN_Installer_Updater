@@ -10,7 +10,7 @@ Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ErrorActionPreference = 'Stop'
 $ForceUpdate = $false #true will force the update regardless of version number
-
+$Updatetasktoo = $false #true will force the update task also.
 
 # NAPLAN key dates page
 $url = "https://www.nap.edu.au/naplan/key-dates"
@@ -339,9 +339,10 @@ if ($AppPath -and (Test-Path $AppPath)) {
     Start-Sleep -Milliseconds 500
     (New-Object -ComObject Shell.Application).UndoMinimizeAll()
     Write-Host "Icon refresh complete."
+    if ($Updatetasktoo){
     Write-Host "Self updating the scheduled task too.."
     "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1' | iex"
-    
+    }
 } 
 
 Write-Host "Naplan is up-to-date. Exiting."
