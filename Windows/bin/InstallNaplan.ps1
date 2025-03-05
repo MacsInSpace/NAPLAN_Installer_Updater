@@ -249,7 +249,14 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
         Write-Host "No valid installation source found. Exiting."
         Exit 1
     }
+    $signature = Get-AuthenticodeSignature -FilePath "$Setup"
 
+    if ($signature.Status -ne "Valid") {
+       Write-Host "⚠️ Invalid or missing MSI signature. Exiting."
+    exit 1
+    }
+
+    Write-Host "✅ MSI signature is valid. Proceeding with installation..."
     # Install the MSI
     Write-Host "Installing Naplan..."
     # Start the MSI installation and capture the process object
