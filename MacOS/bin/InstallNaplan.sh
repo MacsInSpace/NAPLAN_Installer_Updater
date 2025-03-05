@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run this manually with:
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallNaplan.sh" | sudo bash
+# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/bin/InstallNaplan.sh" | sudo bash
 
 # Define variables
 unset FORCE_NEW_VERSION
