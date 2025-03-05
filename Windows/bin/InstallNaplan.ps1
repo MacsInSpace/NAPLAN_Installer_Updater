@@ -141,6 +141,12 @@ Write-Host "Detected NAPLAN test window: $testStartDate to $testEndDate"
 # --- Now use these dates for update logic ---
 $currentDate = Get-Date
 
+# If today falls in the test window, log and exit
+if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate) {
+    Add-Content -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Value "$(Get-Date) - Not running due to NAPLAN testing window."
+    exit 0
+}
+
 # Define high-frequency update period (e.g., 60 days before test start)
 $highFreqStartDate = $testStartDate.AddDays(-60)
 $highFreqEndDate = $testEndDate
