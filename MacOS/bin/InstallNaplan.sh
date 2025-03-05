@@ -12,6 +12,7 @@ LOG_FILE="/var/log/naplan_update.log"
 PLIST_BUNDLE="NAP Locked down browser.app"
 FORCE_NEW_VERSION=false
 UPDATETASKTOO=false
+
 fetch_naplan_dates() {
     local key_dates_url="https://www.nap.edu.au/naplan/key-dates"
 
@@ -193,6 +194,18 @@ install_naplan_ldb() {
 
 # Main script execution
 update_frequency=$(determine_update_frequency)
+
+LOG_FILE="/var/log/naplan_update.log"
+
+# Define test window (Dynamically fetched)
+
+TODAY=$(date +"%Y-%m-%d")
+
+# If today is within the test window, log and exit
+if [[ "$TODAY" > "$start_day" && "$TODAY" < "$end_day" ]]; then
+    echo "$(date) - Not running due to NAPLAN testing window." >> "$LOG_FILE"
+    exit 0
+fi
 
 if [ "$update_frequency" == "weekly" ]; then
     echo "$(date): Scheduling weekly updates." >> "$LOG_FILE"
