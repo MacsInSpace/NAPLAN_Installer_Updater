@@ -38,14 +38,26 @@ This will:
 ---
 
 ## ❌ Uninstallation (Deep Clean)
-If you need to **completely remove** all NAPLAN versions, including leftovers from old installers:
+If you need to **completely remove** all NAPLAN versions, including leftovers from old installers and task:
+### 🔹 **Option 1: Automatic Uninstallation via PowerShell**
+Run the following command in an **elevated PowerShell window** (**Admin mode**):
 
-1. Run [`NAPLANnuke.ps1`](NAPLANnuke.ps1) in **PowerShell (Admin)**.
-2. This script:
-   - Removes **all NAPLAN-related files**.
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/bin/NukeScheduledTask.ps1")
+```
+
+This will:
+   - Remove **all NAPLAN-related files**.
    - Clears **registry entries** and **old configurations**.
    - Ensures a **clean slate** before a fresh install.
-   - *Does not remove the Scheduled Task.
+   - Remove the Scheduled Task.
+
+---
+
+### 🔹 **Option 2: Manual UnInstallation (Recommended for BYOD)**
+1. **Download** [`UninstallNaplanTask.cmd`](UninstallNaplanTask.cmd)  
+2. **Right-click → Run as Administrator**  
+3. This removes the scheduled task and NAPLAN LDB.
 
 ---
 
