@@ -176,6 +176,15 @@ install_naplan_ldb() {
         echo "⚠️ Invalid or missing PKG signature. Exiting." | tee -a /var/log/naplan_update.log
         exit 1
     fi
+    # Check the certificate name
+    signer=$(pkgutil --check-signature "$PKG_PATH" | grep "Developer ID Installer" | awk -F': ' '{print $2}')
+
+    if [[ "$signer" != *"ACARA"* ]]; then
+    echo "❌ WARNING: PKG is NOT signed by ACARA. Exiting."
+        exit 1
+    fi
+
+echo "✅ PKG is signed by a trusted entity. Proceeding with installation..."
 
 echo "✅ PKG signature is valid. Proceeding with installation..."
     check_for_rosetta
