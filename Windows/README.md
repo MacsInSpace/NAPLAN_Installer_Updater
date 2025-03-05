@@ -7,6 +7,8 @@ This repository automates the **installation, updating, and uninstallation** of 
 | File | Description |
 |------|------------|
 | [`InstallNaplanTask.cmd`](InstallNaplanTask.cmd) | Runs `NAPLANscheduledtask.ps1` for easier setup (useful for BYOD or manual installs). |
+| [`UninstallNaplanTask.cmd`](UninstallNaplanTask.cmd) | Runs `NukeScheduledTask.ps1` for easier removal of both task and application (useful for BYOD or manual uninstalls). |
+|
 | [`NAPLANscheduledtask.ps1`](bin/NAPLANscheduledtask.ps1) | Configures a scheduled task to auto-update NAPLAN LDB. |
 | [`InstallNaplan.ps1`](bin/InstallNaplan.ps1) | Installs or updates the latest NAPLAN LDB. |
 | [`NAPLANnuke.ps1`](bin/NAPLANnuke.ps1) | Deep cleans old NAPLAN installations and removes residual files. |
