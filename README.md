@@ -20,7 +20,7 @@ This repository provides a cross-platform solution for **installing, updating, a
 
 ## 🌐 Installation Methods
 ### **Windows (Scheduled Task)**
-Run the following command in **PowerShell (Admin Mode)**:
+Run the following command in **PowerShell (RunAs Admin)**:
 
 ```powershell
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/NAPLANscheduledtask.ps1")
@@ -30,7 +30,7 @@ This will:
 - Set up a **scheduled task** that manages NAPLAN LDB.
 - Ensure **automatic updates** based on the smart scheduling system.
 
-### **MacOS (Launch Daemon)** (still testing)
+### **MacOS (Launch Daemon)** - (still testing)
 Run the following command in **Terminal**:
 
 ```bash
@@ -45,7 +45,7 @@ This will:
 To remove **all** existing versions of NAPLAN LDB:
 
 ### **Windows (Deep Clean)**
-Run the following command in **PowerShell (Admin Mode)**:
+Run the following command in **PowerShell (RunAs Admin)**:
 ```powershell
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/NAPLANnuke.ps1")
 ```
