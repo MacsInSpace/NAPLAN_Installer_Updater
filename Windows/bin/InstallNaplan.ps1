@@ -252,6 +252,62 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
     # Wait for the process to exit
     Write-Host "Waiting for installation to complete..."
     $installProcess.WaitForExit()
+    # Define the firewall rule name
+$RuleName = "NAPLockedDownBrowserOutbound"
+
+# Try to find the install path from the registry (32-bit and 64-bit locations)
+$RegistryPaths = @(
+    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\NAPLockedDownBrowser",
+    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\NAPLockedDownBrowser"
+)
+
+$AppPath = $null
+
+foreach ($RegPath in $RegistryPaths) {
+    if (Test-Path $RegPath) {
+        $InstallLocation = (Get-ItemProperty -Path $RegPath).InstallLocation
+        if ($InstallLocation) {
+            $AppPath = Join-Path -Path $InstallLocation -ChildPath "NAP Locked Down Browser.exe"
+            break
+        }
+    }
+}
+
+# Fallback paths (if registry doesn't contain install path)
+if (-not $AppPath -or -not (Test-Path $AppPath)) {
+    $FallbackPaths = @(
+        "C:\Program Files (x86)\NAP Locked Down Browser\NAP Locked Down Browser.exe",
+        "C:\Program Files\NAP Locked Down Browser\NAP Locked Down Browser.exe"
+    )
+
+    foreach ($Path in $FallbackPaths) {
+        if (Test-Path $Path) {
+            $AppPath = $Path
+            break
+        }
+    }
+}
+
+# Check if we have a valid path before adding firewall rule
+if ($AppPath -and (Test-Path $AppPath)) {
+    # Check if the rule already exists
+    $ruleExists = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyContinue
+
+    if (-not $ruleExists) {
+        New-NetFirewallRule -DisplayName $RuleName `
+                            -Description "Outbound rule for NAP Locked Down Browser" `
+                            -Program $AppPath `
+                            -Direction Outbound `
+                            -Action Allow `
+                            -Profile Any
+
+        Write-Host "✅ Outbound rule for NAP Locked Down Browser has been added."
+    } else {
+        Write-Host "⚠️ Firewall rule '$RuleName' already exists. No action taken."
+    }
+} else {
+    Write-Host "❌ Could not determine NAPLAN LDB install location. Firewall rule NOT added."
+    }
 
     # Clean up MSI file after installation completes
     Write-Host "Installation completed. Cleaning up..."
