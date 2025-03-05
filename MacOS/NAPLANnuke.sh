@@ -65,7 +65,7 @@ rm -rf "$HOME/Library/Caches/NAPLAN"
 
 # Forget previous installations
 # Get a list of installed packages that match "naplan" or "ldb"
-naplan_packages=$(pkgutil --pkgs | grep -iE "naplan|ldb")
+naplan_packages=$(pkgutil --pkgs | grep -iE "janison|naplan|ldb")
 
 if [[ -z "$naplan_packages" ]]; then
     echo "No NAPLAN or LDB-related packages found." | tee -a "$LOG_FILE"
