@@ -101,7 +101,8 @@ Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script
 [Open an issue](https://github.com/MacsInSpace/NAPLAN_Installer_Updater/issues) or submit a pull request! 🚀
 
 **Note!**
-Issues should be relevant **only** to the scheduled task/launchd process specific to the Updater. 
+Issues should be relevant **only** to the scheduled task/launchd process or specific to this installer/updater. 
+
 **Not** for the browser itsself.
 
 ---
