@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run this manually with:
+# Run this manually as a once off with:
 # curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/bin/InstallNaplan.sh" | sudo bash
 
 # Define variables
