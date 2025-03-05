@@ -26,7 +26,8 @@ Run the following command in an **elevated PowerShell window** (**Admin mode**):
 
 This will:
 ✅ Download and execute the **scheduled task setup**  
-✅ Ensure **automatic updates** for the NAPLAN LDB  
+✅ Ensure **automatic updates** for the NAPLAN LDB
+✅ Add a firewall rule
 
 ---
 
@@ -51,6 +52,7 @@ This will:
    - Clears **registry entries** and **old configurations**.
    - Ensures a **clean slate** before a fresh install.
    - Remove the Scheduled Task.
+   - Remove the firewall rule.
 
 ---
 
