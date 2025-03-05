@@ -172,12 +172,15 @@ fi
 install_naplan_ldb() {
     check_for_rosetta
     echo "$(date): Starting NAPLAN LDB installation/update..." >> "$LOG_FILE"
-    dl_naplan_ldb    `# Install the new package
+    dl_naplan_ldb    
+    # Install the new package
     echo "$(date): Installing NAPLAN LDB package..." >> "$LOG_FILE"
     installer -pkg "$PKG_PATH" -target / >> $LOG_FILE
     if [ $? -eq 0 ]; then
         echo "Installation successful." >> $LOG_FILE
         rm -f "$PKG_PATH"
+        # SelfUpdating the launchd
+        curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
     else
         echo "Installation failed." >> $LOG_FILE
         exit 1
