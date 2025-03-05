@@ -24,7 +24,7 @@ cat << 'EOF' > "$SCRIPT_PATH"
 #!/bin/bash
 
 LOG_FILE="/var/log/naplan_update.log"
-INSTALL_SCRIPT_URL="https://api.github.com/repos/MacsInSpace/NAPLAN_Installer_Updater/contents/MacOS/InstallNaplan.sh"
+INSTALL_SCRIPT_URL="https://api.github.com/repos/MacsInSpace/NAPLAN_Installer_Updater/contents/MacOS/bin/InstallNaplan.sh"
 
 # Ensure we have internet
 ping -c 1 8.8.8.8 &>/dev/null
