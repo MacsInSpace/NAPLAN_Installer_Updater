@@ -11,7 +11,7 @@ PKG_PATH="$DOWNLOAD_DIR/$PKG_NAME"
 LOG_FILE="/var/log/naplan_update.log"
 PLIST_BUNDLE="NAP Locked down browser.app"
 FORCE_NEW_VERSION=false
-
+UPDATETASKTOO=false
 fetch_naplan_dates() {
     local key_dates_url="https://www.nap.edu.au/naplan/key-dates"
 
@@ -179,8 +179,10 @@ install_naplan_ldb() {
     if [ $? -eq 0 ]; then
         echo "Installation successful." >> $LOG_FILE
         rm -f "$PKG_PATH"
-        # SelfUpdating the launchd
+        if [ $UPDATETASKTOO ]; then
+        echo "SelfUpdating the launchd." >> $LOG_FILE
         curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
+        fi
     else
         echo "Installation failed." >> $LOG_FILE
         exit 1
