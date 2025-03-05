@@ -23,7 +23,7 @@ This repository provides an unofficial, cross-platform, solution for **installin
 - ⏳ **Scheduled task runs daily** but intelligently adjusts update frequency.
   - ♻️ **Weekly updates** from **January to April** (preparation & testing period).
   - 🌞 **Monthly updates** outside of testing windows.
-  - NO updates during the testing window ~~unless forced~~.
+  - **NO updates** during the testing window ~~unless forced~~.
 - 🔍 Automatically obtains official **NAPLAN test dates** from **ACARA**:
    - [NAPLAN Key Dates](https://www.nap.edu.au/naplan/key-dates) (please dont change the format!)
 - **Uninstalls any old version first** - as recommended by ACARA.
