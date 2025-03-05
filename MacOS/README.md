@@ -1,5 +1,6 @@
 # 💻 NAPLAN Installer & Updater for MacOS
 
+Still in testing.....
 This script automates the **installation, updating, and uninstallation** of the **NAPLAN Locked-Down Browser (LDB)** on **MacOS**, following the same update logic as the Windows version.
 
 ## 🌐 Overview
