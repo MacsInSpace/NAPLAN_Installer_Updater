@@ -1,4 +1,4 @@
-The Online National Assessment Platform is used by schools conducting NAPLAN testing (for years 3, 5, 7 and 9)
+The Online National Assessment Platform is used by Australian schools conducting NAPLAN testing (for years 3, 5, 7 and 9)
 
 [NAPLAN info](https://www.assessform.edu.au/naplan-online)
 
