@@ -251,10 +251,13 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
     }
     $signature = Get-AuthenticodeSignature -FilePath "$Setup"
 
-    if ($signature.Status -ne "Valid") {
-       Write-Host "⚠️ Invalid or missing MSI signature. Exiting."
+    
+    if ($signature.Status -ne "Valid" -or $signature.SignerCertificate.Subject -notmatch "ACARA") {
+    Write-Host "❌ WARNING: MSI is NOT signed by ACARA. Exiting."
     exit 1
-    }
+}
+
+Write-Host "✅ MSI is signed by a trusted entity. Proceeding with installation..."
 
     Write-Host "✅ MSI signature is valid. Proceeding with installation..."
     # Install the MSI
