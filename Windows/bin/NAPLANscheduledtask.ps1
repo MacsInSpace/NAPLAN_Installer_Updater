@@ -58,6 +58,21 @@ $Settings = New-ScheduledTaskSettingsSet `
 $ExistingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 
 if ($ExistingTask) {
+    Write-Host "Task '$TaskName' already exists. Updating..."
+    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+} else {
+    Write-Host "Creating scheduled task '$TaskName'..."
+}
+
+# Enable logging for Task Scheduler
+wevtutil set-log Microsoft-Windows-TaskScheduler/Operational /enabled:true
+
+# Set to run as SYSTEM
+$Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+Register-ScheduledTask -TaskName $TaskName -Description $TaskDescription -Action $Action -Trigger $Triggers -Settings $Settings -Principal $Principal -Force
+
+if ($ExistingTask) {
     Write-Host "Scheduled task '$TaskName' has been updated."
 
 } else {
