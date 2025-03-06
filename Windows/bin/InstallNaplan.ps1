@@ -114,13 +114,11 @@ if (-not $success) {
 $contentString = [System.Text.Encoding]::UTF8.GetString(
     [System.Text.Encoding]::Default.GetBytes($webContent.Content)
 )
-$contentString.ToCharArray() | ForEach-Object { "$_ : " + [int][char]$_ }
 # Normalize dashes (replace any non-standard dash characters with a regular hyphen)
 $contentString = $contentString -replace "[\u2012\u2013\u2014\u2015\p{Pd}]", "-"
-$contentString.ToCharArray() | ForEach-Object { "$_ : " + [int][char]$_ }
 
      # Debugging: Save cleaned content
-     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean2.log" -Encoding UTF8
+     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean3.log" -Encoding UTF8
 
      # Apply regex
      $pattern = "(\d{1,2})\s*[\p{Pd}]\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
