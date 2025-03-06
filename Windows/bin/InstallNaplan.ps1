@@ -260,8 +260,8 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
     $signature = Get-AuthenticodeSignature -FilePath "$Setup"
 
     
-    if ($signature.Status -ne "Valid" -or $signature.SignerCertificate.Subject -notmatch "ACARA") {
-    Write-Host "❌ WARNING: MSI is NOT signed by ACARA. Exiting."
+    if ($signature.Status -ne "Valid" -or $signature.SignerCertificate.Subject -notmatch "*JANISON SOLUTIONS*") {
+    Write-Host "❌ WARNING: MSI is NOT signed by ACARA(JANISON). Exiting."
      Stop-Transcript;exit 1
 }
 
