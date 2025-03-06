@@ -113,14 +113,11 @@ if (-not $success) {
         [System.Text.Encoding]::Default.GetBytes($webContent.Content)
      )
      
-     # Replace en-dash (U+2013) and em-dash (U+2014) with standard hyphen (-)
-     $contentString = $contentString -replace "[–—]", "-"
-
      # Debugging: Save cleaned content
      $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean.log" -Encoding UTF8
 
      # Apply regex
-     $pattern = "(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*"
+     $pattern = "(\d{1,2})\s*[\p{Pd}]\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
      $matches = [regex]::Matches($contentString, $pattern)
 
      Write-Host "Found $($matches.Count) matches."
