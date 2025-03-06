@@ -8,7 +8,8 @@ Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
 $TaskDescription = "Installs the latest version of Naplan"
-$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1"
+$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1"
+              https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1
 
 # 🔹 Create the script file to run the command
 # Define the PowerShell script as a string
@@ -16,6 +17,29 @@ $PowerShellCommand = @"
 Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Get the system's WinHTTP proxy settings
+$proxySettings = netsh winhttp show proxy | Out-String
+
+if ($proxySettings -match "Direct access") {
+    Write-Host "✅ No proxy configured, using direct connection."
+} elseif ($proxySettings -match "Proxy Server") {
+    $proxyAddress = ($proxySettings -split "Proxy Server = ")[1] -split "`r`n" | Select-Object -First 1
+    Write-Host "🌐 Using proxy: $proxyAddress"
+    [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxyAddress, $true)
+    [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+} elseif ($proxySettings -match "PAC") {
+    $pacUrl = ($proxySettings -split "PAC file = ")[1] -split "`r`n" | Select-Object -First 1
+    Write-Host "🌐 Using PAC file: $pacUrl"
+
+    # Manually resolve PAC file (Requires additional scripting)
+    $proxyScript = Invoke-WebRequest -Uri $pacUrl -UseBasicParsing
+    Write-Host "PAC file contents retrieved. Parsing not implemented in this script."
+    
+    # You would need to manually parse and extract proxy details from the PAC file here.
+} else {
+    Write-Host "❌ Unknown proxy configuration."
+}
 
 Write-Host "Running live Naplan installer scheduled task..."
 try {
