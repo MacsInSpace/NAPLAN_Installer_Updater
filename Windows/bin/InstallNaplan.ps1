@@ -76,7 +76,7 @@ try {
     if ($pingTest) { $InternetAvailable = $true }
 } catch {
     Write-Host "Internet check failed. Falling back to local SMB."
-    exit 1
+     Stop-Transcript;exit 1
 }
 
 # Securely download and execute the script with TLS 1.2
@@ -135,14 +135,17 @@ elseif ($proxySettings.AutoConfigURL) {
             }
             else {
                 Write-Host "❌ No proxies found in PAC file."
+                 Stop-Transcript;exit 1
             }
         }
         else {
             Write-Host "❌ PAC file is empty."
+             Stop-Transcript;exit 1
         }   
     }
     catch {
         Write-Host "❌ Failed to retrieve PAC file: $_"
+         Stop-Transcript;exit 1
     }
 }
 else {
@@ -217,7 +220,7 @@ $currentDate = Get-Date
 # If today falls in the test window, log and exit
 if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate) {
     Add-Content -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Value "$(Get-Date) - Not running due to NAPLAN testing window."
-    exit 0
+     Stop-Transcript;exit 0
 }
 
 # Define high-frequency update period (e.g., 60 days before test start)
@@ -270,17 +273,17 @@ if ($InternetAvailable) {
                 Write-Host "Latest Naplan Version Found Online: $RemoteVersion"
             } else {
                 Write-Host "Failed to extract version number from MSI URL: $DecodedURL"
-                exit 1
+                 Stop-Transcript;exit 1
             }
         } else {
             Write-Host "No MSI URL found."
-            exit 1
+             Stop-Transcript;exit 1
         }
 
     } catch {
         Write-Host "Failed to retrieve MSI URL. Falling back to local SMB. Error: $_"
         $InternetAvailable = $false
-        exit 1
+         Stop-Transcript;exit 1
     }
 }
 
@@ -320,14 +323,14 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
         Copy-Item "$FallbackSMB" -Destination "$Setup" -Force
     } else {
         Write-Host "No valid installation source found. Exiting."
-        Exit 1
+         Stop-Transcript;exit 1
     }
     $signature = Get-AuthenticodeSignature -FilePath "$Setup"
 
     
     if ($signature.Status -ne "Valid" -or $signature.SignerCertificate.Subject -notmatch "ACARA") {
     Write-Host "❌ WARNING: MSI is NOT signed by ACARA. Exiting."
-    exit 1
+     Stop-Transcript;exit 1
 }
 
 Write-Host "✅ MSI is signed by a trusted entity. Proceeding with installation..."
@@ -447,4 +450,4 @@ Write-Host "Naplan is up-to-date. Exiting."
 } else {
     Write-Host "No update needed. Last update was $daysSinceLastUpdate days ago."
 }
-Stop-Transcript
+ Stop-Transcript
