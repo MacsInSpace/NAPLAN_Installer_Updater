@@ -76,21 +76,12 @@ if ($ExistingTask) {
     Write-Host "Scheduled task '$TaskName' has been updated."
 
 } else {
-    # Ensure new task starts immediately
+    # New task starts immediately
+    Write-Host "Scheduled task '$TaskName' has been added and will start once now."
     Stop-Transcript
+    Start-Sleep 2
     Start-ScheduledTask -TaskName $TaskName
-
-    # Verify task is running
-    Start-Sleep -Seconds 2
-    $taskStatus = Get-ScheduledTask -TaskName $TaskName | Select-Object -ExpandProperty State
-    Write-Host "🔍 Task Status: $taskStatus"
-
-    if ($taskStatus -eq "Running") {
-        Write-Host "✅ Scheduled task '$TaskName' has been created and is running."
-    } else {
-        Write-Host "❌ Scheduled task '$TaskName' did not start as expected."
-    }
 }
 
-#Stop-Transcript
+exit 0
 
