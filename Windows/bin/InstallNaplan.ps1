@@ -84,8 +84,6 @@ try {
 
 # Get the current year dynamically
 $currentYear = (Get-Date).Year
-$dates = "12–24 March"
-$dates.ToCharArray() | ForEach-Object { [int][char]$_ }
 
 # Retry logic for fetching the webpage
 $maxRetries = 3
@@ -115,7 +113,6 @@ $contentString = [System.Text.Encoding]::UTF8.GetString(
     [System.Text.Encoding]::Default.GetBytes($webContent.Content)
 )
 # Normalize dashes (replace any non-standard dash characters with a regular hyphen)
-$contentString = $contentString -replace "[\u2012\u2013\u2014\u2015\p{Pd}]", "-"
 
      # Debugging: Save cleaned content
      $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean3.log" -Encoding UTF8
