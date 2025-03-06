@@ -79,13 +79,13 @@ for pkg in $naplan_packages; do
     if [[ -n "$files" ]]; then
         echo "🗑 Removing files for $pkg..." | tee -a "$LOG_FILE"
         while IFS= read -r file; do
-            sudo rm -rf "/$file"
+            rm -rf "/$file"
         done <<< "$files"
     fi
 
     # Forget the package receipt
     echo "❌ Forgetting package: $pkg" | tee -a "$LOG_FILE"
-    sudo pkgutil --forget "$pkg" >> "$LOG_FILE" 2>&1
+    pkgutil --forget "$pkg" >> "$LOG_FILE" 2>&1
 done
 
 echo "✅ Completed full uninstallation of NAPLAN/LDB." | tee -a "$LOG_FILE"
