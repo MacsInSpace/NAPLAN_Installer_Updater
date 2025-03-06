@@ -130,12 +130,17 @@ if ($matches.Count -gt 0) {
         "October" = 10; "November" = 11; "December" = 12
     }[$month]
 
-   # Construct full date strings in Australian format (DD/MM/YYYY)
-   $testStartDate = Get-Date "$currentYear-$monthNumber-$startDay" -Format "dd/MM/yyyy"
-   $testEndDate = Get-Date "$currentYear-$monthNumber-$endDay" -Format "dd/MM/yyyy"
+   # Construct full date strings, ensuring they remain DateTime objects
+   $testStartDate = [datetime]::ParseExact("$startDay/$monthNumber/$currentYear", "dd/M/yyyy", $null)
+   $testEndDate = [datetime]::ParseExact("$endDay/$monthNumber/$currentYear", "dd/M/yyyy", $null)
 
-   # Output for verification
-   Write-Host "Detected NAPLAN test window: $testStartDate to $testEndDate"
+   # Output in Australian format for readability
+   Write-Host "Detected NAPLAN test window: $($testStartDate.ToString('dd/MM/yyyy')) to $($testEndDate.ToString('dd/MM/yyyy'))"
+
+   # Now you can use AddDays() without errors
+   $highFreqStartDate = $testStartDate.AddDays(-7)
+   $highFreqEndDate = $testEndDate
+
 } else {
     Write-Host "❌ Failed to parse NAPLAN test dates from the webpage."
     Stop-Transcript;exit 1
