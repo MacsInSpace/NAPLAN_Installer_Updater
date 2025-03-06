@@ -388,9 +388,13 @@ if ($AppPath -and (Test-Path $AppPath)) {
 
 if ($Updatetasktoo) {
     Write-Host "Self updating the scheduled task is set. Updating scheduled task."
-    Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"& {
-        Start-Sleep 5; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-        irm -UseBasicParsing -Uri '$scheduledtaskurl' | iex
-    }`""
+    
+    $scriptBlock = @'
+        Start-Sleep 5
+        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+        irm -UseBasicParsing -Uri "$scheduledtaskurl" | iex
+'@
+    Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command $scriptBlock"
 }
+
 Stop-Transcript
