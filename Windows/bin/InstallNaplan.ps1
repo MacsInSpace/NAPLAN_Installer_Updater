@@ -13,7 +13,9 @@ $ForceUpdate = $false #true will force the update regardless of version number
 $Updatetasktoo = $false #true will force the update task also.
 
 # NAPLAN key dates page
-$url = "https://www.nap.edu.au/naplan/key-dates"
+$kdurl = "https://www.nap.edu.au/naplan/key-dates"
+
+$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
@@ -89,7 +91,7 @@ $success = $false
 
 while (-not $success -and $retryCount -lt $maxRetries) {
     try {
-        $webContent = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10
+        $webContent = Invoke-WebRequest -Uri $kdurl -UseBasicParsing -TimeoutSec 10
         $success = $true
     } catch {
         $retryCount++
@@ -184,7 +186,7 @@ if ($updateNeeded) {
 if ($InternetAvailable) {
     try {
         # Fetch the MSI download link
-        $URL = ((Invoke-WebRequest -UseBasicParsing -Uri 'https://www.assessform.edu.au/naplan-online/locked-down-browser').Links | 
+        $URL = ((Invoke-WebRequest -UseBasicParsing -Uri $dlurls).Links | 
         Where-Object {$_.href -match "\.msi$"}).href
 
         if ($URL) {
