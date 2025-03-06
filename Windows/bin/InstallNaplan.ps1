@@ -115,7 +115,7 @@ if (-not $success) {
     $pattern = "(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*"
 
     # Search for the pattern in the content
-$matches = [regex]::Matches($contentString, $pattern)
+   $matches = [regex]::Matches($contentString, $pattern)
 
 if ($matches.Count -gt 0) {
     # Extract start and end dates
@@ -140,7 +140,7 @@ if ($matches.Count -gt 0) {
     Write-Host "❌ Failed to parse NAPLAN test dates from the webpage."
     Stop-Transcript;exit 1
 }
-
+}
 # --- Now use these dates for update logic ---
 $currentDate = Get-Date
 
