@@ -109,9 +109,8 @@ if (-not $success) {
     $testEndDate = Get-Date "$currentYear-04-30"
 } else {
     # Convert the content to a string
-    $contentString = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($webContent.Content))
-    # $contentString = $webContent.Content
-    $contentString | Out-File "C:\Windows\Temp\NaplanWebContent.log" -Encoding UTF8
+    $contentString = $webContent.Content
+    $contentString = $contentString -replace "[–—]", "-"
 
     # Define a regex pattern to match test dates for the current year
     $pattern = "(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*"
