@@ -10,7 +10,7 @@ Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ErrorActionPreference = 'Stop'
 $ForceUpdate = $false #true will force the update regardless of version number
-$Updatetasktoo = $false #true will force the update task also.
+$Updatetasktoo = $true #true will force the update task also.
 
 # NAPLAN key dates page
 $kdurl = "https://www.nap.edu.au/naplan/key-dates"
