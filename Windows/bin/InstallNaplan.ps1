@@ -334,6 +334,7 @@ if ($AppPath -and (Test-Path $AppPath)) {
     # Clean up MSI file after installation completes
     Write-Host "Installation completed. Cleaning up..."
     Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
+    Write-Host "Refreshing icon cache..."
 
     ## Refreshing icon cache option 1
     
@@ -355,7 +356,6 @@ if ($AppPath -and (Test-Path $AppPath)) {
     ## Refreshing icon cache option 2
     
     #ie4uinit.exe -ClearIconCache
-    #Write-Host "Refreshing icon cache..."
     #& ie4uinit.exe -show
 
     #Write-Host "Restarting Windows Explorer..."
@@ -370,14 +370,14 @@ if ($AppPath -and (Test-Path $AppPath)) {
     
     Write-Host "Icon refresh complete."
     
-    if ($Updatetasktoo){
-    Write-Host "Self updating the scheduled task too.."
-    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1' | iex"
-    }
 } 
 
 Write-Host "Naplan is up-to-date. Exiting."
 } else {
     Write-Host "No update needed. Last update was $daysSinceLastUpdate days ago."
 }
- Stop-Transcript
+if ($Updatetasktoo){
+    Write-Host "Self updating the scheduled task too.."
+    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1' | iex"
+}
+Stop-Transcript
