@@ -34,7 +34,7 @@ This repository provides an unofficial, cross-platform, solution for **installin
 - 🔧 **Logs locally for troubleshooting**:
   - **MacOS**: `/var/log/naplan_update.log`
   - **Windows**: `C:\Windows\Temp\NaplanScheduledTask.log`
-- **❌ No third party data trasmission, logging(other than locally), or server reliance. (aside from this repo)**
+- **❌ No third party data transmission, logging(other than locally), or server reliance. (aside from this repo)**
   - Can be edited to run locally with SMB backup.
 
 ## 🌐 Installation Methods
