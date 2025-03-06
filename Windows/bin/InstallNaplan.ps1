@@ -385,8 +385,11 @@ if ($AppPath -and (Test-Path $AppPath)) {
 } else {
     Write-Host "No update needed. Last update was within the required interval."
 }
+
+Stop-Transcript
+
 if ($Updatetasktoo){
     Write-Host "Self updating the scheduled task is set. Updating sheduled task."
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri "$scheduledtaskurl" | iex
 }
-Stop-Transcript
+
