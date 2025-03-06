@@ -389,7 +389,7 @@ if ($AppPath -and (Test-Path $AppPath)) {
 Stop-Transcript
 
 if ($Updatetasktoo){
-    Write-Host "Self updating the scheduled task is set. Updating sheduled task."
+    Write-Host "Self updating the scheduled task is set. Updating sheduled task." >> "$env:windir\Temp\NaplantestingInstall.log"
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri "$scheduledtaskurl" | iex
 }
 
