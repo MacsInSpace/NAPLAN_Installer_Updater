@@ -147,7 +147,7 @@ $currentDate = Get-Date
 
 # If today falls in the test window, log and exit
 if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate) {
-    Add-Content -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Value "$(Get-Date) - Not running due to NAPLAN testing window."
+    Add-Content -Path "C:\Windows\Temp\NaplantestingScheduledTask.log" -Value "$(Get-Date) - Not running due to NAPLAN testing window."
      Stop-Transcript;exit 0
 }
 
