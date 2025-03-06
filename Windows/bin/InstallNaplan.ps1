@@ -386,10 +386,11 @@ if ($AppPath -and (Test-Path $AppPath)) {
     Write-Host "No update needed. Last update was within the required interval."
 }
 
-Stop-Transcript
-
 if ($Updatetasktoo){
-    Write-Host "Self updating the scheduled task is set. Updating sheduled task." >> "$env:windir\Temp\NaplantestingInstall.log"
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri "$scheduledtaskurl" | iex
+    Write-Host "Self updating the scheduled task is set. Updating sheduled task."
+Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"& {
+    Start-Sleep 5;[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+    irm -UseBasicParsing -Uri '$scheduledtaskurl' | iex
+}`""
 }
-
+Stop-Transcript
