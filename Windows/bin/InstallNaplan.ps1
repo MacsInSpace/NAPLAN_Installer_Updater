@@ -139,7 +139,8 @@ if ($matches.Count -gt 0) {
 
 } else {
     Write-Host "❌ Failed to parse NAPLAN test dates from the webpage."
-    Stop-Transcript;exit 1
+    $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
+    $testEndDate = Get-Date "$currentYear-04-30"
 }
 }
 # --- Now use these dates for update logic ---
