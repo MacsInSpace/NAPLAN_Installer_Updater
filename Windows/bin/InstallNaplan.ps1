@@ -227,14 +227,22 @@ if ($InternetAvailable) {
 
 # Check the currently installed version
 Write-Host "Checking for old version..."
-$Installed = (Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE Name LIKE 'NAP Locked down browser%'")
-Write-host "Installed = $installed"
+$Installed = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* `
+    -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
 
-If ($Installed) {
-    $InstalledVersion = ($Installed).Version
-    $InstalledGUID = ($Installed).IdentifyingNumber
-    Write-Host "Installed Version: $InstalledVersion"
-    Write-Host "Installed GUID: $InstalledGUID"
+# If running on a 64-bit system, also check the 32-bit registry:
+if (-not $Installed -and [Environment]::Is64BitOperatingSystem) {
+    $Installed = Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* `
+        -ErrorAction SilentlyContinue |
+        Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
+}
+
+if ($Installed) {
+    Write-Host "Installed Version: $($Installed.DisplayVersion)"
+    Write-Host "Installed GUID: $($Installed.PSChildName)"  # GUID of the installed app
+} else {
+    Write-Host "NAP Locked Down Browser is not installed."
 }
 
 $currentDate | Out-File -FilePath "$NaplanLastUpdate-Check.log" -Append -Encoding utf8
