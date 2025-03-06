@@ -2,19 +2,20 @@
 # Run this with 
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
-Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
+Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
 
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
+$BranchName = "testing"
 $TaskDescription = "Installs the latest version of Naplan"
-$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1"
+$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
 
-# 🔹 Create the script file to run the command
+# Create the script file to run the command
 # Define the PowerShell script as a string
 $PowerShellCommand = @"
-Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
+Start-Transcript -Path "$env:windir\Temp\NaplantestingScheduledTask.log" -Append
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -74,8 +75,14 @@ Register-ScheduledTask -TaskName $TaskName -Description $TaskDescription -Action
 
 if ($ExistingTask) {
     Write-Host "Scheduled task '$TaskName' has been updated."
+    Stop-Transcript
 } else {
-    Start-ScheduledTask -TaskName $TaskName
-    Write-Host "Scheduled task '$TaskName' has been created and will run immediately."
+    # New task starts immediately
+    Write-Host "Scheduled task '$TaskName' has been added and will start now."
+    Stop-Transcript
+    Start-Sleep 2
+    # Start the scheduled task in a detached process
+    Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -WindowStyle Hidden
+
 }
-Stop-Transcript; exit 0
+

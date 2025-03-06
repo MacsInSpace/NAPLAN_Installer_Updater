@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run this manually as a once off with:
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/bin/InstallNaplan.sh" | sudo bash
+# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/bin/InstallNaplan.sh" | sudo bash
 
 # Define variables
 unset FORCE_NEW_VERSION
@@ -198,7 +198,7 @@ echo "✅ PKG signature is valid. Proceeding with installation..."
         rm -f "$PKG_PATH"
         if [ $UPDATETASKTOO ]; then
         echo "SelfUpdating the launchd." >> $LOG_FILE
-        curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
+        curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/InstallLaunchDaemon.sh" | sudo bash
         fi
     else
         echo "Installation failed." >> $LOG_FILE

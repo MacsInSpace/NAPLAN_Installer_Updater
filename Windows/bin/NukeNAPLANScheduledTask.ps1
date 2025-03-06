@@ -2,9 +2,9 @@
 # Run this with 
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NukeNAPLANScheduledTask.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NukeNAPLANScheduledTask.ps1" | iex
 
-Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
+Start-Transcript -Path "C:\Windows\Temp\NaplanNukeScheduledTask.log" -Append
 
 $TaskName = "InstallNaplan"
 
@@ -12,12 +12,12 @@ $TaskName = "InstallNaplan"
 $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
 
 if ($task) {
-    Write-Host "✅ Task '$TaskName' found. Removing..."
+    Write-Host "Task '$TaskName' found. Removing..."
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
 } else {
-    Write-Host "❌ Task '$TaskName' does not exist. Skipping removal."
+    Write-Host "Task '$TaskName' does not exist. Skipping removal."
     
-}[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANnuke.ps1" | iex
+}[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANnuke.ps1" | iex
 
 $RuleName = "NAPLockedDownBrowserOutbound"
 
@@ -26,8 +26,8 @@ $ruleExists = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyCo
 
 if ($ruleExists) {
     Remove-NetFirewallRule -DisplayName $RuleName
-    Write-Host "✅ Firewall rule '$RuleName' has been removed."
+    Write-Host "Firewall rule '$RuleName' has been removed."
 } else {
-    Write-Host "⚠️ Firewall rule '$RuleName' does not exist. No action taken."
+    Write-Host "Firewall rule '$RuleName' does not exist. No action taken."
 }
 Stop-Transcript
