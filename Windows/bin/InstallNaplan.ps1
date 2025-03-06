@@ -8,7 +8,6 @@ Start-Transcript -Path "C:\Windows\Temp\NaplantestingScheduledTask.log" -Append
 
 # Define the fallback local SMB path (only used if the internet check fails)
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
-#$ErrorActionPreference = 'Stop'
 $ForceUpdate = $false #true will force the update regardless of version number
 $Updatetasktoo = $true #true will force the update task also.
 
@@ -17,6 +16,12 @@ $kdurl = "https://www.nap.edu.au/naplan/key-dates"
 
 # NAPLAN downloads page
 $dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
+
+$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANnuke.ps1"
+
+$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1"
+
+$NaplanLastUpdate = "C:\Windows\Temp\NaplanLastUpdate.txt"
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
@@ -68,6 +73,8 @@ If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 # Set download directory for SYSTEM compatibility
 $LocalTempDir = "$env:Windir\Temp"
 $Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
+Write-Host "Force Update NAPLAN set to: $ForceUpdate "
+Write-Host "Update scheduled task set to: $Updatetasktoo"
 
 # Check if we have an active internet connection
 $InternetAvailable = $false
@@ -169,7 +176,7 @@ if ($currentDate -ge $highFreqStartDate -and $currentDate -le $highFreqEndDate) 
 Write-Host "Update interval set to every $updateIntervalDays days."
 
 # Path to store last update date
-$lastUpdateFile = "C:\Windows\Temp\NaplanLastUpdate.txt"
+$lastUpdateFile = "$NaplanLastUpdate"
 
 # Check if an update is needed
 $updateNeeded = $false
@@ -242,7 +249,7 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
         Start-Process "msiexec.exe" -ArgumentList "/X $InstalledGUID /qn /norestart" -NoNewWindow -Wait
         #Nap Nuke
         Write-Host "Calling clean-up of old versions of Naplan"
-        irm  -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANnuke.ps1" | iex
+        irm  -UseBasicParsing -Uri "$napnukeurl" | iex
     }
 
     Write-Host "Downloading and Installing..."
@@ -378,6 +385,6 @@ Write-Host "Naplan is up-to-date. Exiting."
 }
 if ($Updatetasktoo){
     Write-Host "Self updating the scheduled task too.."
-    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1' | iex"
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri "$scheduledtaskurl" | iex
 }
 Stop-Transcript
