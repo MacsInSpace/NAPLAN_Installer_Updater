@@ -109,15 +109,22 @@ if (-not $success) {
     $testEndDate = Get-Date "$currentYear-04-30"
 } else {
     # Convert the content to a string
-    $contentString = $webContent.Content
-    $contentString = $contentString -replace "[–—]", "-"
+     $contentString = [System.Text.Encoding]::UTF8.GetString(
+        [System.Text.Encoding]::Default.GetBytes($webContent.Content)
+     )
+     
+     # Replace en-dash (U+2013) and em-dash (U+2014) with standard hyphen (-)
+     $contentString = $contentString -replace "[–—]", "-"
 
-    # Define a regex pattern to match test dates for the current year
-    $pattern = "(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*"
+     # Debugging: Save cleaned content
+     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean.log" -Encoding UTF8
 
-    # Search for the pattern in the content
-   $matches = [regex]::Matches($contentString, $pattern)
-   $matches.Count
+     # Apply regex
+     $pattern = "(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*"
+     $matches = [regex]::Matches($contentString, $pattern)
+
+     Write-Host "Found $($matches.Count) matches."
+}
    
 if ($matches.Count -gt 0) {
     # Extract start and end dates
