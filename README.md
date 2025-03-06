@@ -14,9 +14,11 @@ The Online National Assessment Platform is used by Australian schools conducting
 
 ## 📝 Unofficial NAPLAN Installer & Updater
 
-This repository provides an unofficial, cross-platform, solution for **installing and updating** the **NAPLAN Locked-Down Browser (LDB)** on both **Windows** and **MacOS**.<br>
+This repository provides an unofficial, cross-platform, solution for **installing and updating** the **NAPLAN Locked-Down Browser (LDB)** on both **Windows** and **MacOS**.<br><br>
 I (we) have no official affiliation with Acara, Education Services Australia or any of the developers of the NAPLAN LDB.<br>
 Just trying to help my peers save some time in rolling out the LDB to their fleet of devices in a more efficient manner.<br>
+Have an idea, issue, or improvement? I'm looking for feedback, contributions, and assistance.<br><br>
+
 
 [For the iOS install, go here!](https://apps.apple.com/au/app/nap-locked-down-browser/id1086807255)
 
