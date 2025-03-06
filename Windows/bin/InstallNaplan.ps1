@@ -379,9 +379,10 @@ if ($AppPath -and (Test-Path $AppPath)) {
     
 } 
 
-Write-Host "Naplan is up-to-date. Exiting."
+    $currentDate | Out-File -FilePath $NaplanLastUpdate -Encoding utf8
+    Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
 } else {
-    Write-Host "No update needed. Last update was $daysSinceLastUpdate days ago."
+    Write-Host "No update needed. Last update was within the required interval."
 }
 if ($Updatetasktoo){
     Write-Host "Self updating the scheduled task is set. Updating sheduled task."
