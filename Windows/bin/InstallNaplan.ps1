@@ -259,9 +259,9 @@ if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
         Write-Host "Calling clean-up of old versions of Naplan"
         irm  -UseBasicParsing -Uri "$napnukeurl" | iex
     }
-
-    Write-Host "Downloading and Installing..."
-
+    Write-Host "InternetAvailable = $InternetAvailable"
+    Write-Host "Downloading and Installing from Url: $URL"
+    
     if ($InternetAvailable -and $URL) {
         Write-Host "Downloading latest version from: $URL"
         (New-Object System.Net.WebClient).DownloadFile($URL, $Setup)
