@@ -4,7 +4,7 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
-Start-Transcript -Path "C:\Windows\Temp\NaplantestingScheduledTask.log" -Append
+Start-Transcript -Path "C:\Windows\Temp\NaplantestingInstallScheduledTask.log" -Append
 
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
@@ -14,7 +14,7 @@ $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Upd
 # Create the script file to run the command
 # Define the PowerShell script as a string
 $PowerShellCommand = @"
-#Start-Transcript -Path "C:\Windows\Temp\NaplantestingScheduledTask.log" -Append
+Start-Transcript -Path "$env:windir\Temp\NaplantestingScheduledTask.log" -Append
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -25,7 +25,7 @@ try {
     Write-Host "Scheduled Task failed to retrieve or execute the script: $_"
         Stop-Transcript;exit 1
 }
-#Stop-Transcript
+Stop-Transcript
 "@
 
 # Encode the command in Base64
