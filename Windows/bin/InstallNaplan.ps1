@@ -109,14 +109,17 @@ if (-not $success) {
     $testEndDate = Get-Date "$currentYear-04-30"
 } else {
     # Convert the content to a string
-    $contentString = $webContent.Content
+    $contentString = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($webContent.Content))
+    # $contentString = $webContent.Content
+    $contentString | Out-File "C:\Windows\Temp\NaplanWebContent.log" -Encoding UTF8
 
     # Define a regex pattern to match test dates for the current year
     $pattern = "(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*"
 
     # Search for the pattern in the content
    $matches = [regex]::Matches($contentString, $pattern)
-
+   $matches.Count
+   
 if ($matches.Count -gt 0) {
     # Extract start and end dates
     $startDay = $matches[0].Groups[1].Value
