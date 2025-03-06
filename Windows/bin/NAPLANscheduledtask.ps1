@@ -63,14 +63,17 @@ elseif ($proxySettings.AutoConfigURL) {
             }
             else {
                 Write-Host "❌ No proxies found in PAC file."
+                 Stop-Transcript;exit 1
             }
         }
         else {
             Write-Host "❌ PAC file is empty."
+             Stop-Transcript;exit 1
         }   
     }
     catch {
         Write-Host "❌ Failed to retrieve PAC file: $_"
+         Stop-Transcript;exit 1
     }
 }
 else {
@@ -137,18 +140,22 @@ elseif ($proxySettings.AutoConfigURL) {
             }
             else {
                 Write-Host "❌ No proxies found in PAC file."
+                 Stop-Transcript;exit 1
             }
         }
         else {
             Write-Host "❌ PAC file is empty."
+             Stop-Transcript;exit 1
         }   
     }
     catch {
         Write-Host "❌ Failed to retrieve PAC file: $_"
+         Stop-Transcript;exit 1
     }
 }
 else {
     Write-Host "✅ No proxy configured, using direct connection."
+     Stop-Transcript;exit 1
 }
 
 #
@@ -158,7 +165,7 @@ try {
     Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL | Invoke-Expression
     } catch {
     Write-Host "Scheduled Task failed to retrieve or execute the script: $_"
-    exit 1
+        Stop-Transcript;exit 1
 }
 Stop-Transcript
 "@
@@ -213,4 +220,4 @@ if ($ExistingTask) {
     Start-ScheduledTask -TaskName $TaskName
     Write-Host "Scheduled task '$TaskName' has been created and will run immediately."
 }
-Stop-Transcript
+Stop-Transcript; exit 0
