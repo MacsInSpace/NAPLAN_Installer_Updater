@@ -18,12 +18,12 @@ if ($proxySettings.ProxyEnable -eq 1) {
 }
 elseif ($proxySettings.AutoConfigURL) {
     $pacUrl = $proxySettings.AutoConfigURL
-    Write-Host "🌐 Using PAC file: $pacUrl"
+    Write-Host "Using PAC file: $pacUrl"
 
     # Try to download the PAC file (parsing not implemented)
     try {
         $pacContent = Invoke-WebRequest -Uri $pacUrl -UseBasicParsing -ErrorAction Stop
-        Write-Host "✅ PAC file retrieved successfully."
+        Write-Host "PAC file retrieved successfully."
 
         # Decode the PAC file content
         $pacText = [System.Text.Encoding]::UTF8.GetString($pacContent.Content)
@@ -37,7 +37,7 @@ elseif ($proxySettings.AutoConfigURL) {
             # Get the last proxy found
             if ($proxies.Count -gt 0) {
                 $lastProxy = $proxies | Select-Object -Last 1
-                Write-Host "🌐 Last Proxy Found: $lastProxy"
+                Write-Host "Last Proxy Found: $lastProxy"
 
                 # Ensure the last proxy has the correct URL format (add http:// if missing)
                 if ($lastProxy -notmatch "^http") {
@@ -49,17 +49,17 @@ elseif ($proxySettings.AutoConfigURL) {
                 [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
             }
             else {
-                Write-Host "❌ No proxies found in PAC file."
+                Write-Host "No proxies found in PAC file."
             }
         }
         else {
-            Write-Host "❌ PAC file is empty."
+            Write-Host "PAC file is empty."
         }   
     }
     catch {
-        Write-Host "❌ Failed to retrieve PAC file: $_"
+        Write-Host "Failed to retrieve PAC file: $_"
     }
 }
 else {
-    Write-Host "✅ No proxy configured, using direct connection."
+    Write-Host "No proxy configured, using direct connection."
 }
