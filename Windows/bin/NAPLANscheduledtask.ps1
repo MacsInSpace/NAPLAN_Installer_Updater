@@ -4,7 +4,7 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
-#Start-Transcript -Path "C:\Windows\Temp\NaplantestingScheduledTask.log" -Append
+Start-Transcript -Path "C:\Windows\Temp\NaplantestingScheduledTask.log" -Append
 
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
@@ -77,6 +77,7 @@ if ($ExistingTask) {
 
 } else {
     # Ensure new task starts immediately
+    Stop-Transcript
     Start-ScheduledTask -TaskName $TaskName
 
     # Verify task is running
