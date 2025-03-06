@@ -4,7 +4,7 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/InstallNaplan.ps1" | iex
 
-Start-Transcript -Path "C:\Windows\Temp\NaplantestingScheduledTask.log" -Append
+Start-Transcript -Path "$env:windir\Temp\NaplantestingScheduledTask.log" -Append
 
 # Define the fallback local SMB path (only used if the internet check fails)
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
@@ -21,7 +21,7 @@ $napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Up
 
 $scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1"
 
-$NaplanLastUpdate = "C:\Windows\Temp\NaplanLastUpdate.txt"
+$NaplanLastUpdate = "$env:windir\Temp\NaplanLastUpdate.txt"
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
@@ -305,9 +305,9 @@ foreach ($RegPath in $RegistryPaths) {
 # Fallback paths (if registry doesn't contain install path)
 if (-not $AppPath -or -not (Test-Path $AppPath)) {
     $FallbackPaths = @(
-        "C:\Program Files (x86)\NAP Locked Down Browser\NAP Locked Down Browser.exe",
-        "C:\Program Files\NAP Locked Down Browser\NAP Locked Down Browser.exe"
-    )
+    "${env:ProgramFiles(x86)}\NAP Locked Down Browser\NAP Locked Down Browser.exe",
+    "$env:ProgramFiles\NAP Locked Down Browser\NAP Locked Down Browser.exe"
+)
 
     foreach ($Path in $FallbackPaths) {
         if (Test-Path $Path) {
