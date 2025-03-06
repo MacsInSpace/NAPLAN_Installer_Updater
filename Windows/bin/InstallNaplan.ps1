@@ -323,12 +323,12 @@ if ($AppPath -and (Test-Path $AppPath)) {
                             -Action Allow `
                             -Profile Any
 
-        Write-Host "✅ Outbound rule for NAP Locked Down Browser has been added."
+        Write-Host "Outbound rule for NAP Locked Down Browser has been added."
     } else {
-        Write-Host "⚠️ Firewall rule '$RuleName' already exists. No action taken."
+        Write-Host "Firewall rule '$RuleName' already exists. No action taken."
     }
 } else {
-    Write-Host "❌ Could not determine NAPLAN LDB install location. Firewall rule NOT added."
+    Write-Host "Could not determine NAPLAN LDB install location. Firewall rule NOT added."
     }
 
     # Clean up MSI file after installation completes
