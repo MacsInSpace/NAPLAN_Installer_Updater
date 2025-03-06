@@ -228,6 +228,7 @@ if ($InternetAvailable) {
 # Check the currently installed version
 Write-Host "Checking for old version..."
 $Installed = (Get-WmiObject -Query "SELECT * FROM Win32_Product WHERE Name LIKE 'NAP Locked down browser%'")
+Write-host "Installed = $installed"
 
 If ($Installed) {
     $InstalledVersion = ($Installed).Version
