@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run this with 
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANnuke.sh" | sudo bash
+# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/NAPLANnuke.sh" | sudo bash
 
 # NAPLANnuke.sh - Completely removes NAPLAN LDB from macOS
 # Run this script as root (sudo) to ensure complete removal
