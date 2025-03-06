@@ -1,6 +1,6 @@
 #!/bin/bash
 # Run this with:
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
+# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/InstallLaunchDaemon.sh" | sudo bash
 
 # Ensure script runs as root
 if [[ $EUID -ne 0 ]]; then
