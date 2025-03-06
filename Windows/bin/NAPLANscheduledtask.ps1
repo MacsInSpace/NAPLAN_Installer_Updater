@@ -17,11 +17,11 @@ Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-Write-Host "Running live Naplan installer..."
+Write-Host "Running live Naplan installer scheduled task..."
 try {
     Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL | Invoke-Expression
     } catch {
-    Write-Host "Failed to retrieve or execute the script: $_"
+    Write-Host "Scheduled Task failed to retrieve or execute the script: $_"
     exit 1
 }
 Stop-Transcript
