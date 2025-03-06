@@ -236,35 +236,18 @@ if (-not $Installed -and [Environment]::Is64BitOperatingSystem) {
 }
 if ($Installed -and $Installed.InstallLocation) {
     Write-Host "NAP LDB Installed at: $($Installed.InstallLocation)"
-} else {
-    Write-Host "No InstallLocation property found."
-}
-
-if ($Installed) {
-    Write-Host "Installed Version: $($Installed.DisplayVersion)"
-    Write-Host "Installed GUID: $($Installed.PSChildName)"
-} else {
-    Write-Host "NAP Locked Down Browser is not found in HKLM registry."
-}
-
-# If running on a 64-bit system, also check the 32-bit registry:
-if (-not $Installed -and [Environment]::Is64BitOperatingSystem) {
-    $Installed = Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* `
-        -ErrorAction SilentlyContinue |
-        Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
-}
-
-if ($Installed) {
     Write-Host "Installed Version: $($Installed.DisplayVersion)"
     Write-Host "Installed GUID: $($Installed.PSChildName)"  # GUID of the installed app
-} else {
-    Write-Host "NAP Locked Down Browser is not installed."
+    } else {
+    Write-Host "No InstallLocation property found or NAP Locked Down Browser is not installed."
 }
+
+
 
 $currentDate | Out-File -FilePath "$NaplanLastUpdate-Check.log" -Append -Encoding utf8
 
 # Compare versions and proceed only if an update is needed
-if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
+if ($ForceUpdate -or $($Installed.DisplayVersion) -ne $RemoteVersion) {
     # Uninstall old version
     if ($ForceUpdate -and $Installed) {
     Write-Host "Force update called. Installing new version"
