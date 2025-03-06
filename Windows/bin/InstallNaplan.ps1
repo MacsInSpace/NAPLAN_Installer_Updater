@@ -21,7 +21,7 @@ $napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Up
 
 $scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1"
 
-$NaplanLastUpdate = "$env:windir\Temp\NaplanLastUpdate.txt"
+$lastUpdateFile = "$env:windir\Temp\NaplanLastUpdate.txt"
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
@@ -175,14 +175,13 @@ if ($currentDate -ge $highFreqStartDate -and $currentDate -le $highFreqEndDate) 
 
 Write-Host "Update interval set to every $updateIntervalDays days."
 
-# Path to store last update date
-$lastUpdateFile = "$NaplanLastUpdate"
-
 # Check if an update is needed
 $updateNeeded = $false
 
+# Read the last update date from the file
 if (Test-Path $lastUpdateFile) {
-    $lastUpdate = Get-Content $lastUpdateFile | Get-Date
+    $lastUpdateString = (Get-Content $lastUpdateFile) -match "\S" | Select-Object -Last 1
+    $lastUpdate = [datetime]::ParseExact($lastUpdateString, "dddd, d MMMM yyyy h:mm:ss tt", $null)
     $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
 
     if ($daysSinceLastUpdate -ge $updateIntervalDays) {
@@ -379,7 +378,7 @@ if ($AppPath -and (Test-Path $AppPath)) {
     
 } 
 
-    $currentDate | Out-File -FilePath $NaplanLastUpdate -Encoding utf8
+    $currentDate | Out-File -FilePath $lastUpdateFile -Encoding utf8
     Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
 } else {
     Write-Host "No update needed. Last update was within the required interval."
