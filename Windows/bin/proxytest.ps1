@@ -2,7 +2,28 @@
 [System.Net.WebRequest]::DefaultWebProxy = $null
 
 # Get the system proxy settings from the registry
-$proxySettings = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue
+# $proxySettings = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue
+
+$Profiles = Get-ChildItem "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList" |
+    ForEach-Object {
+        $UserSID = $_.PSChildName
+        $ProfilePath = $_.GetValue("ProfileImagePath")
+
+        # Skip SYSTEM, LOCAL SERVICE, and NETWORK SERVICE
+        if ($UserSID -notmatch "S-1-5-(18|19|20)") {
+            [PSCustomObject]@{
+                SID         = $UserSID
+                ProfilePath = $ProfilePath
+            }
+        }
+    } | Sort-Object SID -Descending | Select-Object -First 1
+
+if ($Profiles.SID) {
+    $UserProxyPath = "Registry::HKEY_USERS\$($Profiles.SID)\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+    $ProxySettings = Get-ItemProperty -Path $UserProxyPath -ErrorAction SilentlyContinue
+} else {
+    Write-Host "Unable to determine the most recent real user."
+}
 
 if (-not $proxySettings) {
     Write-Host "⚠️ Failed to retrieve proxy settings from registry. Using direct connection."
