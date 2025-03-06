@@ -2,7 +2,7 @@
 # run *THIS* with:
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/InstallNaplan.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1" | iex
 
 Start-Transcript -Path "$env:windir\Temp\NaplanInstall.log" -Append
 
@@ -10,7 +10,7 @@ Start-Transcript -Path "$env:windir\Temp\NaplanInstall.log" -Append
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ForceUpdate = $false #true will force the update regardless of version number
 $Updatetasktoo = $true #true will force the update task also.
-$BranchName = "testing"
+$BranchName = "main"
 
 # NAPLAN key dates page
 $kdurl = "https://www.nap.edu.au/naplan/key-dates"
