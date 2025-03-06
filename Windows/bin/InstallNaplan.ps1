@@ -151,8 +151,12 @@ $currentDate = Get-Date
 
 # If today falls in the test window, log and exit
 if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate) {
-    Write-Host "$(Get-Date) - Not running due to NAPLAN testing window."
+    if ($ForceUpdate ) {
+    Write-Host "We are in the detected testing period but forcing the update. Hold on tight..." 
+    } else {
+     Write-Host "$(Get-Date) - Not running due to NAPLAN testing window."
      Stop-Transcript;exit 0
+    }
 }
 
 # Define high-frequency update period (e.g., 60 days before test start)
