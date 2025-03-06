@@ -15,6 +15,7 @@ $Updatetasktoo = $false #true will force the update task also.
 # NAPLAN key dates page
 $kdurl = "https://www.nap.edu.au/naplan/key-dates"
 
+# NAPLAN downloads page
 $dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
 
 #=======================================================================
