@@ -9,8 +9,7 @@ Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 $TaskName = "InstallNaplan"
 $TaskDescription = "Installs the latest version of Naplan"
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1"
-              https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1
-
+            
 # 🔹 Create the script file to run the command
 # Define the PowerShell script as a string
 $PowerShellCommand = @"
