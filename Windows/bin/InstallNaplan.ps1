@@ -124,7 +124,7 @@ if (-not $success) {
      $matches = [regex]::Matches($contentString, $pattern)
 
      Write-Host "Found $($matches.Count) matches."
-}
+
    
 if ($matches.Count -gt 0) {
     # Extract start and end dates
