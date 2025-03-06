@@ -1,65 +1,82 @@
+# Reset any existing proxy settings
+[System.Net.WebRequest]::DefaultWebProxy = $null
+
 # Get the system proxy settings from the registry
-$proxySettings = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+$proxySettings = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings" -ErrorAction SilentlyContinue
+
+if (-not $proxySettings) {
+    Write-Host "⚠️ Failed to retrieve proxy settings from registry. Using direct connection."
+    exit 0
+}
 
 # Check if a static proxy is enabled
-if ($proxySettings.ProxyEnable -eq 1) {
-    $proxyAddress = $proxySettings.ProxyServer
-    Write-Host "🌐 Using system proxy: $proxyAddress"
+if ($proxySettings.ProxyEnable -eq 1 -and $proxySettings.ProxyServer) {
+    $proxyAddress = $proxySettings.ProxyServer.Trim()
 
-    # Ensure the proxy URL is in a valid format (add http:// if missing)
-    if ($proxyAddress -notmatch "^http") {
+    Write-Host "🌐 System Proxy Detected: $proxyAddress"
+
+    # Ensure the proxy URL has the correct format
+    if ($proxyAddress -notmatch "^(http|https)://") {
         $proxyAddress = "http://$proxyAddress"
     }
 
-    # Set PowerShell to use the detected proxy
-    [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxyAddress, $true)
-    [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
-
+    try {
+        [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxyAddress, $true)
+        [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+        Write-Host "✅ Proxy configured successfully."
+    } catch {
+        Write-Host "❌ Failed to set proxy: $_"
+    }
 }
 elseif ($proxySettings.AutoConfigURL) {
-    $pacUrl = $proxySettings.AutoConfigURL
-    Write-Host "Using PAC file: $pacUrl"
+    $pacUrl = $proxySettings.AutoConfigURL.Trim()
+    Write-Host "🌍 Using PAC file: $pacUrl"
 
-    # Try to download the PAC file (parsing not implemented)
     try {
         $pacContent = Invoke-WebRequest -Uri $pacUrl -UseBasicParsing -ErrorAction Stop
-        Write-Host "PAC file retrieved successfully."
+        Write-Host "📄 PAC file retrieved successfully."
 
-        # Decode the PAC file content
-        $pacText = [System.Text.Encoding]::UTF8.GetString($pacContent.Content)
+        $pacText = [System.Text.Encoding]::UTF8.GetString($pacContent.Content).Trim()
 
-        # Ensure PAC file is not empty before running regex
         if ($pacText.Length -gt 0) {
-            # Extract all proxy occurrences
-            $proxies = [regex]::Matches($pacText, "(?i)(PROXY|SOCKS5?)\s+([\w\.-]+):(\d+)") | 
-            ForEach-Object { "$($_.Groups[2].Value):$($_.Groups[3].Value)" }
+            # Regex pattern to extract PROXY/SOCKS5 settings
+            $ProxyPattern = "(?i)\b(PROXY|SOCKS5?)\s+([\w\.-]+):(\d+)\b"
+            $ProxyMatches = [regex]::Matches($pacText, $ProxyPattern)
 
-            # Get the last proxy found
-            if ($proxies.Count -gt 0) {
+            if ($ProxyMatches.Count -gt 0) {
+                # Process matches correctly
+                $proxies = $ProxyMatches | ForEach-Object { "$($_.Groups[2].Value):$($_.Groups[3].Value)" }
+
+                # Get the last valid proxy found
                 $lastProxy = $proxies | Select-Object -Last 1
-                Write-Host "Last Proxy Found: $lastProxy"
 
-                # Ensure the last proxy has the correct URL format (add http:// if missing)
-                if ($lastProxy -notmatch "^http") {
+                Write-Host "🔎 Last Proxy Found: $lastProxy"
+
+                # Ensure correct URL format
+                if ($lastProxy -and $lastProxy -notmatch "^http") {
                     $lastProxy = "http://$lastProxy"
                 }
 
-                # Set PowerShell to use the detected proxy
-                [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($lastProxy, $true)
-                [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                try {
+                    [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($lastProxy, $true)
+                    [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                    Write-Host "✅ Proxy set successfully from PAC file."
+                } catch {
+                    Write-Host "❌ Failed to apply proxy settings: $_"
+                }
             }
             else {
-                Write-Host "No proxies found in PAC file."
+                Write-Host "⚠️ No valid proxies found in PAC file."
             }
         }
         else {
-            Write-Host "PAC file is empty."
-        }   
+            Write-Host "⚠️ PAC file is empty."
+        }
     }
     catch {
-        Write-Host "Failed to retrieve PAC file: $_"
+        Write-Host "❌ Failed to retrieve PAC file: $_"
     }
 }
 else {
-    Write-Host "No proxy configured, using direct connection."
+    Write-Host "🚀 No proxy configured, using direct connection."
 }
