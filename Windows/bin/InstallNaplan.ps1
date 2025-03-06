@@ -108,14 +108,10 @@ if (-not $success) {
     $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
     $testEndDate = Get-Date "$currentYear-04-30"
 } else {
-    # Convert the web content to a UTF-8 string
-$contentString = [System.Text.Encoding]::UTF8.GetString(
-    [System.Text.Encoding]::Default.GetBytes($webContent.Content)
-)
-# Normalize dashes (replace any non-standard dash characters with a regular hyphen)
+ 
 
-     # Debugging: Save cleaned content
-     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean3.log" -Encoding UTF8
+     $contentString = $webContent.Content
+     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean4.log" -Encoding UTF8
 
      # Apply regex
      $pattern = "(\d{1,2})\s*[\p{Pd}]\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
