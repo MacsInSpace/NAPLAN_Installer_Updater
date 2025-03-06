@@ -78,8 +78,14 @@ try {
     Write-Host "Internet check failed. Falling back to local SMB."
     exit 1
 }
+
 # Securely download and execute the script with TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# Proxy Settings go here
+
+
+#
 
 # Get the current year dynamically
 $currentYear = (Get-Date).Year
