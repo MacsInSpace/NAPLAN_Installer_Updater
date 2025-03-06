@@ -84,6 +84,8 @@ try {
 
 # Get the current year dynamically
 $currentYear = (Get-Date).Year
+$dates = "12–24 March"
+$dates.ToCharArray() | ForEach-Object { [int][char]$_ }
 
 # Retry logic for fetching the webpage
 $maxRetries = 3
@@ -114,7 +116,7 @@ if (-not $success) {
      )
      
      # Debugging: Save cleaned content
-     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean.log" -Encoding UTF8
+     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean1.log" -Encoding UTF8
 
      # Apply regex
      $pattern = "(\d{1,2})\s*[\p{Pd}]\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
