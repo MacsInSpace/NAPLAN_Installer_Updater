@@ -332,7 +332,8 @@ if ($AppPath -and (Test-Path $AppPath)) {
     Write-Host "Installation completed. Cleaning up..."
     Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
 
-    # Clearing/resetting icon cache
+    ## Refreshing icon cache option 1
+    
     #Write-Host "Stopping Windows Explorer..."
     #Stop-Process -Name "explorer" -Force -ErrorAction SilentlyContinue
 
@@ -347,6 +348,9 @@ if ($AppPath -and (Test-Path $AppPath)) {
     #        Remove-Item "$ExplorerCachePath\iconcache*" -Force -ErrorAction SilentlyContinue
     #    }
     #}
+
+    ## Refreshing icon cache option 2
+    
     #ie4uinit.exe -ClearIconCache
     #Write-Host "Refreshing icon cache..."
     #& ie4uinit.exe -show
@@ -354,10 +358,15 @@ if ($AppPath -and (Test-Path $AppPath)) {
     #Write-Host "Restarting Windows Explorer..."
     #Stop-Process -Name "explorer" -Force -ErrorAction SilentlyContinue
     #Start-Process "explorer.exe"
+
+    ## Refreshing icon cache option 3
+    
     (New-Object -ComObject Shell.Application).MinimizeAll()
     Start-Sleep -Milliseconds 500
     (New-Object -ComObject Shell.Application).UndoMinimizeAll()
+    
     Write-Host "Icon refresh complete."
+    
     if ($Updatetasktoo){
     Write-Host "Self updating the scheduled task too.."
     "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1' | iex"
