@@ -120,7 +120,7 @@ $contentString = $contentString -replace "[\u2012\u2013\u2014\u2015\p{Pd}]", "-"
 $contentString.ToCharArray() | ForEach-Object { "$_ : " + [int][char]$_ }
 
      # Debugging: Save cleaned content
-     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean1.log" -Encoding UTF8
+     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean2.log" -Encoding UTF8
 
      # Apply regex
      $pattern = "(\d{1,2})\s*[\p{Pd}]\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
