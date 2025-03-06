@@ -92,4 +92,4 @@ if ($ExistingTask) {
 }
 
 Stop-Transcript
-exit 0
+
