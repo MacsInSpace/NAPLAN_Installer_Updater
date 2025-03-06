@@ -236,6 +236,8 @@ If ($Installed) {
     Write-Host "Installed GUID: $InstalledGUID"
 }
 
+$currentDate | Out-File -FilePath "$NaplanLastUpdate-Check.log" -Append -Encoding utf8
+
 # Compare versions and proceed only if an update is needed
 if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
     # Uninstall old version
