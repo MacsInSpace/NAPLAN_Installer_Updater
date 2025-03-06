@@ -115,32 +115,31 @@ if (-not $success) {
     $pattern = "(\d{1,2})[\-\–](\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s*"
 
     # Search for the pattern in the content
-    $matches = [regex]::Matches($contentString, $pattern)
+$matches = [regex]::Matches($contentString, $pattern)
 
-    if ($matches.Count -gt 0) {
-        # Extract start and end dates
-        $startDay = $matches[0].Groups[1].Value
-        $endDay = $matches[0].Groups[2].Value
-        $month = $matches[0].Groups[3].Value
+if ($matches.Count -gt 0) {
+    # Extract start and end dates
+    $startDay = $matches[0].Groups[1].Value
+    $endDay = $matches[0].Groups[2].Value
+    $month = $matches[0].Groups[3].Value
 
-        # Convert the month name to a numerical format
-        $monthNumber = @{
-            "January" = 1; "February" = 2; "March" = 3; "April" = 4; "May" = 5;
-            "June" = 6; "July" = 7; "August" = 8; "September" = 9;
-            "October" = 10; "November" = 11; "December" = 12
-        }[$month]
+    # Convert the month name to a numerical format
+    $monthNumber = @{
+        "January" = 1; "February" = 2; "March" = 3; "April" = 4; "May" = 5;
+        "June" = 6; "July" = 7; "August" = 8; "September" = 9;
+        "October" = 10; "November" = 11; "December" = 12
+    }[$month]
 
-        # Construct full date strings
-        $testStartDate = Get-Date "$currentYear-$monthNumber-$startDay"
-        $testEndDate = Get-Date "$currentYear-$monthNumber-$endDay"
-    } else {
-        Write-Host "Failed to parse NAPLAN test dates from the webpage. Using fallback dates."
-        $testStartDate = Get-Date "$currentYear-03-1"  # Fallback start date
-        $testEndDate = Get-Date "$currentYear-04-30"    # Fallback end date
-    }
+   # Construct full date strings in Australian format (DD/MM/YYYY)
+   $testStartDate = Get-Date "$currentYear-$monthNumber-$startDay" -Format "dd/MM/yyyy"
+   $testEndDate = Get-Date "$currentYear-$monthNumber-$endDay" -Format "dd/MM/yyyy"
+
+   # Output for verification
+   Write-Host "Detected NAPLAN test window: $testStartDate to $testEndDate"
+} else {
+    Write-Host "❌ Failed to parse NAPLAN test dates from the webpage."
+    Stop-Transcript;exit 1
 }
-
-Write-Host "Detected NAPLAN test window: $testStartDate to $testEndDate"
 
 # --- Now use these dates for update logic ---
 $currentDate = Get-Date
