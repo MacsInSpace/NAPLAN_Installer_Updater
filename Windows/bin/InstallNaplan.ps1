@@ -234,10 +234,11 @@ if (-not $Installed -and [Environment]::Is64BitOperatingSystem) {
     $Installed = Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
         Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
 }
-if ($Installed -and $Installed.InstallLocation) {
+if ($Installed) {
     Write-Host "NAP LDB Installed at: $($Installed.InstallLocation)"
     Write-Host "Installed Version: $($Installed.DisplayVersion)"
     Write-Host "Installed GUID: $($Installed.PSChildName)"  # GUID of the installed app
+    $InstalledGUID = $($Installed.PSChildName)
     } else {
     Write-Host "No InstallLocation property found or NAP Locked Down Browser is not installed."
 }
