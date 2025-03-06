@@ -11,6 +11,7 @@ $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ForceUpdate = $false #true will force the update regardless of version number
 $Updatetasktoo = $true #true will force the update task also.
 $BranchName = "testing"
+
 # NAPLAN key dates page
 $kdurl = "https://www.nap.edu.au/naplan/key-dates"
 
