@@ -77,11 +77,14 @@ if ($ExistingTask) {
 
 } else {
     # New task starts immediately
-    Write-Host "Scheduled task '$TaskName' has been added and will start once now."
-    Stop-Transcript
+    Write-Host "Scheduled task '$TaskName' has been added and will start now."
     Start-Sleep 2
-    Start-ScheduledTask -TaskName $TaskName
+
+    # Start the scheduled task in a detached process
+    Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -WindowStyle Hidden
+
 }
 
+Stop-Transcript
 exit 0
 
