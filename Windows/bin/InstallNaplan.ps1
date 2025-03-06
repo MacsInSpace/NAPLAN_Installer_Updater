@@ -261,13 +261,11 @@ if ($ForceUpdate -or $InstalledVersion -ne $RemoteVersion) {
 
     
     if ($signature.Status -ne "Valid" -or $signature.SignerCertificate.Subject -notlike "*JANISON SOLUTIONS PTY LTD*") {
-    Write-Host "❌ WARNING: MSI is NOT signed by ACARA(JANISON). Exiting."
+    Write-Host "WARNING: MSI is NOT signed by ACARA(JANISON). Exiting."
      Stop-Transcript;exit 1
 }
 
-Write-Host "✅ MSI is signed by a trusted entity. Proceeding with installation..."
-
-    Write-Host "✅ MSI signature is valid. Proceeding with installation..."
+    Write-Host "MSI is signed by a trusted entity and signature is valid. Proceeding with installation..."
     # Install the MSI
     Write-Host "Installing Naplan..."
     # Start the MSI installation and capture the process object
@@ -277,10 +275,10 @@ Write-Host "✅ MSI is signed by a trusted entity. Proceeding with installation.
     Write-Host "Waiting for installation to complete..."
     $installProcess.WaitForExit()
     # Define the firewall rule name
-$RuleName = "NAPLockedDownBrowserOutbound"
+     $RuleName = "NAPLockedDownBrowserOutbound"
 
-# Try to find the install path from the registry (32-bit and 64-bit locations)
-$RegistryPaths = @(
+    # Try to find the install path from the registry (32-bit and 64-bit locations)
+     $RegistryPaths = @(
     "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\NAPLockedDownBrowser",
     "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\NAPLockedDownBrowser"
 )
