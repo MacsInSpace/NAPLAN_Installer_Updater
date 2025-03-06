@@ -108,11 +108,7 @@ if (-not $success) {
     $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
     $testEndDate = Get-Date "$currentYear-04-30"
 } else {
- 
-
      $contentString = $webContent.Content
-     $contentString | Out-File "C:\Windows\Temp\NaplanWebContent_Clean4.log" -Encoding UTF8
-
      # Apply regex
      $pattern = "(\d{1,2})\s*[\p{Pd}]\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
      $matches = [regex]::Matches($contentString, $pattern)
