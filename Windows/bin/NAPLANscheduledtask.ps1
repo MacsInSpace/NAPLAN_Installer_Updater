@@ -3,6 +3,7 @@
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1" | iex
+
 Start-Transcript -Path "C:\Windows\Temp\NaplanScheduledTask.log" -Append
 
 # Install NAPLAN Update Scheduled Task
