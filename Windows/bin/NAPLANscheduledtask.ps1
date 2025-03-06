@@ -4,12 +4,13 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
-Start-Transcript -Path "C:\Windows\Temp\NaplantestingInstallScheduledTask.log" -Append
+Start-Transcript -Path "$env:windir\Temp\NaplantestingInstallScheduledTask.log" -Append
 
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
+$BranchName = "testing"
 $TaskDescription = "Installs the latest version of Naplan"
-$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/InstallNaplan.ps1"
+$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
 
 # Create the script file to run the command
 # Define the PowerShell script as a string
