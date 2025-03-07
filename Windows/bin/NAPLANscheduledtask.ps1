@@ -14,7 +14,7 @@ $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Upd
 
 # Create the script file to run the command
 # Define the PowerShell script as a string
-$PowerShellCommand = @"
+$PowerShellCommand = @'
 Start-Transcript -Path "$env:windir\Temp\NaplantestingScheduledTask.log" -Append
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -268,7 +268,7 @@ try {
         Stop-Transcript;exit 1
 }
 Stop-Transcript
-"@
+'@
 
 # Encode the command in Base64
 $EncodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($PowerShellCommand))
