@@ -20,11 +20,11 @@ Start-Transcript -Path "$env:windir\Temp\NaplantestingScheduledTask.log" -Append
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 [System.Net.WebRequest]::DefaultWebProxy = $null
-netsh winhttp reset proxy
 
 # Step 1: Check System-wide Proxy (HKLM)
 $SystemProxyPath = "Registry::HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Internet Settings"
 $SystemProxySettings = Get-ItemProperty -Path $SystemProxyPath -ErrorAction SilentlyContinue
+netsh winhttp reset proxy
 
 if ($SystemProxySettings) {
     if ($SystemProxySettings.ProxyEnable -eq 1 -and $SystemProxySettings.ProxyServer) {
@@ -36,14 +36,11 @@ if ($SystemProxySettings) {
         }
 
         try {
-            netsh winhttp set proxy proxy-server="$proxyAddress"
             [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxyAddress, $true)
             [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
             Write-Host "Proxy configured successfully (System-wide)."
         } catch {
             Write-Host "Failed to set system-wide proxy: $_"
-            [System.Net.WebRequest]::DefaultWebProxy = $null
-                netsh winhttp reset proxy
         }
     }
     elseif ($SystemProxySettings.AutoConfigURL) {
@@ -54,56 +51,9 @@ if ($SystemProxySettings) {
 }
 
 # If system-wide proxy is found, we **skip user-specific checks**
-if ($SystemProxySettings -and ($SystemProxySettings.ProxyEnable -eq 1 -or $SystemProxySettings.AutoConfigURL)) {
-    Write-Host "Using system-wide proxy."
-
-    if ($SystemProxySettings.ProxyEnable -eq 1 -and $SystemProxySettings.ProxyServer) {
-        $proxyAddress = $SystemProxySettings.ProxyServer.Trim()
-        if ($proxyAddress -notmatch "^(http|https)://") {
-            $proxyAddress = "http://$proxyAddress"
-        }
-        netsh winhttp set proxy proxy-server="$proxyAddress"
-        [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxyAddress, $true)
-        [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
-        Write-Host "✅ Static Proxy set: $proxyAddress"
-    }
-    elseif ($SystemProxySettings.AutoConfigURL) {
-        $pacUrl = $SystemProxySettings.AutoConfigURL.Trim()
-        Write-Host "🌍 PAC file detected: $pacUrl"
-        
-        try {
-            $pacContent = Invoke-WebRequest -Uri $pacUrl -UseBasicParsing -ErrorAction Stop
-            Write-Host "📄 PAC file retrieved successfully."
-
-            # Extract proxy settings from PAC file
-            $pacText = [System.Text.Encoding]::UTF8.GetString($pacContent.Content)
-            $ProxyPattern = "(?i)\b(PROXY|SOCKS5?)\s+([\w\.-]+):(\d+)\b"
-            $ProxyMatches = [regex]::Matches($pacText, $ProxyPattern)
-
-            if ($ProxyMatches.Count -gt 0) {
-                $proxies = $ProxyMatches | ForEach-Object { "$($_.Groups[2].Value):$($_.Groups[3].Value)" }
-                $lastProxy = $proxies | Select-Object -Last 1
-
-                if ($lastProxy -and $lastProxy -notmatch "^http") {
-                    $lastProxy = "http://$lastProxy"
-                }
-                netsh winhttp set proxy proxy-server="$lastProxy"
-                [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($lastProxy, $true)
-                [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
-                Write-Host "✅ Proxy set from PAC file: $lastProxy"
-            }
-            else {
-                Write-Host "⚠️ No valid proxies found in PAC file."
-                [System.Net.WebRequest]::DefaultWebProxy = $null
-                netsh winhttp reset proxy
-            }
-        } catch {
-            Write-Host "❌ Failed to retrieve PAC file: $_"
-            [System.Net.WebRequest]::DefaultWebProxy = $null
-            netsh winhttp reset proxy
-        }
-    }
-exit 0
+if ($proxySettings) {
+    Write-Host "Using System-wide Proxy settings. Skipping user-specific lookup."
+    exit 0
 }
 
 # Step 2: Check Currently Logged-in User
@@ -143,8 +93,6 @@ if (-not $UserSID) {
         Write-Host "Falling back to last real user: $($Profiles.ProfilePath)"
     } else {
         Write-Host "No real user profiles found!"
-        [System.Net.WebRequest]::DefaultWebProxy = $null
-        netsh winhttp reset proxy
         exit 0
     }
 }
@@ -168,8 +116,6 @@ if ($proxySettings) {
 
 if (-not $proxySettings) {
     Write-Host "No proxy settings found for user."
-    [System.Net.WebRequest]::DefaultWebProxy = $null
-    netsh winhttp reset proxy
     exit 0
 }
 
@@ -189,8 +135,6 @@ if ($proxySettings.ProxyEnable -eq 1 -and $proxySettings.ProxyServer) {
         Write-Host "Proxy configured successfully."
     } catch {
         Write-Host "Failed to set proxy: $_"
-        [System.Net.WebRequest]::DefaultWebProxy = $null
-        netsh winhttp reset proxy
     }
 }
 
@@ -241,31 +185,17 @@ elseif ($proxySettings.AutoConfigURL) {
                 Write-Host "Proxy set successfully from PAC file."
             } else {
                 Write-Host "No valid proxies found in PAC file."
-                [System.Net.WebRequest]::DefaultWebProxy = $null
-                netsh winhttp reset proxy
             }
         } else {
             Write-Host "PAC file is empty."
-            [System.Net.WebRequest]::DefaultWebProxy = $null
-            netsh winhttp reset proxy
         }
     }
     catch {
         Write-Host "Failed to retrieve PAC file: $_"
-        [System.Net.WebRequest]::DefaultWebProxy = $null
-        netsh winhttp reset proxy
     }
 }
 else {
     Write-Host "No proxy configured, using direct connection."
-}
-
-Write-Host "Running live Naplan installer scheduled task..."
-try {
-    Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL | Invoke-Expression
-    } catch {
-    Write-Host "Scheduled Task failed to retrieve or execute the script: $_"
-        Stop-Transcript;exit 1
 }
 Stop-Transcript
 '@
