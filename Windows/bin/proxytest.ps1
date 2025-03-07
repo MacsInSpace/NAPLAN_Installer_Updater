@@ -1,4 +1,3 @@
-# Unset any existing PowerShell proxy
 [System.Net.WebRequest]::DefaultWebProxy = $null
 
 # Step 1: Check System-wide Proxy (HKLM)
@@ -126,10 +125,16 @@ elseif ($proxySettings.AutoConfigURL) {
         Write-Host "PAC file retrieved successfully."
 
         #$pacText = [System.Text.Encoding]::UTF8.GetString($pacContent.Content)
+                  if ($pacContent.Content -is [byte[]]) {
+            $pacText = [System.Text.Encoding]::UTF8.GetString($pacContent.Content)
+        } else {
+            $pacText = $pacContent.Content
+        }
 
-        if ($pacContent.Length -gt 0) {
+        if ($pacText.Length -gt 0) {
             # Define regex pattern to capture "PROXY" or "SOCKS5" followed by hostname/IP and port
             $ProxyPattern = "(?i)\b(PROXY|SOCKS5?)\s+([\w\.-]+):(\d+)\b"
+
 
             # Extract proxy matches from PAC file content
             $ProxyMatches = [regex]::Matches($pacText, $ProxyPattern)
