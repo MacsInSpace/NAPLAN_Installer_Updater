@@ -29,9 +29,52 @@ if ($SystemProxySettings) {
 }
 
 # If system-wide proxy is found, we **skip user-specific checks**
-if ($proxySettingsgs) {
-    Write-Host "Using System-wide Proxy settings. Skipping user-specific lookup."
-    exit 0
+if ($SystemProxySettings -and ($SystemProxySettings.ProxyEnable -eq 1 -or $SystemProxySettings.AutoConfigURL)) {
+    Write-Host "Using system-wide proxy."
+
+    if ($SystemProxySettings.ProxyEnable -eq 1 -and $SystemProxySettings.ProxyServer) {
+        $proxyAddress = $SystemProxySettings.ProxyServer.Trim()
+        if ($proxyAddress -notmatch "^(http|https)://") {
+            $proxyAddress = "http://$proxyAddress"
+        }
+
+        [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($proxyAddress, $true)
+        [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+        Write-Host "✅ Static Proxy set: $proxyAddress"
+    }
+    elseif ($SystemProxySettings.AutoConfigURL) {
+        $pacUrl = $SystemProxySettings.AutoConfigURL.Trim()
+        Write-Host "🌍 PAC file detected: $pacUrl"
+        
+        try {
+            $pacContent = Invoke-WebRequest -Uri $pacUrl -UseBasicParsing -ErrorAction Stop
+            Write-Host "📄 PAC file retrieved successfully."
+
+            # Extract proxy settings from PAC file
+            $pacText = [System.Text.Encoding]::UTF8.GetString($pacContent.Content)
+            $ProxyPattern = "(?i)\b(PROXY|SOCKS5?)\s+([\w\.-]+):(\d+)\b"
+            $ProxyMatches = [regex]::Matches($pacText, $ProxyPattern)
+
+            if ($ProxyMatches.Count -gt 0) {
+                $proxies = $ProxyMatches | ForEach-Object { "$($_.Groups[2].Value):$($_.Groups[3].Value)" }
+                $lastProxy = $proxies | Select-Object -Last 1
+
+                if ($lastProxy -and $lastProxy -notmatch "^http") {
+                    $lastProxy = "http://$lastProxy"
+                }
+
+                [System.Net.WebRequest]::DefaultWebProxy = New-Object System.Net.WebProxy($lastProxy, $true)
+                [System.Net.WebRequest]::DefaultWebProxy.Credentials = [System.Net.CredentialCache]::DefaultNetworkCredentials
+                Write-Host "✅ Proxy set from PAC file: $lastProxy"
+            }
+            else {
+                Write-Host "⚠️ No valid proxies found in PAC file."
+            }
+        } catch {
+            Write-Host "❌ Failed to retrieve PAC file: $_"
+        }
+    }
+exit 0
 }
 
 # Step 2: Check Currently Logged-in User
