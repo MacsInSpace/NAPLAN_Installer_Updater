@@ -208,13 +208,23 @@ $updateNeeded = $false
 # Read the last update date from the file
 if (Test-Path $lastUpdateFile) {
     $lastUpdateString = (Get-Content $lastUpdateFile) -match "\S" | Select-Object -Last 1
-    $lastUpdate = [datetime]::ParseExact($lastUpdateString, "dddd, d MMMM yyyy h:mm:ss tt", $null)
-    $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
 
-    if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+    try {
+        # Parse last update as YYYYMMDD
+        $lastUpdate = [datetime]::ParseExact($lastUpdateString, "yyyyMMdd", $null)
+        $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
+
+        Write-Host "Last update was on: $lastUpdate (Days since: $daysSinceLastUpdate)"
+
+        if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+            $updateNeeded = $true
+        }
+    } catch {
+        Write-Host "⚠️ Failed to parse last update date. Forcing update."
         $updateNeeded = $true
     }
 } else {
+    Write-Host "No previous update record found. Forcing update."
     $updateNeeded = $true
 }
 
@@ -416,8 +426,7 @@ if ($AppPath -and (Test-Path $AppPath)) {
     Write-Host "Icon refresh complete."
     
 } 
-
-    $currentDate | Out-File -FilePath $lastUpdateFile -Encoding utf8
+    $currentDateString | Set-Content -Path $lastUpdateFile -Force
     Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
 } else {
     Write-Host "No update needed. Last update was within the required interval."
