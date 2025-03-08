@@ -157,7 +157,7 @@ $Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccou
 
 Register-ScheduledTask -TaskName $TaskName -Description $TaskDescription -Action $Action -Trigger $Triggers -Settings $Settings -Principal $Principal -Force
 
-if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
+if ($ExistingTask) {
     Write-Host "Scheduled task '$TaskName' has been updated."
     Stop-Transcript
 } else {
