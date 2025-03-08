@@ -171,6 +171,11 @@ try {
 # Securely download and execute the script with TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+# Check the currently installed version
+Write-Host "Checking for old version..."
+$Installed = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
+    Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
+    
 # Retry logic for fetching the webpage
 $maxRetries = 3
 $retryCount = 0
@@ -268,7 +273,7 @@ if (Test-Path $lastUpdateFile) {
 
             Write-Host "Last update was on: $lastUpdate (Days since: $daysSinceLastUpdate)"
 
-            if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+            if ($daysSinceLastUpdate -ge $updateIntervalDays -or $ForceUpdate -or (-not $Installed)) {
                 $updateNeeded = $true
             }
         } catch {
@@ -320,11 +325,6 @@ if ($InternetAvailable) {
          Stop-Transcript;exit 1
     }
 }
-
-# Check the currently installed version
-Write-Host "Checking for old version..."
-$Installed = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
-    Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
 
 if (-not $Installed -and [Environment]::Is64BitOperatingSystem) {
     $Installed = Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
