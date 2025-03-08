@@ -36,7 +36,29 @@ $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Upd
 # Create the script file to run the command
 # Define the PowerShell script as a string
 $PowerShellCommand = @"
-Start-Transcript -Path `"`$env:windir\Temp\NaplantestingScheduledTask.log`" -Append
+
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if (`$global:transcript -ne `$null) {
+        Write-Host `"Transcript is already running. Skipping Start-Transcript.`"
+    } else {
+        Start-Transcript -Path `"`$env:windir\Temp\NaplanInstallScheduledTask.log`" -Append
+        `$global:transcript = `$true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host `"No active transcript to stop.`"
+    }
+    `$global:transcript = `$null
+}
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 [System.Net.WebRequest]::DefaultWebProxy = `$null
@@ -286,9 +308,8 @@ try {
     Invoke-WebRequest -UseBasicParsing -Uri `$ScriptURL | Invoke-Expression
     } catch {
     Write-Host `"Scheduled Task failed to retrieve or execute the script: `$_`"
-        Stop-Transcript;exit 1
+        exit 1
 }
-Stop-Transcript
 "@
 
 # Encode the command in Base64
