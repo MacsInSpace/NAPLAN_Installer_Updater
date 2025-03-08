@@ -64,9 +64,9 @@ $Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
 
 $lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
 
-$NaplanInstallScheduledTask = Join-Path $LocalTempDir "NaplanInstallScheduledTask.log"
+$NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask.log"
 
-$NaplanInstall =  Join-Path $LocalTempDir "NaplanInstall.log"
+$NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
