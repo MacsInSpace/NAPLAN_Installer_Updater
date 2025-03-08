@@ -69,24 +69,24 @@ Write-Host `"Running live Naplan installer scheduled task...`"
 `$ProxyScriptPath = Join-Path `$StoragePath `"proxy.ps1`"
 
 # Run Proxy Script if it exists
-if (Test-Path `"`$ProxyScriptPath`"`) {
+if (Test-Path `"`$ProxyScriptPath`") {
     try {
         Write-Host `"Executing Proxy Script: `$ProxyScriptPath`""
         Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass -File `"`$ProxyScriptPath`"`" -NoNewWindow -Wait
     } catch {
-        Write-Host `"Failed to execute proxy script: `$_`""
+        Write-Host `"Failed to execute proxy script: `$_`"`"
         exit 1
     }
 } else {
-    Write-Host `"⚠️ Proxy script not found at: `$ProxyScriptPath. Skipping.`"
+    Write-Host `"Proxy script not found at: `$ProxyScriptPath. Skipping.`"
 }
 
 # Run the main NAPLAN script
 try {
     Write-Host `"Fetching and running NAPLAN installer script...`"
-    Invoke-WebRequest -UseBasicParsing -Uri `"`$ScriptURL`"` | Invoke-Expression
+    Invoke-WebRequest -UseBasicParsing -Uri `"`$ScriptURL`" | Invoke-Expression
 } catch {
-    Write-Host `"❌ Scheduled Task failed to retrieve or execute the script: `$_`""
+    Write-Host `"Scheduled Task failed to retrieve or execute the script: `$_`"`"
     exit 1
 }
 "@
