@@ -94,14 +94,13 @@ Start-ConditionalTranscript
 # Run Proxy Script if it exists
 if (Test-Path `"`$ProxyScriptPath`") {
     try {
-        Write-Host `"Executing Proxy Script: `$ProxyScriptPath`"
-        Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass  -NoNewWindow -WindowStyle Hidden -File `$ProxyScriptPath`"
+        Write-Host `"Executing Proxy Script inline: `$ProxyScriptPath"`
+        & '$ProxyScriptPath'  # Calls the script directly in the current session
     } catch {
-        Write-Host `"Failed to execute proxy script: `$_`"
-        exit 1
+        Write-Host `"Failed to execute proxy script: $_`"
     }
 } else {
-    Write-Host `"Proxy script not found at: `$ProxyScriptPath. Skipping.`"
+    Write-Host `"Proxy script not found at: '$ProxyScriptPath'. Skipping.`"
 }
 
 # Run the main NAPLAN script
