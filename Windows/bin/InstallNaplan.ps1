@@ -170,7 +170,7 @@ if ($matches.Count -gt 0) {
 $currentDate = Get-Date
 
 # If today falls in the test window, log and exit
-if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate) {
+if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate -or $ForceUpdate) {
     if ($ForceUpdate ) {
     Write-Host "We are in the detected testing period but forcing the update. Hold on tight..." 
     } else {
