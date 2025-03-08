@@ -67,7 +67,7 @@ function Start-ConditionalTranscript {
         Write-Host `"Transcript is already running. Skipping Start-Transcript.`"
     } else {
         Start-Transcript -Path `"`$env:windir\Temp\NaplanInstallScheduledTask.log`" -Append
-        `$global:transcript = $true  # Mark transcript as active
+        `$global:transcript = `$true  # Mark transcript as active
     }
 }
 
@@ -95,7 +95,7 @@ Start-ConditionalTranscript
 if (Test-Path `"`$ProxyScriptPath`") {
     try {
         Write-Host `"Executing Proxy Script: `$ProxyScriptPath`"
-        Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass -File `$ProxyScriptPath`" -NoNewWindow -Wait
+        Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass  -NoNewWindow -WindowStyle Hidden -File `$ProxyScriptPath`"
     } catch {
         Write-Host `"Failed to execute proxy script: `$_`"
         exit 1
@@ -109,7 +109,7 @@ try {
     Write-Host `"Fetching and running NAPLAN installer script...`"
     Invoke-WebRequest -UseBasicParsing -Uri `"`$ScriptURL`" | Invoke-Expression
 } catch {
-    Write-Host `"Scheduled Task failed to retrieve or execute the script: `$_`"`"
+    Write-Host `"Scheduled Task failed to retrieve or execute the script: `$_`"
     exit 1
 }
 "@
