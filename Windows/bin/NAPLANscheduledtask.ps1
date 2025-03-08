@@ -164,7 +164,6 @@ Register-ScheduledTask -TaskName $TaskName -Description $TaskDescription -Action
 
 if ($ExistingTask) {
     Write-Host "Scheduled task '$TaskName' has been updated."
-    Stop-Transcript
 } else {
     # New task starts immediately
     Write-Host "Scheduled task '$TaskName' has been added and will start shortly."
