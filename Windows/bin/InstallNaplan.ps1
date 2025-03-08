@@ -4,7 +4,28 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/InstallNaplan.ps1" | iex
 
-Start-Transcript -Path "$env:windir\Temp\NaplanInstall.log" -Append
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if ($global:transcript -ne $null) {
+        Write-Host "Transcript is already running. Skipping Start-Transcript."
+    } else {
+        Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
+        $global:transcript = $true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host "No active transcript to stop."
+    }
+    $global:transcript = $null
+}
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
 
 # Define the fallback local SMB path (only used if the internet check fails)
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
@@ -395,4 +416,5 @@ if ($Updatetasktoo) {
     Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command $scriptBlock"
 }
 
-Stop-Transcript
+# Stop the transcript only if it was started
+Stop-ConditionalTranscript
