@@ -370,7 +370,7 @@ if (-not $AppPath -or -not (Test-Path $AppPath)) {
 if ($AppPath -and (Test-Path $AppPath)) {
 
     # Log it as installed 
-    $CurrentDate = Get-Date -Format "yyyyMMdd"
+    $currentDateString = Get-Date -Format "yyyyMMdd"
     $currentDateString | Set-Content -Path $lastUpdateFile -Force
     
     # Check if the rule already exists
