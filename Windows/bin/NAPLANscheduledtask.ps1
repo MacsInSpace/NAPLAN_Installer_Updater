@@ -3,12 +3,43 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask" | iex
 
+
+# Define the storage paths
+$StoragePath = Join-Path $env:ProgramData "Naplan"
+
+$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
+
+$LocalTempDir = Join-Path $StoragePath "Temp"
+
+$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
+
+$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
+
+$NaplanInstallScheduledTask = Join-Path $LocalTempDir "NaplanInstallScheduledTask.log"
+
+$NaplanInstall =  Join-Path $LocalTempDir "NaplanInstall.log"
+
+# Git branch
+$BranchName = "testing"
+
+# Ensure the directory exists
+if (-not (Test-Path $StoragePath)) {
+    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
+    Write-Host "Created directory: $StoragePath"
+}
+
+# Ensure the directory exists
+if (-not (Test-Path $LocalTempDir)) {
+    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
+    Write-Host "Created directory: $LocalTempDir"
+}
+
 # Function to check if a transcript is running
 function Start-ConditionalTranscript {
-    if ($global:transcript -eq $true) {
+    if ($global:transcript -ne $null) {
         Write-Host "Transcript is already running. Skipping Start-Transcript."
     } else {
-        Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
+        Start-Transcript -Path "$NaplanInstall" -Append
         $global:transcript = $true  # Mark transcript as active
     }
 }
@@ -20,22 +51,20 @@ function Stop-ConditionalTranscript {
     } catch {
         Write-Host "No active transcript to stop."
     }
-    $global:transcript = $false
+    $global:transcript = $null
 }
 
 # Call the function to conditionally start transcript
 Start-ConditionalTranscript
 
-# Install NAPLAN Update Scheduled Task
+# Scheduled Task Name
 $TaskName = "InstallNaplan"
-$BranchName = "testing"
+
 $TaskDescription = "Installs the latest version of Naplan"
+
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
 $ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/proxy.ps1"
 
-# Define the storage path
-$StoragePath = Join-Path $env:ProgramData "Naplan"
-$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
