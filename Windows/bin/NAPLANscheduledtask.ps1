@@ -1,12 +1,6 @@
-# Install NAPLAN Update Scheduled Task
-# Run this with 
-# You may need to enable TLS for secure downloads on PS version 5ish
-# [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1" | iex
-
 # Function to check if a transcript is running
 function Start-ConditionalTranscript {
-    if ($global:transcript -ne $null) {
+    if ($global:transcript -eq $true) {
         Write-Host "Transcript is already running. Skipping Start-Transcript."
     } else {
         Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
@@ -32,12 +26,11 @@ $TaskName = "InstallNaplan"
 $BranchName = "testing"
 $TaskDescription = "Installs the latest version of Naplan"
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
-$ProxyPath = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/proxy.ps1"
+$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/proxy.ps1"
 
 # Define the storage path
 $StoragePath = Join-Path $env:ProgramData "Naplan"
-$ProxyScriptPath = "$StoragePath\proxy.ps1"
-$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/proxy.ps1"
+$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
@@ -65,7 +58,6 @@ try {
 }
 
 # Create the script file to run the command
-
 $PowerShellCommand = @"
 Write-Host `"Running live Naplan installer scheduled task...`"
 
@@ -73,26 +65,26 @@ Write-Host `"Running live Naplan installer scheduled task...`"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 # Define paths
-$StoragePath = Join-Path $env:ProgramData "Naplan"
-$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
+`$StoragePath = Join-Path `$env:ProgramData `"Naplan`"
+`$ProxyScriptPath = Join-Path `$StoragePath `"proxy.ps1`"
 
 # Run Proxy Script if it exists
-if (Test-Path `"$ProxyScriptPath`") {
+if (Test-Path `"`$ProxyScriptPath`"`) {
     try {
-        Write-Host `"Executing Proxy Script: `"$ProxyScriptPath`""`
-        Start-Process -FilePath "powershell.exe" -ArgumentList "-ExecutionPolicy Bypass -File `"$ProxyScriptPath`"" -NoNewWindow -Wait
+        Write-Host `"Executing Proxy Script: `$ProxyScriptPath`""
+        Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass -File `"`$ProxyScriptPath`"`" -NoNewWindow -Wait
     } catch {
         Write-Host `"Failed to execute proxy script: `$_`""
         exit 1
     }
 } else {
-    Write-Host `"⚠️ Proxy script not found at: `"$ProxyScriptPath`". Skipping.`"
+    Write-Host `"⚠️ Proxy script not found at: `$ProxyScriptPath. Skipping.`"
 }
 
 # Run the main NAPLAN script
 try {
     Write-Host `"Fetching and running NAPLAN installer script...`"
-    Invoke-WebRequest -UseBasicParsing -Uri `$ScriptURL | Invoke-Expression
+    Invoke-WebRequest -UseBasicParsing -Uri `"`$ScriptURL`"` | Invoke-Expression
 } catch {
     Write-Host `"❌ Scheduled Task failed to retrieve or execute the script: `$_`""
     exit 1
@@ -153,7 +145,7 @@ if ($ExistingTask) {
     
     # Start the scheduled task in a detached process
     Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -WindowStyle Hidden
-
 }
+
 # Stop the transcript only if it was started
 Stop-ConditionalTranscript
