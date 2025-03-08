@@ -100,7 +100,7 @@ function Start-ConditionalTranscript {
     if (`$global:transcript -eq `$true) {
         Write-Host `"Transcript is already running. Skipping Start-Transcript.`"
     } else {
-        Start-Transcript -Path '$NaplanInstallScheduledTask' -Append
+        Start-Transcript -Path '$NaplanInstall' -Append
         `$global:transcript = `$true  # Mark transcript as active
     }
 }
