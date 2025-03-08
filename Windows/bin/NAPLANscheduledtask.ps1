@@ -107,7 +107,7 @@ if (Test-Path `"`$ProxyScriptPath`") {
 # Run the main NAPLAN script
 try {
     Write-Host `"Fetching and running NAPLAN installer script...`"
-    Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL | Invoke-Expression
+    Invoke-WebRequest -UseBasicParsing -Uri '$ScriptURL' | Invoke-Expression
 } catch {
     Write-Host `"Scheduled Task failed to retrieve or execute the script: `$_`"
     exit 1
