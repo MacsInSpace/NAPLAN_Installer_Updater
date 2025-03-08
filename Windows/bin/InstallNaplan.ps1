@@ -427,6 +427,7 @@ if ($AppPath -and (Test-Path $AppPath)) {
     
     (New-Object -ComObject Shell.Application).MinimizeAll()
     Start-Sleep -Milliseconds 500
+    ie4uinit.exe -ClearIconCache
     (New-Object -ComObject Shell.Application).UndoMinimizeAll()
 } 
     Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
