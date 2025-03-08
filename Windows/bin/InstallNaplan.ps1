@@ -205,22 +205,27 @@ Write-Host "Update interval set to every $updateIntervalDays days."
 # Check if an update is needed
 $updateNeeded = $false
 
-# Read the last update date from the file
+## Read the last update date from the file
 if (Test-Path $lastUpdateFile) {
-    $lastUpdateString = (Get-Content $lastUpdateFile) -match "\S" | Select-Object -Last 1
+    $lastUpdateString = Get-Content $lastUpdateFile | Where-Object { $_ -match "\S" } | Select-Object -Last 1
 
-    try {
-        # Parse last update as YYYYMMDD
-        $lastUpdate = [datetime]::ParseExact($lastUpdateString, "yyyyMMdd", $null)
-        $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
+    if ($lastUpdateString) {
+        try {
+            # Parse last update as YYYYMMDD
+            $lastUpdate = [datetime]::ParseExact($lastUpdateString, "yyyyMMdd", $null)
+            $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
 
-        Write-Host "Last update was on: $lastUpdate (Days since: $daysSinceLastUpdate)"
+            Write-Host "Last update was on: $lastUpdate (Days since: $daysSinceLastUpdate)"
 
-        if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+            if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+                $updateNeeded = $true
+            }
+        } catch {
+            Write-Host "Failed to parse last update date. Forcing update."
             $updateNeeded = $true
         }
-    } catch {
-        Write-Host "⚠️ Failed to parse last update date. Forcing update."
+    } else {
+        Write-Host "Update file is empty or invalid. Forcing update."
         $updateNeeded = $true
     }
 } else {
