@@ -337,8 +337,10 @@ if ($Installed) {
     Write-Host "No InstallLocation property found or NAP Locked Down Browser is not installed."
 }
 
-$currentDate | Out-File -FilePath "$NaplanLastUpdate-Check.log" -Append -Encoding utf8
-
+    # Log it as installed 
+    $currentDateString = Get-Date -Format "yyyyMMdd"
+    $currentDateString | Set-Content -Path $lastUpdateFile -Force
+    
 # Compare versions and proceed only if an update is needed
 if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
     # Uninstall old version
