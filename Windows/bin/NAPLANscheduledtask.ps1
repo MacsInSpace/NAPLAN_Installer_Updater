@@ -171,6 +171,6 @@ if ($ExistingTask) {
     # Start the scheduled task in a detached process
     Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -WindowStyle Hidden
 }
-Start-Sleep -Minutes 10
+Start-Sleep -seconds 600
 # Stop the transcript only if it was started
 Stop-ConditionalTranscript
