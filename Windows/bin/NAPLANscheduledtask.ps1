@@ -60,13 +60,10 @@ Start-ConditionalTranscript
 # Scheduled Task Name
 $TaskName = "InstallNaplan"
 
-
-# Install NAPLAN Update Scheduled Task
-$TaskName = "InstallNaplan"
-
 $TaskDescription = "Installs the latest version of Naplan"
 
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
+
 $ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/proxy.ps1"
 
 
