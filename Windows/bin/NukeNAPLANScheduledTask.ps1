@@ -40,19 +40,12 @@ if (Test-Path "$ProxyScriptPath") {
     try {
         Write-Host "Removing Proxy Script: $ProxyScriptPath"
         Remove-Item -Path ProxyScriptPath -Force
+                Remove-Item -Path $StoragePath -Force
     } catch {
         Write-Host "Failed to remove proxy script: $_"
     }
 } else {
     Write-Host "Proxy script not found at: $ProxyScriptPath. Skipping removal."
-}
-
-# Check if the folder is empty before deleting it
-if ((Get-ChildItem -Path $StoragePath -Force | Measure-Object).Count -eq 0) {
-    Remove-Item -Path $StoragePath -Force
-    Write-Host "Deleted empty folder: $StoragePath"
-} else {
-    Write-Host "Folder not empty, skipping deletion: $StoragePath"
 }
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANnuke.ps1" | iex
