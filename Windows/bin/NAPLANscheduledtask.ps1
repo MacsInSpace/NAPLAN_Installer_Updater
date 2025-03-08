@@ -95,7 +95,7 @@ Start-ConditionalTranscript
 if (Test-Path `"`$ProxyScriptPath`") {
     try {
         Write-Host `"Executing Proxy Script: `$ProxyScriptPath`"
-        Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass -File `"`$ProxyScriptPath`"`" -NoNewWindow -Wait
+        Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass -File `$ProxyScriptPath`" -NoNewWindow -Wait
     } catch {
         Write-Host `"Failed to execute proxy script: `$_`"
         exit 1
