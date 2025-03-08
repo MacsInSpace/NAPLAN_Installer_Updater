@@ -29,8 +29,13 @@ Start-ConditionalTranscript
 
 # Define the fallback local SMB path (only used if the internet check fails)
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
-$ForceUpdate = $false #true will force the update regardless of version number
-$Updatetasktoo = $true #true will force the update task also.
+
+# Force an update (uninstall and reinstall regardless of time, date)
+$ForceUpdate = $true #true will force the update regardless of version number
+
+# Force an update of the scheduled task
+$Updatetasktoo = $true #true will force the update task.
+
 $BranchName = "testing"
 
 # NAPLAN key dates page
