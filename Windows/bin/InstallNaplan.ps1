@@ -329,6 +329,7 @@ if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
     # Wait for the process to exit
     Write-Host "Waiting for installation to complete..."
     $installProcess.WaitForExit()
+
     # Define the firewall rule name
      $RuleName = "NAPLockedDownBrowserOutbound"
 
@@ -367,6 +368,11 @@ if (-not $AppPath -or -not (Test-Path $AppPath)) {
 
 # Check if we have a valid path before adding firewall rule
 if ($AppPath -and (Test-Path $AppPath)) {
+
+    # Log it as installed 
+    $CurrentDate = Get-Date -Format "yyyyMMdd"
+    $currentDateString | Set-Content -Path $lastUpdateFile -Force
+    
     # Check if the rule already exists
     $ruleExists = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyContinue
 
@@ -422,11 +428,7 @@ if ($AppPath -and (Test-Path $AppPath)) {
     (New-Object -ComObject Shell.Application).MinimizeAll()
     Start-Sleep -Milliseconds 500
     (New-Object -ComObject Shell.Application).UndoMinimizeAll()
-    
-    Write-Host "Icon refresh complete."
-    
 } 
-    $currentDateString | Set-Content -Path $lastUpdateFile -Force
     Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
 } else {
     Write-Host "No update needed. Last update was within the required interval."
