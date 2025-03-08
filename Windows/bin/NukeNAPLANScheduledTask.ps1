@@ -2,11 +2,12 @@
 # Run this with 
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NukeNAPLANScheduledTask.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NukeNAPLANScheduledTask.ps1" | iex
 
 Start-Transcript -Path "C:\Windows\Temp\NaplanNukeScheduledTask.log" -Append
 
 $TaskName = "InstallNaplan"
+$BranchName = "main"
 
 # Check if the task exists
 $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
@@ -16,8 +17,9 @@ if ($task) {
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
 } else {
     Write-Host "Task '$TaskName' does not exist. Skipping removal."
-    
 }
+
+}[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1" | iex
 
 $RuleName = "NAPLockedDownBrowserOutbound"
 

@@ -46,7 +46,7 @@ Have an idea, issue, or improvement? I'm looking for feedback, contributions, an
 Run the following command in **PowerShell (RunAs Admin)**:
 
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/Windows/bin/NAPLANscheduledtask.ps1")
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/bin/NAPLANscheduledtask.ps1")
 ```
 
 This will:
@@ -60,7 +60,7 @@ To Do:
 Run the following command in **Terminal**:
 
 ```bash
-curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/InstallLaunchDaemon.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
 ```
 
 This will:
@@ -76,7 +76,7 @@ To remove **all** existing versions of NAPLAN LDB and update tasks:
 ### **Windows (Deep Clean)**
 Run the following command in **PowerShell (RunAs Admin)**:
 ```powershell
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/Windows/bin/NAPLANnuke.ps1")
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/bin/NAPLANnuke.ps1")
 ```
 This will:
 - Completely remove NAPLAN LDB.
@@ -85,7 +85,7 @@ This will:
 ### **MacOS (Deep Clean)**
 Run the following command in **Terminal**:
 ```bash
-curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/NAPLANnuke.sh" | sudo bash
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANnuke.sh" | sudo bash
 ```
 This will:
 - Uninstall NAPLAN LDB.

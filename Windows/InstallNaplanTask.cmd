@@ -1,8 +1,9 @@
 @echo off
-set /p branch=Enter github branch (default - main): 
+:: set /p branch=Enter github branch (default - main): 
 
 :: Default to 'main' if no input
-if "%branch%"=="" set branch=main
+:: if "%branch%"=="" set branch=main
+set branch=main
 
 :: Check for Admin Rights
 net session >nul 2>&1

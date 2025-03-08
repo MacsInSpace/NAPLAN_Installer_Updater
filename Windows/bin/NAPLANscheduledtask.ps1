@@ -1,8 +1,8 @@
 # run *THIS* with:
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask" | iex
 
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
 # Define the storage paths
 $StoragePath = Join-Path $env:ProgramData "Naplan"
@@ -20,7 +20,7 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
 # Git branch
-$BranchName = "testing"
+$BranchName = "main"
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
@@ -58,6 +58,10 @@ function Stop-ConditionalTranscript {
 Start-ConditionalTranscript
 
 # Scheduled Task Name
+$TaskName = "InstallNaplan"
+
+
+# Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
 
 $TaskDescription = "Installs the latest version of Naplan"
