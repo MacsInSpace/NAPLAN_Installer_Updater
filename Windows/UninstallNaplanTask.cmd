@@ -5,7 +5,7 @@
 :: if "%branch%"=="" set branch=main
 set branch=main
 
-@echo off
+
 :: Check for Admin Rights
 net session >nul 2>&1
 if %errorLevel% NEQ 0 (
