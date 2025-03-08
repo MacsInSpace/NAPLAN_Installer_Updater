@@ -2,30 +2,12 @@
 # run *THIS* with:
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1" | iex
-
-Start-Transcript -Path "$env:windir\Temp\NaplanInstall.log" -Append
-
-# Define the fallback local SMB path (only used if the internet check fails)
-$FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
-$ForceUpdate = $false #true will force the update regardless of version number
-$Updatetasktoo = $true #true will force the update task also.
-$BranchName = "main"
-
-# NAPLAN key dates page
-$kdurl = "https://www.nap.edu.au/naplan/key-dates"
-
-# NAPLAN downloads page
-$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
-
-$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1"
-
-$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
-
-$lastUpdateFile = "$env:windir\Temp\NaplanLastUpdate.txt"
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
+#=======================================================================
 
 # Get the ID and security principal of the current user account
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -38,7 +20,7 @@ $adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
 if ($myWindowsPrincipal.IsInRole($adminRole))
    {
    # We are running "as Administrator" - so change the title and background color to indicate this
-   $Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + "(Elevated)"
+   #$Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + "(Elevated)"
    # $Host.UI.RawUI.BackgroundColor = "DarkBlue"
    clear-host
    }
@@ -71,11 +53,110 @@ $PSId = @(Get-Process | Where-Object {$_.Name -like "*Powershell*"} -ErrorAction
 
 If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 
-# Set download directory for SYSTEM compatibility
-$LocalTempDir = "$env:Windir\Temp"
+#=======================================================================
+
+# Define the storage paths
+$StoragePath = Join-Path $env:ProgramData "Naplan"
+
+$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
+
+$LocalTempDir = Join-Path $StoragePath "Temp"
+
 $Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
+
+$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
+
+$NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask.log"
+
+$NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
+
+# Ensure the directory exists
+if (-not (Test-Path $StoragePath)) {
+    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
+    Write-Host "Created directory: $StoragePath"
+}
+
+# Ensure the directory exists
+if (-not (Test-Path $LocalTempDir)) {
+    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
+    Write-Host "Created directory: $LocalTempDir"
+}
+
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if ($global:transcript -ne $null) {
+        Write-Host "Transcript is already running. Skipping Start-Transcript."
+    } else {
+        Start-Transcript -Path "$NaplanInstall" -Append
+        $global:transcript = $true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host "No active transcript to stop."
+    }
+    $global:transcript = $null
+}
+
+#=======================================================================
+# End user variables
+#=======================================================================
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
+
+# Define the fallback local SMB path (only used if the internet check fails)
+$FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
+
+# Force an update (uninstall and reinstall regardless of time, date)
+$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
+
+# Force an update of the scheduled task
+$Updatetasktoo = $true #default to $false. # true will force the update task.
+
+# Testing or main git branch?
+$BranchName = "main"
+
+# NAPLAN key dates page
+$kdurl = "https://www.nap.edu.au/naplan/key-dates"
+
+# NAPLAN downloads page
+$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
+
+$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1"
+
+$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
+
+$currentDate = Get-Date
+# Get the current year dynamically
+$currentYear = (Get-Date).Year
+
+# Set some backup testing dates
+$testStartDateFallback = Get-Date "$currentYear-03-1"  # Approximate fallback
+$testEndDateFallback =  Get-Date "$currentYear-04-30"
+
+# Set permissions (SYSTEM and Administrators: FullControl)
+$acl = Get-Acl $StoragePath
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+Set-Acl -Path $StoragePath -AclObject $acl
+Write-Host "Permissions set: SYSTEM and Administrators have FullControl"
+
+# Set download directory for SYSTEM compatibility
 Write-Host "Force Update NAPLAN set to: $ForceUpdate "
 Write-Host "Update scheduled task set to: $Updatetasktoo"
+
+#=======================================================================
+# Script core
+#=======================================================================
 
 # Check if we have an active internet connection
 $InternetAvailable = $false
@@ -89,9 +170,6 @@ try {
 
 # Securely download and execute the script with TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-# Get the current year dynamically
-$currentYear = (Get-Date).Year
 
 # Retry logic for fetching the webpage
 $maxRetries = 3
@@ -113,8 +191,8 @@ while (-not $success -and $retryCount -lt $maxRetries) {
 # If the request failed after retries, use fallback dates
 if (-not $success) {
     Write-Host "ACARA website unreachable. Using fallback test dates."
-    $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
-    $testEndDate = Get-Date "$currentYear-04-30"
+    $testStartDate = $testStartDateFallback
+    $testEndDate = $testEndDateFallback
 } else {
      $contentString = $webContent.Content
      # Apply regex
@@ -146,15 +224,14 @@ if ($matches.Count -gt 0) {
 
 } else {
     Write-Host "Failed to parse NAPLAN test dates from the webpage."
-    $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
-    $testEndDate = Get-Date "$currentYear-04-30"
+    $testStartDate = $testStartDateFallback
+    $testEndDate = $testEndDateFallback
 }
 }
 # --- Now use these dates for update logic ---
-$currentDate = Get-Date
 
 # If today falls in the test window, log and exit
-if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate) {
+if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate -or $ForceUpdate) {
     if ($ForceUpdate ) {
     Write-Host "We are in the detected testing period but forcing the update. Hold on tight..." 
     } else {
@@ -179,21 +256,39 @@ Write-Host "Update interval set to every $updateIntervalDays days."
 # Check if an update is needed
 $updateNeeded = $false
 
-# Read the last update date from the file
+## Read the last update date from the file
 if (Test-Path $lastUpdateFile) {
-    $lastUpdateString = (Get-Content $lastUpdateFile) -match "\S" | Select-Object -Last 1
-    $lastUpdate = [datetime]::ParseExact($lastUpdateString, "dddd, d MMMM yyyy h:mm:ss tt", $null)
-    $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
+    $lastUpdateString = Get-Content $lastUpdateFile | Where-Object { $_ -match "\S" } | Select-Object -Last 1
 
-    if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+    if ($lastUpdateString) {
+        try {
+            # Parse last update as YYYYMMDD
+            $lastUpdate = [datetime]::ParseExact($lastUpdateString, "yyyyMMdd", $null)
+            $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
+
+            Write-Host "Last update was on: $lastUpdate (Days since: $daysSinceLastUpdate)"
+
+            if ($daysSinceLastUpdate -ge $updateIntervalDays) {
+                $updateNeeded = $true
+            }
+        } catch {
+            Write-Host "Failed to parse last update date. Forcing update."
+            $updateNeeded = $true
+        }
+    } else {
+        Write-Host "Update file is empty or invalid. Forcing update."
         $updateNeeded = $true
     }
 } else {
+    Write-Host "No previous update record found. Forcing update."
     $updateNeeded = $true
 }
 
 # Perform update if needed
-if ($updateNeeded) {
+if ($updateNeeded -or $ForceUpdate) {
+    if ($ForceUpdate) {
+        Write-Host "Initiating NAPLAN LDB due to Forced update flag set."
+    }
     Write-Host "Initiating NAPLAN LDB update..."
 # Try to get the latest MSI download URL if internet is available
 if ($InternetAvailable) {
@@ -244,8 +339,10 @@ if ($Installed) {
     Write-Host "No InstallLocation property found or NAP Locked Down Browser is not installed."
 }
 
-$currentDate | Out-File -FilePath "$NaplanLastUpdate-Check.log" -Append -Encoding utf8
-
+    # Log it as installed 
+    $currentDateString = Get-Date -Format "yyyyMMdd"
+    $currentDateString | Set-Content -Path $lastUpdateFile -Force
+    
 # Compare versions and proceed only if an update is needed
 if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
     # Uninstall old version
@@ -290,6 +387,7 @@ if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
     # Wait for the process to exit
     Write-Host "Waiting for installation to complete..."
     $installProcess.WaitForExit()
+
     # Define the firewall rule name
      $RuleName = "NAPLockedDownBrowserOutbound"
 
@@ -328,6 +426,11 @@ if (-not $AppPath -or -not (Test-Path $AppPath)) {
 
 # Check if we have a valid path before adding firewall rule
 if ($AppPath -and (Test-Path $AppPath)) {
+
+    # Log it as installed 
+    $currentDateString = Get-Date -Format "yyyyMMdd"
+    $currentDateString | Set-Content -Path $lastUpdateFile -Force
+    
     # Check if the rule already exists
     $ruleExists = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyContinue
 
@@ -382,13 +485,9 @@ if ($AppPath -and (Test-Path $AppPath)) {
     
     (New-Object -ComObject Shell.Application).MinimizeAll()
     Start-Sleep -Milliseconds 500
+    ie4uinit.exe -ClearIconCache
     (New-Object -ComObject Shell.Application).UndoMinimizeAll()
-    
-    Write-Host "Icon refresh complete."
-    
 } 
-
-    $currentDate | Out-File -FilePath $lastUpdateFile -Encoding utf8
     Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
 } else {
     Write-Host "No update needed. Last update was within the required interval."
@@ -396,13 +495,17 @@ if ($AppPath -and (Test-Path $AppPath)) {
 
 if ($Updatetasktoo) {
     Write-Host "Self updating the scheduled task is set. Updating scheduled task."
-    
-    $scriptBlock = @'
+
+    # Properly formatted script block
+    $scriptBlock = @"
         Start-Sleep 5
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        irm -UseBasicParsing -Uri "$scheduledtaskurl" | iex
-'@
-    Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command $scriptBlock"
+        irm -UseBasicParsing -Uri $scheduledtaskurl | iex
+"@
+
+    # Corrected Start-Process call
+    Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$scriptBlock`""
 }
 
-Stop-Transcript
+# Stop the transcript only if it was started
+Stop-ConditionalTranscript

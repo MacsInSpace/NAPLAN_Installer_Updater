@@ -1,32 +1,154 @@
-# Install NAPLAN Update Scheduled Task
-# Run this with 
+# run *THIS* with:
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
-Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
+# Define the storage paths
+$StoragePath = Join-Path $env:ProgramData "Naplan"
+
+$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
+
+$LocalTempDir = Join-Path $StoragePath "Temp"
+
+$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
+
+$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
+
+$NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask.log"
+
+$NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
+
+# Git branch
+$BranchName = "main"
+
+# Ensure the directory exists
+if (-not (Test-Path $StoragePath)) {
+    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
+    Write-Host "Created directory: $StoragePath"
+}
+
+# Ensure the directory exists
+if (-not (Test-Path $LocalTempDir)) {
+    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
+    Write-Host "Created directory: $LocalTempDir"
+}
+
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if ($global:transcript -ne $null) {
+        Write-Host "Transcript is already running. Skipping Start-Transcript."
+    } else {
+        Start-Transcript -Path "$NaplanInstallScheduledTask" -Append
+        $global:transcript = $true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host "No active transcript to stop."
+    }
+    $global:transcript = $null
+}
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
+
+# Scheduled Task Name
+$TaskName = "InstallNaplan"
+
 
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
-$BranchName = "main"
+
 $TaskDescription = "Installs the latest version of Naplan"
+
 $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
+$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/proxy.ps1"
+
+
+# Ensure the directory exists
+if (-not (Test-Path $StoragePath)) {
+    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
+    Write-Host "Created directory: $StoragePath"
+}
+
+# Set permissions (SYSTEM and Administrators: FullControl)
+$acl = Get-Acl $StoragePath
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+Set-Acl -Path $StoragePath -AclObject $acl
+Write-Host "Permissions set: SYSTEM and Administrators have FullControl"
+
+# Download the proxy script
+try {
+    Invoke-WebRequest -Uri $ProxyURL -OutFile $ProxyScriptPath -UseBasicParsing
+    Write-Host "Proxy script downloaded successfully: $ProxyScriptPath"
+} catch {
+    Write-Host "Failed to download proxy script: $_"
+}
 
 # Create the script file to run the command
-# Define the PowerShell script as a string
 $PowerShellCommand = @"
-Start-Transcript -Path "$env:windir\Temp\NaplantestingScheduledTask.log" -Append
+Write-Host `"Running live Naplan installer scheduled task...`"
 
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if (`$global:transcript -eq `$true) {
+        Write-Host `"Transcript is already running. Skipping Start-Transcript.`"
+    } else {
+        Start-Transcript -Path '$NaplanInstall' -Append
+        `$global:transcript = `$true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host `"No active transcript to stop.`"
+    }
+    `$global:transcript = `$false
+}
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
+
+# Ensure TLS 1.2 is used for secure connections
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-Write-Host "Running live Naplan installer scheduled task..."
-try {
-    Invoke-WebRequest -UseBasicParsing -Uri $ScriptURL | Invoke-Expression
+# Define paths
+`$StoragePath = Join-Path `$env:ProgramData `"Naplan`"
+`$ProxyScriptPath = Join-Path `$StoragePath `"proxy.ps1`"
+
+# Run Proxy Script if it exists
+if (Test-Path `"`$ProxyScriptPath`") {
+    try {
+        Write-Host `"Executing Proxy Script inline: `$ProxyScriptPath"`
+        & '$ProxyScriptPath'  # Calls the script directly in the current session
     } catch {
-    Write-Host "Scheduled Task failed to retrieve or execute the script: $_"
-        Stop-Transcript;exit 1
+        Write-Host `"Failed to execute proxy script: $_`"
+    }
+} else {
+    Write-Host `"Proxy script not found at: '$ProxyScriptPath'. Skipping.`"
 }
-Stop-Transcript
+
+# Run the main NAPLAN script
+try {
+    Write-Host `"Fetching and running NAPLAN installer script...`"
+    Invoke-WebRequest -UseBasicParsing -Uri '$ScriptURL' | Invoke-Expression
+} catch {
+    Write-Host `"Scheduled Task failed to retrieve or execute the script: `$_`"
+    exit 1
+}
 "@
 
 # Encode the command in Base64
@@ -75,14 +197,12 @@ Register-ScheduledTask -TaskName $TaskName -Description $TaskDescription -Action
 
 if ($ExistingTask) {
     Write-Host "Scheduled task '$TaskName' has been updated."
-    Stop-Transcript
 } else {
     # New task starts immediately
-    Write-Host "Scheduled task '$TaskName' has been added and will start now."
-    Stop-Transcript
-    Start-Sleep 2
+    Write-Host "Scheduled task '$TaskName' has been added and will start shortly."
+
     # Start the scheduled task in a detached process
-    Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -WindowStyle Hidden
-
+    Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -NoNewWindow -Wait
 }
-
+# Stop the transcript only if it was started
+Stop-ConditionalTranscript
