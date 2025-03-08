@@ -209,7 +209,10 @@ if (Test-Path $lastUpdateFile) {
 }
 
 # Perform update if needed
-if ($updateNeeded) {
+if ($updateNeeded -or $ForceUpdate) {
+    if ($ForceUpdate) {
+        Write-Host "Initiating NAPLAN LDB due to Forced update flag set."
+    }
     Write-Host "Initiating NAPLAN LDB update..."
 # Try to get the latest MSI download URL if internet is available
 if ($InternetAvailable) {
