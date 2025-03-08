@@ -3,92 +3,9 @@
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/InstallNaplan.ps1" | iex
-
-# Function to check if a transcript is running
-function Start-ConditionalTranscript {
-    if ($global:transcript -ne $null) {
-        Write-Host "Transcript is already running. Skipping Start-Transcript."
-    } else {
-        Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
-        $global:transcript = $true  # Mark transcript as active
-    }
-}
-
-# Function to stop transcript safely
-function Stop-ConditionalTranscript {
-    try {
-        Stop-Transcript
-    } catch {
-        Write-Host "No active transcript to stop."
-    }
-    $global:transcript = $null
-}
-
-# Call the function to conditionally start transcript
-Start-ConditionalTranscript
-
-# Define the fallback local SMB path (only used if the internet check fails)
-$FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
-
-# Force an update (uninstall and reinstall regardless of time, date)
-$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
-
-# Force an update of the scheduled task
-$Updatetasktoo = $true #default to $false. # true will force the update task.
-
-# Testing or main git branch?
-$BranchName = "testing"
-
-# NAPLAN key dates page
-$kdurl = "https://www.nap.edu.au/naplan/key-dates"
-
-# NAPLAN downloads page
-$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
-
-$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1"
-
-$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
-
-$currentDate = Get-Date
-# Get the current year dynamically
-$currentYear = (Get-Date).Year
-
-# Set some backup testing dates
-$testStartDateFallback = Get-Date "$currentYear-03-1"  # Approximate fallback
-$testEndDateFallback =  Get-Date "$currentYear-04-30"
-
-# Define the storage path
-$StoragePath = Join-Path $env:ProgramData "Naplan"
-$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
-$LocalTempDir = Join-Path $StoragePath "Temp"
-$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
-$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
-
-# Ensure the directory exists
-if (-not (Test-Path $StoragePath)) {
-    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
-    Write-Host "Created directory: $StoragePath"
-}
-
-# Ensure the directory exists
-if (-not (Test-Path $LocalTempDir)) {
-    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
-    Write-Host "Created directory: $LocalTempDir"
-}
-
-# Set permissions (SYSTEM and Administrators: FullControl)
-$acl = Get-Acl $StoragePath
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.AddAccessRule($rule)
-
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.AddAccessRule($rule)
-
-Set-Acl -Path $StoragePath -AclObject $acl
-Write-Host "Permissions set: SYSTEM and Administrators have FullControl"
-
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
+#=======================================================================
 
 # Get the ID and security principal of the current user account
 $myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
@@ -134,9 +51,110 @@ $PSId = @(Get-Process | Where-Object {$_.Name -like "*Powershell*"} -ErrorAction
 
 If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 
+#=======================================================================
+
+# Define the storage paths
+$StoragePath = Join-Path $env:ProgramData "Naplan"
+
+$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
+
+$LocalTempDir = Join-Path $StoragePath "Temp"
+
+$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
+
+$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
+
+$NaplanInstallScheduledTask = Join-Path $LocalTempDir "NaplanInstallScheduledTask.log"
+
+$NaplanInstall =  Join-Path $LocalTempDir "NaplanInstall.log"
+
+# Ensure the directory exists
+if (-not (Test-Path $StoragePath)) {
+    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
+    Write-Host "Created directory: $StoragePath"
+}
+
+# Ensure the directory exists
+if (-not (Test-Path $LocalTempDir)) {
+    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
+    Write-Host "Created directory: $LocalTempDir"
+}
+
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if ($global:transcript -ne $null) {
+        Write-Host "Transcript is already running. Skipping Start-Transcript."
+    } else {
+        Start-Transcript -Path "$NaplanInstall" -Append
+        $global:transcript = $true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host "No active transcript to stop."
+    }
+    $global:transcript = $null
+}
+
+#=======================================================================
+# End user variables
+#=======================================================================
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
+
+# Define the fallback local SMB path (only used if the internet check fails)
+$FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
+
+# Force an update (uninstall and reinstall regardless of time, date)
+$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
+
+# Force an update of the scheduled task
+$Updatetasktoo = $true #default to $false. # true will force the update task.
+
+# Testing or main git branch?
+$BranchName = "testing"
+
+# NAPLAN key dates page
+$kdurl = "https://www.nap.edu.au/naplan/key-dates"
+
+# NAPLAN downloads page
+$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
+
+$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1"
+
+$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
+
+$currentDate = Get-Date
+# Get the current year dynamically
+$currentYear = (Get-Date).Year
+
+# Set some backup testing dates
+$testStartDateFallback = Get-Date "$currentYear-03-1"  # Approximate fallback
+$testEndDateFallback =  Get-Date "$currentYear-04-30"
+
+# Set permissions (SYSTEM and Administrators: FullControl)
+$acl = Get-Acl $StoragePath
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+Set-Acl -Path $StoragePath -AclObject $acl
+Write-Host "Permissions set: SYSTEM and Administrators have FullControl"
+
 # Set download directory for SYSTEM compatibility
 Write-Host "Force Update NAPLAN set to: $ForceUpdate "
 Write-Host "Update scheduled task set to: $Updatetasktoo"
+
+#=======================================================================
+# Script core
+#=======================================================================
 
 # Check if we have an active internet connection
 $InternetAvailable = $false
