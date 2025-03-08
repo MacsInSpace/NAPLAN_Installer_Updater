@@ -15,11 +15,10 @@ $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Upd
 # Create the script file to run the command
 # Define the PowerShell script as a string
 $PowerShellCommand = @"
-
-
 Start-Transcript -Path `"`$env:windir\Temp\NaplantestingScheduledTask.log`" -Append
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+[System.Net.WebRequest]::DefaultWebProxy = `$null
 [System.Net.WebRequest]::DefaultWebProxy = `$null
 netsh winhttp reset proxy
 
