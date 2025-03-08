@@ -15,7 +15,7 @@ function Stop-ConditionalTranscript {
     } catch {
         Write-Host "No active transcript to stop."
     }
-    $global:transcript = $null
+    $global:transcript = $false
 }
 
 # Call the function to conditionally start transcript
@@ -61,6 +61,29 @@ try {
 $PowerShellCommand = @"
 Write-Host `"Running live Naplan installer scheduled task...`"
 
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if (`$global:transcript -eq `$true) {
+        Write-Host `"Transcript is already running. Skipping Start-Transcript.`"
+    } else {
+        Start-Transcript -Path `"`$env:windir\Temp\NaplanInstallScheduledTask.log`" -Append
+        `$global:transcript = $true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host `"No active transcript to stop.`"
+    }
+    `$global:transcript = `$false
+}
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
+
 # Ensure TLS 1.2 is used for secure connections
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
@@ -71,10 +94,10 @@ Write-Host `"Running live Naplan installer scheduled task...`"
 # Run Proxy Script if it exists
 if (Test-Path `"`$ProxyScriptPath`") {
     try {
-        Write-Host `"Executing Proxy Script: `$ProxyScriptPath`""
+        Write-Host `"Executing Proxy Script: `$ProxyScriptPath`"
         Start-Process -FilePath `"powershell.exe`" -ArgumentList `"-ExecutionPolicy Bypass -File `"`$ProxyScriptPath`"`" -NoNewWindow -Wait
     } catch {
-        Write-Host `"Failed to execute proxy script: `$_`"`"
+        Write-Host `"Failed to execute proxy script: `$_`"
         exit 1
     }
 } else {
@@ -135,7 +158,7 @@ $Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccou
 
 Register-ScheduledTask -TaskName $TaskName -Description $TaskDescription -Action $Action -Trigger $Triggers -Settings $Settings -Principal $Principal -Force
 
-if ($ExistingTask) {
+if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
     Write-Host "Scheduled task '$TaskName' has been updated."
     Stop-Transcript
 } else {
