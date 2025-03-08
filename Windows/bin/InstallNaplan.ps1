@@ -31,10 +31,10 @@ Start-ConditionalTranscript
 $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 
 # Force an update (uninstall and reinstall regardless of time, date)
-$ForceUpdate = $true #true will force the update regardless of version number
+$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
 
 # Force an update of the scheduled task
-$Updatetasktoo = $true #true will force the update task.
+$Updatetasktoo = $true #default to $false. # true will force the update task.
 
 $BranchName = "testing"
 
