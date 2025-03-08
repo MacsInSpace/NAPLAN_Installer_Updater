@@ -49,6 +49,11 @@ $napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Up
 
 $scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
 
+$currentDate = Get-Date
+# Get the current year dynamically
+$currentYear = (Get-Date).Year
+
+# Set some backup testing dates
 $testStartDateFallback = Get-Date "$currentYear-03-1"  # Approximate fallback
 $testEndDateFallback =  Get-Date "$currentYear-04-30"
 
@@ -146,9 +151,6 @@ try {
 # Securely download and execute the script with TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Get the current year dynamically
-$currentYear = (Get-Date).Year
-
 # Retry logic for fetching the webpage
 $maxRetries = 3
 $retryCount = 0
@@ -207,7 +209,6 @@ if ($matches.Count -gt 0) {
 }
 }
 # --- Now use these dates for update logic ---
-$currentDate = Get-Date
 
 # If today falls in the test window, log and exit
 if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate -or $ForceUpdate) {
