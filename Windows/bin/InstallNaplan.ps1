@@ -36,6 +36,7 @@ $ForceUpdate = $false # default to $false. # $true will force the update regardl
 # Force an update of the scheduled task
 $Updatetasktoo = $true #default to $false. # true will force the update task.
 
+# Testing or main git branch?
 $BranchName = "testing"
 
 # NAPLAN key dates page
@@ -48,7 +49,38 @@ $napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Up
 
 $scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
 
-$lastUpdateFile = "$env:windir\Temp\NaplanLastUpdate.txt"
+$testStartDateFallback = Get-Date "$currentYear-03-1"  # Approximate fallback
+$testEndDateFallback =  Get-Date "$currentYear-04-30"
+
+# Define the storage path
+$StoragePath = Join-Path $env:ProgramData "Naplan"
+$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
+$LocalTempDir = Join-Path $StoragePath "Temp"
+$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
+$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
+
+# Ensure the directory exists
+if (-not (Test-Path $StoragePath)) {
+    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
+    Write-Host "Created directory: $StoragePath"
+}
+
+# Ensure the directory exists
+if (-not (Test-Path $LocalTempDir)) {
+    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
+    Write-Host "Created directory: $LocalTempDir"
+}
+
+# Set permissions (SYSTEM and Administrators: FullControl)
+$acl = Get-Acl $StoragePath
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+$acl.AddAccessRule($rule)
+
+Set-Acl -Path $StoragePath -AclObject $acl
+Write-Host "Permissions set: SYSTEM and Administrators have FullControl"
 
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
@@ -98,8 +130,6 @@ $PSId = @(Get-Process | Where-Object {$_.Name -like "*Powershell*"} -ErrorAction
 If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 
 # Set download directory for SYSTEM compatibility
-$LocalTempDir = "$env:Windir\Temp"
-$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
 Write-Host "Force Update NAPLAN set to: $ForceUpdate "
 Write-Host "Update scheduled task set to: $Updatetasktoo"
 
@@ -139,8 +169,8 @@ while (-not $success -and $retryCount -lt $maxRetries) {
 # If the request failed after retries, use fallback dates
 if (-not $success) {
     Write-Host "ACARA website unreachable. Using fallback test dates."
-    $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
-    $testEndDate = Get-Date "$currentYear-04-30"
+    $testStartDate = $testStartDateFallback
+    $testEndDate = $testEndDateFallback
 } else {
      $contentString = $webContent.Content
      # Apply regex
@@ -172,8 +202,8 @@ if ($matches.Count -gt 0) {
 
 } else {
     Write-Host "Failed to parse NAPLAN test dates from the webpage."
-    $testStartDate = Get-Date "$currentYear-03-1"  # Approximate fallback
-    $testEndDate = Get-Date "$currentYear-04-30"
+    $testStartDate = $testStartDateFallback
+    $testEndDate = $testEndDateFallback
 }
 }
 # --- Now use these dates for update logic ---
