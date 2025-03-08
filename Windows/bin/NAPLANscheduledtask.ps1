@@ -4,7 +4,28 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
-Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if ($global:transcript -ne $null) {
+        Write-Host "Transcript is already running. Skipping Start-Transcript."
+    } else {
+        Start-Transcript -Path "$env:windir\Temp\NaplanInstallScheduledTask.log" -Append
+        $global:transcript = $true  # Mark transcript as active
+    }
+}
+
+# Function to stop transcript safely
+function Stop-ConditionalTranscript {
+    try {
+        Stop-Transcript
+    } catch {
+        Write-Host "No active transcript to stop."
+    }
+    $global:transcript = $null
+}
+
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
 
 # Install NAPLAN Update Scheduled Task
 $TaskName = "InstallNaplan"
@@ -319,10 +340,12 @@ if ($ExistingTask) {
     Stop-Transcript
 } else {
     # New task starts immediately
-    Write-Host "Scheduled task '$TaskName' has been added and will start now."
-    Stop-Transcript
-    Start-Sleep 2
+    Write-Host "Scheduled task '$TaskName' has been added and will start shortly."
+    Start-Sleep 3
+    
     # Start the scheduled task in a detached process
     Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -WindowStyle Hidden
 
 }
+# Stop the transcript only if it was started
+Stop-ConditionalTranscript
