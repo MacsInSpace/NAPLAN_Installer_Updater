@@ -85,6 +85,7 @@ The scheduled task checks for updates **daily**, but:
 
 ## 🙌 Acknowledgments
 Shoutout to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which was adapted into PowerShell.
+**Brad van Ree** (Melbourne) for the going through [`Profile Creator`]([bin/Versions.txt](https://github.com/ProfileCreator/ProfileCreator)) to assist with most of the testing elements
 
 ---
 
