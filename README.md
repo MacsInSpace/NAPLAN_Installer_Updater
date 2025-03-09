@@ -27,9 +27,10 @@ Have an idea, issue, or improvement? I'm looking for feedback, contributions, an
 - ⏳ **Scheduled task runs daily** but intelligently adjusts update frequency.
   - ♻️ **Weekly updates** from **January to April** (preparation & testing period).
   - 🌞 **Monthly updates** outside of testing windows.
-  - ❌ **NO updates** during the testing window ~~unless forced~~.
+  - ❌ **NO updates** during the 7 days prior to, and during the testing window, unless forced.
 - 🔍 Automatically obtains official **NAPLAN test dates** from **ACARA**:
    - [NAPLAN Key Dates](https://www.nap.edu.au/naplan/key-dates) (please dont change the format!)
+   - Fallback dates for if/when the Acara page is down or the official dates are unavailable. (Currently set to all of March)
 - **Uninstalls any old version first** - as recommended by ACARA.
 - ✈ Installs **directly from ACARA's website**:  
   [Assessform NAPLAN Online](https://www.assessform.edu.au/naplan-online/locked-down-browser)
@@ -38,7 +39,7 @@ Have an idea, issue, or improvement? I'm looking for feedback, contributions, an
 - 🔧 **Logs locally for troubleshooting**:
   - **MacOS**: `/var/log/naplan_update.log`
   - **Windows**: `C:\ProgramData\Naplan\*.log`
-- **❌ No third party data transmission, logging(other than locally), or server reliance. (aside from this repo)**
+- **❌ No third party data transmission, logging (other than locally), or server reliance (aside from this repo).**
   - Can be edited to run locally with SMB backup.
 
 ## 🌐 Installation Methods
@@ -50,7 +51,8 @@ Run the following command in **PowerShell (RunAs Admin)**:
 ```
 
 This will:
-- Set up a **scheduled task** that manages NAPLAN LDB.
+- Set up a **scheduled task** that manages updating the NAPLAN LDB.
+- Manages uninstalling, downloading and installing new versions.
 - Ensure **automatic updates** based on the smart scheduling system.
   
 To Do:
@@ -71,7 +73,7 @@ To Do:
 - Test the sheduling section.
 
 ## ❌ Uninstallation
-To remove **all** existing versions of NAPLAN LDB and update tasks:
+To remove **all** existing versions of NAPLAN LDB, update tasks, and associated task files and scripts:
 
 ### **Windows (Deep Clean)**
 Run the following command in **PowerShell (RunAs Admin)**:
@@ -112,8 +114,9 @@ Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script
 
 **Note!**
 Issues should be relevant **only** to the scheduled task/launchd process or specific to this installer/updater. 
-
 **Not** for the browser itsself.
+A reminder that I (we) have no official affiliation with Acara, Janison Software, Education Services Australia.
+So for browser issues, See the contacts below.
 
 ---
 ---
