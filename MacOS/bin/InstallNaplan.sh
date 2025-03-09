@@ -13,6 +13,10 @@ LOG_FILE="/var/log/naplan_update.log"
 PLIST_BUNDLE="NAP Locked down browser.app"
 FORCE_NEW_VERSION=false
 UPDATETASKTOO=false
+PROXY_SCRIPT_WEBPATH="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/conf/proxy.sh"
+FORCE_UPDATE_LAUNCHD=false
+FORCE_UPDATE_PROXY_SCRIPT=false
+FORCE_UPDATE_NAPLAN=false
 PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 
 echo "🔄 Running proxy test..."
