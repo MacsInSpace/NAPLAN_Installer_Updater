@@ -116,7 +116,7 @@ $FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
 $ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
 
 # Force an update of the scheduled task
-$Updatetasktoo = $true #default to $false. # true will force the update task.
+$Updatetasktoo = $false #default to $false. # true will force the update task.
 
 # Testing or main git branch?
 $BranchName = "main"
