@@ -12,8 +12,10 @@ fi
 
 # Define paths
 SCRIPT_PATH="/usr/local/bin/naplan_update.sh"
+PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 PLIST_PATH="/Library/LaunchDaemons/com.naplan.installer.plist"
 LOG_FILE="/var/log/naplan_update.log"
+PROXY_SCRIPT_WEBPATH="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/conf/proxy.sh"
 
 # Ensure /usr/local/bin exists
 if [ ! -d "/usr/local/bin" ]; then
@@ -35,6 +37,7 @@ cat << 'EOF' > "$SCRIPT_PATH"
 
 LOG_FILE="/var/log/naplan_update.log"
 INSTALL_SCRIPT_URL="https://api.github.com/repos/MacsInSpace/NAPLAN_Installer_Updater/contents/MacOS/bin/InstallNaplan.sh"
+PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 
 # Ensure we have internet
 ping -c 1 8.8.8.8 &>/dev/null
@@ -47,7 +50,6 @@ echo "$(date) - Downloading and executing InstallNaplan.sh..." >> "$LOG_FILE"
 
 curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
     -H "Accept-Language: en-US,en;q=0.9" \
-    -H "Referer: $PKG_URL" \
     -H "Connection: keep-alive" \
     -H "Cache-Control: no-cache, no-store, must-revalidate" \
     -H "Pragma: no-cache" \
@@ -57,9 +59,29 @@ curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 exit 0
 EOF
 
+# Download the script and save it to /usr/local/bin
+curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
+    -H "Accept-Language: en-US,en;q=0.9" \
+    -H "Connection: keep-alive" \
+    -H "Cache-Control: no-cache, no-store, must-revalidate" \
+    -H "Pragma: no-cache" \
+    -H "Expires: 0" \
+    --compressed "$PROXY_SCRIPT_WEBPATH" -o "$PROXY_SCRIPT_PATH"
+
 # Set execute permissions
 chmod +x "$SCRIPT_PATH"
+chmod +x "$PROXY_SCRIPT_PATH"
+
+# Verify download
+if [[ -f "$PROXY_SCRIPT_PATH" ]]; then
+    echo "✅ Proxy script downloaded successfully to: $PROXY_SCRIPT_PATH"
+else
+    echo "❌ Failed to download proxy script!"
+    exit 1
+fi
+
 echo "Installation script saved to $SCRIPT_PATH"
+echo "Proxy script saved to $PROXY_SCRIPT_PATH"
 
 # **Write new LaunchDaemon plist**
 cat << EOF > "$PLIST_PATH"
