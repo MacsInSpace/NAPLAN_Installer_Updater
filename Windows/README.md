@@ -15,6 +15,7 @@ This repository automates the **installation, updating, and uninstallation** of 
 | [`NukeNAPLANScheduledTask.ps1`](bin/NukeNAPLANScheduledTask.ps1) | Deep cleans old NAPLAN installations and removes residual files INCLUDING scheduled task. |
 | [`proxy.ps1`](bin/proxy.ps1) | Aids in attempting to allow the SYSTEM user to use a proxy when run via a scheduled task. |
 | [`Versions.txt`](bin/Versions.txt) | Version record with info for future hash checks etc. (not currently in use.) |
+
 ---
 
 ## 🚀 Installation Instructions
