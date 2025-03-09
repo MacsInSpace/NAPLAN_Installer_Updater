@@ -13,6 +13,10 @@ LOG_FILE="/var/log/naplan_update.log"
 PLIST_BUNDLE="NAP Locked down browser.app"
 FORCE_NEW_VERSION=false
 UPDATETASKTOO=false
+PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
+
+echo "🔄 Running proxy test..."
+/usr/local/bin/proxy.sh
 
 fetch_naplan_dates() {
     local key_dates_url="https://www.nap.edu.au/naplan/key-dates"
