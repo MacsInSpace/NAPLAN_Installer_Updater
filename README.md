@@ -113,8 +113,10 @@ Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script
 [Open an issue](https://github.com/MacsInSpace/NAPLAN_Installer_Updater/issues) or submit a pull request! 🚀
 
 **Note!**
+
 Issues should be relevant **only** to the scheduled task/launchd process or specific to this installer/updater. 
 **Not** for the browser itsself.
+
 A reminder that I (we) have no official affiliation with Acara, Janison Software, Education Services Australia.
 So for browser issues, See the contacts below.
 
