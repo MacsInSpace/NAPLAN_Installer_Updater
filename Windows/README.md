@@ -77,7 +77,7 @@ The scheduled task checks for updates **daily**, but:
 - Update logic is **dynamically adjusted** based on **ACARA’s NAPLAN test dates**.
 
 ### 📝 **Logging**
-- Logs locally in "C:\Windows\Temp\NaplanScheduledTask.log".
+- Logs locally in "C:\ProgramData\Naplan\*.log".
 - Nothing stored on any 3rd party servers.
 - Can be made to run local only (this would mean no scheduler updates though)
 
