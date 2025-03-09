@@ -44,7 +44,8 @@ echo "🔄 Running proxy test..."
 # Ensure we have internet
 ping -c 1 8.8.8.8 &>/dev/null
 if [ $? -ne 0 ]; then
-    echo "$(date) - No internet connection. Exiting." >> "$LOG_FILE"
+    echo "$(date) - No internet connection. Check your proxy settings.
+    Try https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/conf/proxy.sh" >> "$LOG_FILE"
     exit 1
 fi
 
