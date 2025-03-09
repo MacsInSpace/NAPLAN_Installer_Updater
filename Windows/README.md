@@ -13,8 +13,10 @@ This repository automates the **installation, updating, and uninstallation** of 
 | [`InstallNaplan.ps1`](bin/InstallNaplan.ps1) | Core script. Does all the work. Installs or updates the latest NAPLAN LDB. |
 | [`NAPLANnuke.ps1`](bin/NAPLANnuke.ps1) | Deep cleans old NAPLAN installations and removes residual files. |
 | [`NukeNAPLANScheduledTask.ps1`](bin/NukeNAPLANScheduledTask.ps1) | Deep cleans old NAPLAN installations and removes residual files INCLUDING scheduled task. |
-| [`proxy.ps1`](bin/proxy.ps1) | Aids in attempting to allow the SYSTEM user to use a proxy when run via a scheduled task. |
-| [`Versions.txt`](bin/Versions.txt) | Version record with info for future hash checks etc. (not currently in use.) |
+|
+| [`proxy.ps1`](conf/proxy.ps1) | Aids in attempting to allow the SYSTEM user to use a proxy when run via a scheduled task. |
+| [`Versions.txt`](conf/Versions.txt) | Version record with info for future hash checks etc. (not currently in use.) |
+| [`SetVol.txt`](conf/SetVol.ps1) | Sets the volume pre test.(not currently in use.) |
 
 ---
 
