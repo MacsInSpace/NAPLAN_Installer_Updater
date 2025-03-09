@@ -14,6 +14,21 @@ This script automates the **installation, updating, and uninstallation** of the 
   [Assessform NAPLAN Online](https://www.assessform.edu.au/naplan-online/locked-down-browser)
 - 🔧 **Logs locally for troubleshooting:** `/var/log/naplan_update.log`
 
+
+## 📂 Contents
+
+| File | Description |
+|------|------------|
+| [`InstallLaunchDaemon.sh`](InstallLaunchDaemon.sh) | Installs the LaunchDaemon to run InstallNaplan.sh on the defined schedule. |
+| [`NAPLANnuke.sh`](NAPLANnuke.sh) | Removes the LaunchDaemon, NAPLAN LDB and all asscociates logs and files. |
+||
+| [`InstallNaplan.sh`](bin/InstallNaplan.sh) | Core script. Does all the work. Installs or updates the latest NAPLAN LDB. |
+| [`most_naplan_restrictions.mobileconfig`](bin/most_naplan_restrictions.mobileconfig) | A profile for most restrictions for MacOS. (not all) Set to uninstall after testing 2025. |
+| [`proxy.sh`](bin/proxy.sh) | Aids in attempting to allow bash to use a proxy. (not currently in use.) |
+| [`Versions.txt`](bin/Versions.txt) | Version record with info for future hash checks etc. (not currently in use.) |
+
+---
+
 ## 🚀 Installation
 Run the following command in **Terminal** to install the update daemon:
 
