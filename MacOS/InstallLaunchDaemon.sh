@@ -15,7 +15,6 @@ SCRIPT_PATH="/usr/local/bin/naplan_update.sh"
 PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 PLIST_PATH="/Library/LaunchDaemons/com.naplan.installer.plist"
 LOG_FILE="/var/log/naplan_update.log"
-PROXY_SCRIPT_WEBPATH="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/conf/proxy.sh"
 
 # Ensure /usr/local/bin exists
 if [ ! -d "/usr/local/bin" ]; then
@@ -39,6 +38,9 @@ LOG_FILE="/var/log/naplan_update.log"
 INSTALL_SCRIPT_URL="https://api.github.com/repos/MacsInSpace/NAPLAN_Installer_Updater/contents/MacOS/bin/InstallNaplan.sh"
 PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 
+echo "🔄 Running proxy test..."
+/usr/local/bin/proxy.sh
+
 # Ensure we have internet
 ping -c 1 8.8.8.8 &>/dev/null
 if [ $? -ne 0 ]; then
@@ -48,6 +50,7 @@ fi
 
 echo "$(date) - Downloading and executing InstallNaplan.sh..." >> "$LOG_FILE"
 
+echo "✅ Proxy script executed!"
 curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
     -H "Accept-Language: en-US,en;q=0.9" \
     -H "Connection: keep-alive" \
