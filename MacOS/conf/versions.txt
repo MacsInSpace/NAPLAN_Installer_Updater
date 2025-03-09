@@ -1,0 +1,1 @@
+2025,5.8.38,au.com.janison.mac.naplanpkg,https://pages.assessform.edu.au/uploads/files/Release/NAP%20Locked%20down%20browser%20-%20Release%20-%205.8.38.pkg,SHA256 Checksum: 5e669bfcfbabd4d82e7f02c6c901196e997e894f7150d918d36986780005c5d5
