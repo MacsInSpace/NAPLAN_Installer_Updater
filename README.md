@@ -37,7 +37,7 @@ Have an idea, issue, or improvement? I'm looking for feedback, contributions, an
 - 📅 **Supports forced reinstalls** (for scenarios where the version hasn’t changed but has been updated).
 - 🔧 **Logs locally for troubleshooting**:
   - **MacOS**: `/var/log/naplan_update.log`
-  - **Windows**: `C:\Windows\Temp\NaplanScheduledTask.log`
+  - **Windows**: `C:\ProgramData\Naplan\*.log`
 - **❌ No third party data transmission, logging(other than locally), or server reliance. (aside from this repo)**
   - Can be edited to run locally with SMB backup.
 
