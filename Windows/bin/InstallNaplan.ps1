@@ -353,6 +353,7 @@ if ($Installed) {
             $Installed = $null
         }
     }
+  }
   
 # Compare versions and proceed only if an update is needed
 if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
