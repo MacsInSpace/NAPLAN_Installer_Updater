@@ -330,7 +330,6 @@ if (-not $Installed -and [Environment]::Is64BitOperatingSystem) {
     $Installed = Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
         Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
 }
-
 if ($Installed) {
     Write-Host "Installed Version: $($Installed.DisplayVersion)"
     Write-Host "Installed GUID: $($Installed.PSChildName)"  # GUID of the installed app
@@ -340,21 +339,10 @@ if ($Installed) {
     Write-Host "No InstallLocation property found or NAP Locked Down Browser is not installed."
 }
 
- # check for exe. If installed and no exe, Uninstall and reinstallno
-    if ($Installed) {
-        $InstallLocation = (Get-ItemProperty -Path $Installed).InstallLocation
-        if ($InstallLocation) {
-        $AppPath = Join-Path $Installed.InstallLocation "NAP Locked Down Browser.exe"
-        if (-not (Test-Path $ExePath)) {
-        Write-Host "NAPLAN installed in bad state. Reinstalling.
-            Start-Process "msiexec.exe" -ArgumentList "/X $Installed.PSChildName /qn /norestart" -NoNewWindow -Wait
-            irm  -UseBasicParsing -Uri "$napnukeurl" | iex
-            $forceinstall = $true
-            $Installed = $null
-        }
-    }
-  }
-  
+    # Log it as installed 
+    $currentDateString = Get-Date -Format "yyyyMMdd"
+    $currentDateString | Set-Content -Path $lastUpdateFile -Force
+    
 # Compare versions and proceed only if an update is needed
 if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
     # Uninstall old version
@@ -466,11 +454,7 @@ if ($AppPath -and (Test-Path $AppPath)) {
     Write-Host "Installation completed. Cleaning up..."
     Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
     Write-Host "Refreshing icon cache..."
-    
-    # Log it as installed 
-    $currentDateString = Get-Date -Format "yyyyMMdd"
-    $currentDateString | Set-Content -Path $lastUpdateFile -Force
-  
+
     ## Refreshing icon cache option 1
     
     #Write-Host "Stopping Windows Explorer..."
