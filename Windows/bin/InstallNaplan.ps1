@@ -426,7 +426,7 @@ $installProcess.WaitForExit()
 Write-Host "Installation process completed."
 
 # Step 3: Validate Installed Files
-Write-Host "🔍 Validating installed files..."
+Write-Host "Validating installed files..."
 $missingFiles = @()
 $mismatchedFiles = @()
 
