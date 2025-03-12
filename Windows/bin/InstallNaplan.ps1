@@ -446,7 +446,7 @@ foreach ($file in $expectedFiles) {
     $cleanFileName = $file.FileName -split '\|' | Select-Object -First 1
 
     # Remove invalid Windows characters and trim extra spaces
-    $cleanFileName = $cleanFileName -replace '[<>:"|?*]', '' -replace '\s+$', '' -replace '[\x00-\x1F]', ''
+    $cleanFileName = $cleanFileName -replace '[<>"|?*]', '' -replace '\s+$', '' -replace '[\x00-\x1F]', ''
 
     # Normalize path and remove extra slashes
     try {
@@ -458,10 +458,10 @@ foreach ($file in $expectedFiles) {
     }
 
     # Debugging Output
-    Write-Host "🔍 Checking path: $safePath"
+    Write-Host "Checking path: $safePath"
 
     # Verify path contains no illegal characters
-    if ($safePath -match '[<>:"|?*]') {
+    if ($safePath -match '[<>"|?*]') {
         Write-Host "Skipping file due to illegal characters in path: $safePath"
         continue
     }
