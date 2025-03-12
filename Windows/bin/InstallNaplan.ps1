@@ -398,7 +398,7 @@ $installer = New-Object -ComObject WindowsInstaller.Installer
 $database = $installer.OpenDatabase($Setup, 0)
 
 # SQL Query to extract file details
-$view = $database.OpenView("SELECT FileName, FileSize, File.Component_ FROM File")
+$view = $database.OpenView("SELECT FileName, FileSize, File.Component_, Directory_ FROM File INNER JOIN Component ON File.Component_ = Component.Component WHERE FileName IS NOT NULL")
 $view.Execute()
 
 # Store expected files and details
