@@ -435,37 +435,45 @@ $filePath = "$installPath\NAP Locked Down Browser.exe"
 foreach ($file in $expectedFiles) {
     # Ensure the file path is not null or empty
     if (-not $file.FilePath -or $file.FilePath -match "^\s*$") {
-        Write-Host "Invalid or missing file path in manifest: $($file.FileName)"
+        Write-Host "⚠️ Invalid or missing file path in manifest: $($file.FileName)"
         continue
     }
 
-    # Sanitize filename: Remove illegal characters and strip logical names (anything after '|')
-    $cleanFileName = $file.FileName -split '\|' | Select-Object -First 1  # Take only the first part
-    $cleanFileName = $cleanFileName -replace '[<>:"|?*]', ''  # Remove illegal characters
+    # Remove anything after "|" in filenames (e.g., "file.dll|LogicalName")
+    $cleanFileName = $file.FileName -split '\|' | Select-Object -First 1
 
-    # Normalize the path
+    # Remove invalid Windows characters and trim extra spaces
+    $cleanFileName = $cleanFileName -replace '[<>:"|?*]', '' -replace '\s+$', '' -replace '[\x00-\x1F]', ''
+
+    # Normalize path and remove extra slashes
     try {
         $safePath = [System.IO.Path]::Combine($InstallPath, $cleanFileName)
+        $safePath = $safePath -replace '\\+', '\'  # Remove duplicate slashes
     } catch {
-        Write-Host "Error processing file path for $($file.FileName): $_"
+        Write-Host "❌ Error processing file path for $($file.FileName): $_"
         continue
     }
 
     # Debugging Output
-    Write-Host "Checking path: $safePath"
+    Write-Host "🔍 Checking path: $safePath"
 
-    # Validate file existence
+    # Verify path contains no illegal characters
     if ($safePath -match '[<>:"|?*]') {
-        Write-Host "Skipping file due to illegal characters in path: $safePath"
+        Write-Host "❌ Skipping file due to illegal characters in path: $safePath"
         continue
     }
 
+    # Test if file exists
     if (Test-Path -PathType Leaf -Path "$safePath") {
-        Write-Host "File found: $safePath"
+        Write-Host "✅ File found: $safePath"
     } else {
-        Write-Host "Missing file: $safePath"
+        Write-Host "❌ Missing file: $safePath"
     }
 }
+
+
+
+
 
 foreach ($file in $expectedFiles) {
     if (-not (Test-Path $file.FilePath)) {
