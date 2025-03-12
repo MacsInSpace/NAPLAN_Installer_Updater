@@ -1,0 +1,8 @@
+$ExtractBasePath = "C:\ProgramData\Naplan\Temp\Naplan_Extract"
+
+if (Test-Path $ExtractBasePath) {
+    Remove-Item -Path $ExtractBasePath -Recurse -Force
+    Write-Host "Cleanup complete: $ExtractBasePath has been removed."
+} else {
+    Write-Host "Nothing to clean: $ExtractBasePath does not exist."
+}
