@@ -392,44 +392,7 @@ function Get-FileHashSHA256($filePath) {
     return $null
 }
 
-# Step 1: Extract MSI Manifest
-Write-Host "Extracting file manifest from MSI..."
-# Open the MSI Database
-$MSIPath = "$Setup"
-$InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"  # Change if needed
-
-$installer = New-Object -ComObject WindowsInstaller.Installer
-$database = $installer.OpenDatabase($MSIPath, 0)
-
-# SQL Query to extract file details, including Directory_
-$view = $database.OpenView("SELECT FileName, FileSize, File.Component_, Directory_ FROM File INNER JOIN Component ON File.Component_ = Component.Component WHERE FileName IS NOT NULL")
-$view.Execute()
-
-# Store expected files and details
-$expectedFiles = @()
-$record = $view.Fetch()
-while ($record -ne $null) {
-    $FileName = $record.StringData(1) -replace "\|.*$",""  # Remove metadata after `|`
-    $FileSize = $record.IntegerData(2)
-    $Component = $record.StringData(3)
-    $Directory = $record.StringData(4)  # Get directory location from MSI
-
-    # Join the install path with the directory and filename
-    $fullPath = Join-Path $InstallPath -ChildPath (Join-Path $Directory $FileName)
-
-    $expectedFiles += [PSCustomObject]@{
-        FileName = $FileName
-        FileSize = $FileSize
-        Component = $Component
-        Directory = $Directory
-        FilePath = $fullPath
-    }
-    $record = $view.Fetch()
-}
-
-$view.Close()
-
-# Step 2: Install the MSI
+# Install the MSI
 Write-Host "Installing Naplan..."
 $installProcess = Start-Process "msiexec.exe" -ArgumentList "/i `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
 $installProcess.WaitForExit()
@@ -437,73 +400,80 @@ Write-Host "Installation process completed."
 
 # Step 3: Validate Installed Files
 Write-Host "Validating installed files..."
+
+$MSIPath = "C:\ProgramData\Naplan\Temp\Naplan_Setup.msi"
+$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
+
+# Ensure the extraction path exists
+if (!(Test-Path $ExtractPath)) { New-Item -ItemType Directory -Path $ExtractPath -Force }
+
+# Run MSI Extraction
+Start-Process -FilePath "msiexec.exe" -ArgumentList "/a `"$MSIPath`" TARGETDIR=`"$ExtractPath`" /qn" -Wait -NoNewWindow
+
+Write-Host "MSI Extracted to: $ExtractPath"
+
+# Define paths
+$InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"
+$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
+
+# Get all files in both directories
+$installedFiles = Get-ChildItem -Path $InstallPath -Recurse | Where-Object { -not $_.PSIsContainer }
+$extractedFiles = Get-ChildItem -Path $ExtractPath -Recurse | Where-Object { -not $_.PSIsContainer }
+
+# Convert to a hash table for quick lookup
+$installedLookup = @{}
+$installedFiles | ForEach-Object { $installedLookup[$_.FullName.Replace($InstallPath, "")] = $_ }
+
+$extractedLookup = @{}
+$extractedFiles | ForEach-Object { $extractedLookup[$_.FullName.Replace($ExtractPath, "")] = $_ }
+
+# Track differences
 $missingFiles = @()
 $mismatchedFiles = @()
-$installPath = "${env:ProgramFiles(x86)}\NAP Locked Down Browser"
-$filePath = "$installPath\NAP Locked Down Browser.exe"
 
-$expectedFiles | ForEach-Object { Write-Host "Checking: $($_.FilePath)" }
+# Compare extracted files against installed files
+foreach ($fileKey in $extractedLookup.Keys) {
+    $extractedFile = $extractedLookup[$fileKey]
+    $installedFile = $installedLookup[$fileKey]
 
-
-foreach ($file in $expectedFiles) {
-Write-Host "File: $FileName | Dir: $Directory | FullPath: $fullPath"
-    # Ensure the file path is not null or empty
-    if (-not $file.FilePath -or $file.FilePath -match "^\s*$") {
-        Write-Host "Invalid or missing file path in manifest: $($file.FileName)"
-        continue
-    }
-
-    # Remove anything after "|" in filenames (e.g., "file.dll|LogicalName")
-    $cleanFileName = $file.FileName -split '\|' | Select-Object -First 1
-
-    # Remove invalid Windows characters and trim extra spaces
-    $cleanFileName = $cleanFileName -replace '[<>"|?*]', '' -replace '\s+$', '' -replace '[\x00-\x1F]', ''
-
-    # Normalize path and remove extra slashes
-    try {
-        $safePath = [System.IO.Path]::Combine($InstallPath, $cleanFileName)
-        $safePath = $safePath -replace '\\+', '\'  # Remove duplicate slashes
-    } catch {
-        Write-Host "Error processing file path for $($file.FileName): $_"
-        continue
-    }
-
-    # Debugging Output
-    Write-Host "Checking path: $safePath"
-
-    # Verify path contains no illegal characters
-    if ($safePath -match '[<>"|?*]') {
-        Write-Host "Skipping file due to illegal characters in path: $safePath"
-        continue
-    }
-
-    # Test if file exists
-    if (Test-Path -PathType Leaf -Path "$safePath") {
-        Write-Host "File found: $safePath"
+    if (-not $installedFile) {
+        # File exists in extracted but NOT in installed
+        $missingFiles += $fileKey
     } else {
-        Write-Host "Missing file: $safePath"
+        # Compare file sizes
+        if ($installedFile.Length -ne $extractedFile.Length) {
+            $mismatchedFiles += "$fileKey (Expected: $($extractedFile.Length) bytes, Found: $($installedFile.Length) bytes)"
+        } else {
+            # Optional: Verify file hash for integrity
+            $installedHash = (Get-FileHash -Path $installedFile.FullName -Algorithm SHA256).Hash
+            $extractedHash = (Get-FileHash -Path $extractedFile.FullName -Algorithm SHA256).Hash
+
+            if ($installedHash -ne $extractedHash) {
+                $mismatchedFiles += "$fileKey (SHA256 mismatch)"
+            }
+        }
     }
 }
 
+# Report results
+Write-Host "Comparison Complete."
 
+if ($missingFiles.Count -gt 0) {
+    Write-Host "Missing Files:"
+    $missingFiles | ForEach-Object { Write-Host $_ }
+} else {
+    Write-Host "No Missing Files."
+}
 
+if ($mismatchedFiles.Count -gt 0) {
+    Write-Host "Mismatched Files (Size/Hash Differences):"
+    $mismatchedFiles | ForEach-Object { Write-Host $_ }
+} else {
+    Write-Host "No Mismatched Files."
+}
 
-
-foreach ($file in $expectedFiles) {
-    if (-not (Test-Path $file.FilePath)) {
-        $missingFiles += $file.FilePath
-    } else {
-        $actualSize = (Get-Item $file.FilePath).Length
-        $expectedSize = $file.FileSize
-
-        if ($actualSize -ne $expectedSize) {
-            $mismatchedFiles += "$($file.FileName) (Expected: $expectedSize bytes, Found: $actualSize bytes)"
-        } else {
-            # Optional Hash Check
-            $expectedHash = Get-FileHashSHA256 $file.FilePath
-            Write-Host "Verified: $($file.FileName) - SHA256: $expectedHash"
-        }
-    }
+if ($missingFiles.Count -eq 0 -and $mismatchedFiles.Count -eq 0) {
+    Write-Host "All installed files match the extracted MSI files."
 }
 
 # Step 4: Handle Missing/Mismatched Files (Trigger Repair)
@@ -521,10 +491,17 @@ if ($missingFiles.Count -gt 0 -or $mismatchedFiles.Count -gt 0) {
     }
 
     Write-Host "Attempting MSI repair..."
-    $repairProcess = Start-Process "msiexec.exe" -ArgumentList "/f `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
-    $repairProcess.WaitForExit()
+    foreach ($file in $missingFiles) {
+    $source = Join-Path -Path $ExtractPath -ChildPath $file
+    $destination = Join-Path -Path $InstallPath -ChildPath $file
 
-    # Recheck after repair
+    if (Test-Path $source) {
+        Copy-Item -Path $source -Destination $destination -Force
+        Write-Host "Restored: $file"
+    } else {
+        Write-Host "Could not restore: $file (Not found in extracted MSI)"
+    }
+}
     $validationFailed = $false
     foreach ($file in $expectedFiles) {
         if (-not (Test-Path $file.FilePath)) {
@@ -534,7 +511,12 @@ if ($missingFiles.Count -gt 0 -or $mismatchedFiles.Count -gt 0) {
     }
 
     if ($validationFailed) {
-        Write-Host "Repair unsuccessful. Manual intervention required!"
+       Write-Host "Verify failed. Manual intervention may be req'd..."
+        # Nap Nuke
+        # Write-Host "Calling clean-up all versions of Naplan due to failure of MSI"
+        # irm  -UseBasicParsing -Uri "$napnukeurl" | iex
+        $repairProcess = Start-Process "msiexec.exe" -ArgumentList "/f `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
+        $repairProcess.WaitForExit()
         exit 1
     } else {
         Write-Host "Repair successful. All files verified."
