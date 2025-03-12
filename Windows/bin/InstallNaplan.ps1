@@ -400,11 +400,19 @@ Write-Host "Installation process completed."
 
 # Step 3: Validate Installed Files
 Write-Host "Validating installed files..."
+$ExtractBase = "C:\ProgramData\Naplan\Temp\Naplan_Extract\"
+
+# Ensure the extraction path exists
+if (!(Test-Path $ExtractBase)) { New-Item -ItemType Directory -Path $ExtractBase -Force }
+
+# Run MSI Extraction
+Start-Process -FilePath "msiexec.exe" -ArgumentList "/a `"$MSIPath`" TARGETDIR=`"$ExtractBase`" /qn" -Wait -NoNewWindow
+
+Write-Host "MSI Extracted to: $ExtractPath"
 
 $MSIPath = "C:\ProgramData\Naplan\Temp\Naplan_Setup.msi"
 $InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"
-$ExtractBasePath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
-$ExtractPath = Join-Path -Path $ExtractBasePath -ChildPath "NAP Locked down browser"
+$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
 
 # Ensure extracted path exists
 if (-not (Test-Path $ExtractPath)) {
@@ -525,6 +533,7 @@ if ($missingFiles.Count -gt 0 -or $mismatchedFiles.Count -gt 0) {
     }
 } else {
     Write-Host "All installed files match the MSI manifest."
+    
 }
 
 # Step 5: Firewall Setup (Only if installation was successful)
@@ -554,8 +563,12 @@ Write-Host "Cleaning up MSI file..."
 Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
 
 Write-Host "Installation and verification completed successfully."  
-
-     
+if (Test-Path $ExtractBasePath) {
+    Remove-Item -Path $ExtractBasePath -Recurse -Force
+    Write-Host "Cleanup complete: $ExtractBasePath has been removed."
+} else {
+    Write-Host "Nothing to clean: $ExtractBasePath does not exist."
+}     
     
 # Clean up MSI file after installation completes
     Write-Host "Installation completed. Cleaning up..."
