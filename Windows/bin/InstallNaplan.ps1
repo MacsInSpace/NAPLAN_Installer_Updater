@@ -395,7 +395,7 @@ function Get-FileHashSHA256($filePath) {
 # Step 1: Extract MSI Manifest
 Write-Host "Extracting file manifest from MSI..."
 # Open the MSI Database
-$MSIPath = "C:\Path\To\Your.msi"
+$MSIPath = "$Setup"
 $InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"  # Change if needed
 
 $installer = New-Object -ComObject WindowsInstaller.Installer
