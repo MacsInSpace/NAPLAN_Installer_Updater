@@ -362,7 +362,7 @@ if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
     
     if ($InternetAvailable -and $URL) {
         Write-Host "Downloading latest version from: $URL"
-        (New-Object System.Net.WebClient).DownloadFile($URL, $Setup)
+        Start-BitsTransfer -Source $URL -Destination $Setup
     } elseif (Test-Path $FallbackSMB) {
         Write-Host "Internet unavailable. Installing from local SMB: $FallbackSMB"
         Copy-Item "$FallbackSMB" -Destination "$Setup" -Force
