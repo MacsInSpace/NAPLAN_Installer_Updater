@@ -1,5 +1,5 @@
 $MSIPath = "C:\ProgramData\Naplan\Temp\Naplan_Setup.msi"
-$ExtractPath = "C:\Temp\Naplan_Extract"
+$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract"
 
 # Ensure the extraction path exists
 if (!(Test-Path $ExtractPath)) { New-Item -ItemType Directory -Path $ExtractPath -Force }
