@@ -1,8 +1,10 @@
-$ExtractBasePath = "C:\ProgramData\Naplan\Temp\Naplan_Extract"
+$MSIPath = "C:\ProgramData\Naplan\Temp\Naplan_Setup.msi"
+$ExtractPath = "C:\Temp\Naplan_Extract"
 
-if (Test-Path $ExtractBasePath) {
-    Remove-Item -Path $ExtractBasePath -Recurse -Force
-    Write-Host "Cleanup complete: $ExtractBasePath has been removed."
-} else {
-    Write-Host "Nothing to clean: $ExtractBasePath does not exist."
-}
+# Ensure the extraction path exists
+if (!(Test-Path $ExtractPath)) { New-Item -ItemType Directory -Path $ExtractPath -Force }
+
+# Run MSI Extraction
+Start-Process -FilePath "msiexec.exe" -ArgumentList "/a `"$MSIPath`" TARGETDIR=`"$ExtractPath`" /qn" -Wait -NoNewWindow
+
+Write-Host "MSI Extracted to: $ExtractPath"
