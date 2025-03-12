@@ -402,19 +402,15 @@ Write-Host "Installation process completed."
 Write-Host "Validating installed files..."
 
 $MSIPath = "C:\ProgramData\Naplan\Temp\Naplan_Setup.msi"
-$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
-
-# Ensure the extraction path exists
-if (!(Test-Path $ExtractPath)) { New-Item -ItemType Directory -Path $ExtractPath -Force }
-
-# Run MSI Extraction
-Start-Process -FilePath "msiexec.exe" -ArgumentList "/a `"$MSIPath`" TARGETDIR=`"$ExtractPath`" /qn" -Wait -NoNewWindow
-
-Write-Host "MSI Extracted to: $ExtractPath"
-
-# Define paths
 $InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"
-$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
+$ExtractBasePath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
+$ExtractPath = Join-Path -Path $ExtractBasePath -ChildPath "NAP Locked down browser"
+
+# Ensure extracted path exists
+if (-not (Test-Path $ExtractPath)) {
+    Write-Host "Extracted folder not found: $ExtractPath"
+    exit 1
+}
 
 # Get all files in both directories
 $installedFiles = Get-ChildItem -Path $InstallPath -Recurse | Where-Object { -not $_.PSIsContainer }
@@ -422,10 +418,16 @@ $extractedFiles = Get-ChildItem -Path $ExtractPath -Recurse | Where-Object { -no
 
 # Convert to a hash table for quick lookup
 $installedLookup = @{}
-$installedFiles | ForEach-Object { $installedLookup[$_.FullName.Replace($InstallPath, "")] = $_ }
+$installedFiles | ForEach-Object { 
+    $relativePath = $_.FullName.Replace($InstallPath, "").TrimStart("\")
+    $installedLookup[$relativePath] = $_
+}
 
 $extractedLookup = @{}
-$extractedFiles | ForEach-Object { $extractedLookup[$_.FullName.Replace($ExtractPath, "")] = $_ }
+$extractedFiles | ForEach-Object { 
+    $relativePath = $_.FullName.Replace($ExtractPath, "").TrimStart("\")
+    $extractedLookup[$relativePath] = $_
+}
 
 # Track differences
 $missingFiles = @()
