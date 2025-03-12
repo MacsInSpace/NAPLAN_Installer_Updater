@@ -394,29 +394,39 @@ function Get-FileHashSHA256($filePath) {
 
 # Step 1: Extract MSI Manifest
 Write-Host "Extracting file manifest from MSI..."
-$installer = New-Object -ComObject WindowsInstaller.Installer
-$database = $installer.OpenDatabase($Setup, 0)
+# Open the MSI Database
+$MSIPath = "C:\Path\To\Your.msi"
+$InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"  # Change if needed
 
-# SQL Query to extract file details
+$installer = New-Object -ComObject WindowsInstaller.Installer
+$database = $installer.OpenDatabase($MSIPath, 0)
+
+# SQL Query to extract file details, including Directory_
 $view = $database.OpenView("SELECT FileName, FileSize, File.Component_, Directory_ FROM File INNER JOIN Component ON File.Component_ = Component.Component WHERE FileName IS NOT NULL")
 $view.Execute()
 
 # Store expected files and details
 $expectedFiles = @()
 $record = $view.Fetch()
-while ($null -ne $record) {
-    $FileName = $record.StringData(1)
+while ($record -ne $null) {
+    $FileName = $record.StringData(1) -replace "\|.*$",""  # Remove metadata after `|`
     $FileSize = $record.IntegerData(2)
     $Component = $record.StringData(3)
+    $Directory = $record.StringData(4)  # Get directory location from MSI
+
+    # Join the install path with the directory and filename
+    $fullPath = Join-Path $InstallPath -ChildPath (Join-Path $Directory $FileName)
 
     $expectedFiles += [PSCustomObject]@{
         FileName = $FileName
         FileSize = $FileSize
         Component = $Component
-        FilePath = Join-Path $InstallPath $FileName
+        Directory = $Directory
+        FilePath = $fullPath
     }
     $record = $view.Fetch()
 }
+
 $view.Close()
 
 # Step 2: Install the MSI
