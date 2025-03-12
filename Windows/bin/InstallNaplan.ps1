@@ -442,10 +442,11 @@ $mismatchedFiles = @()
 $installPath = "${env:ProgramFiles(x86)}\NAP Locked Down Browser"
 $filePath = "$installPath\NAP Locked Down Browser.exe"
 
-
+$expectedFiles | ForEach-Object { Write-Host "Checking: $($_.FilePath)" }
 
 
 foreach ($file in $expectedFiles) {
+Write-Host "File: $FileName | Dir: $Directory | FullPath: $fullPath"
     # Ensure the file path is not null or empty
     if (-not $file.FilePath -or $file.FilePath -match "^\s*$") {
         Write-Host "Invalid or missing file path in manifest: $($file.FileName)"
