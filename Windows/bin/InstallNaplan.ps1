@@ -432,31 +432,35 @@ $mismatchedFiles = @()
 $installPath = "${env:ProgramFiles(x86)}\NAP Locked Down Browser"
 $filePath = "$installPath\NAP Locked Down Browser.exe"
 
-if (Test-Path "$filePath") {
-    Write-Host "File found: $filePath"
-} else {
-    Write-Host "File not found or invalid path: $filePath"
-    exit 1
-}
-
-if ($file.FilePath -and (Test-Path $file.FilePath)) {
-    # Process file
-} else {
-    Write-Host "Invalid or missing file path: $($file.FilePath)"
-}
 foreach ($file in $expectedFiles) {
-    $safePath = [System.IO.Path]::GetFullPath($file.FilePath)
-    Write-Host "Checking path: $safePath"
-
-    if ($safePath -match "\(") {
-        Write-Host "Path contains parentheses, checking quotes..."
+    # Ensure the file path is not null or empty
+    if (-not $file.FilePath -or $file.FilePath -match "^\s*$") {
+        Write-Host "Invalid or missing file path in manifest: $($file.FileName)"
+        continue
     }
 
-    if (Test-Path "$safePath") {
+    # Normalize the path
+    try {
+        $safePath = [System.IO.Path]::Combine($InstallPath, $file.FileName)
+    } catch {
+        Write-Host "Error processing file path for $($file.FileName): $_"
+        continue
+    }
+
+    # Debugging Output
+    Write-Host "Checking path: $safePath"
+
+    # Ensure path does not contain illegal characters before testing it
+    if ($safePath -match '[<>:"|?*]') {
+        Write-Host "Skipping file due to illegal characters in path: $safePath"
+        continue
+    }
+
+    # Validate file existence
+    if (Test-Path -PathType Leaf -Path "$safePath") {
         Write-Host "File found: $safePath"
     } else {
-        Write-Host "Invalid or missing file: $safePath"
-        exit 1
+        Write-Host "Missing file: $safePath"
     }
 }
 
