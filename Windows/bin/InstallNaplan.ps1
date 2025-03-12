@@ -432,10 +432,13 @@ $mismatchedFiles = @()
 $installPath = "${env:ProgramFiles(x86)}\NAP Locked Down Browser"
 $filePath = "$installPath\NAP Locked Down Browser.exe"
 
+
+
+
 foreach ($file in $expectedFiles) {
     # Ensure the file path is not null or empty
     if (-not $file.FilePath -or $file.FilePath -match "^\s*$") {
-        Write-Host "⚠️ Invalid or missing file path in manifest: $($file.FileName)"
+        Write-Host "Invalid or missing file path in manifest: $($file.FileName)"
         continue
     }
 
@@ -450,7 +453,7 @@ foreach ($file in $expectedFiles) {
         $safePath = [System.IO.Path]::Combine($InstallPath, $cleanFileName)
         $safePath = $safePath -replace '\\+', '\'  # Remove duplicate slashes
     } catch {
-        Write-Host "❌ Error processing file path for $($file.FileName): $_"
+        Write-Host "Error processing file path for $($file.FileName): $_"
         continue
     }
 
@@ -459,15 +462,15 @@ foreach ($file in $expectedFiles) {
 
     # Verify path contains no illegal characters
     if ($safePath -match '[<>:"|?*]') {
-        Write-Host "❌ Skipping file due to illegal characters in path: $safePath"
+        Write-Host "Skipping file due to illegal characters in path: $safePath"
         continue
     }
 
     # Test if file exists
     if (Test-Path -PathType Leaf -Path "$safePath") {
-        Write-Host "✅ File found: $safePath"
+        Write-Host "File found: $safePath"
     } else {
-        Write-Host "❌ Missing file: $safePath"
+        Write-Host "Missing file: $safePath"
     }
 }
 
