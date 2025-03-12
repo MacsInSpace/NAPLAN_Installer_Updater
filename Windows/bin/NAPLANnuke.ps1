@@ -101,4 +101,4 @@ Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\NAP*.lnk
 Write-Host "Ensuring Task Manager is enabled..."
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Force -ErrorAction SilentlyContinue
 
-Write-Host "Naplan cleanup complete!"
+Write-Host "Naplan cleanup complete! Thanks Rolfe!
