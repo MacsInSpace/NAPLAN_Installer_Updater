@@ -439,9 +439,13 @@ foreach ($file in $expectedFiles) {
         continue
     }
 
+    # Sanitize filename: Remove illegal characters and strip logical names (anything after '|')
+    $cleanFileName = $file.FileName -split '\|' | Select-Object -First 1  # Take only the first part
+    $cleanFileName = $cleanFileName -replace '[<>:"|?*]', ''  # Remove illegal characters
+
     # Normalize the path
     try {
-        $safePath = [System.IO.Path]::Combine($InstallPath, $file.FileName)
+        $safePath = [System.IO.Path]::Combine($InstallPath, $cleanFileName)
     } catch {
         Write-Host "Error processing file path for $($file.FileName): $_"
         continue
@@ -450,13 +454,12 @@ foreach ($file in $expectedFiles) {
     # Debugging Output
     Write-Host "Checking path: $safePath"
 
-    # Ensure path does not contain illegal characters before testing it
+    # Validate file existence
     if ($safePath -match '[<>:"|?*]') {
         Write-Host "Skipping file due to illegal characters in path: $safePath"
         continue
     }
 
-    # Validate file existence
     if (Test-Path -PathType Leaf -Path "$safePath") {
         Write-Host "File found: $safePath"
     } else {
