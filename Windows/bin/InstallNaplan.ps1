@@ -429,6 +429,36 @@ Write-Host "Installation process completed."
 Write-Host "Validating installed files..."
 $missingFiles = @()
 $mismatchedFiles = @()
+$installPath = "${env:ProgramFiles(x86)}\NAP Locked Down Browser"
+$filePath = "$installPath\NAP Locked Down Browser.exe"
+
+if (Test-Path "$filePath") {
+    Write-Host "File found: $filePath"
+} else {
+    Write-Host "File not found or invalid path: $filePath"
+    exit 1
+}
+
+if ($file.FilePath -and (Test-Path $file.FilePath)) {
+    # Process file
+} else {
+    Write-Host "Invalid or missing file path: $($file.FilePath)"
+}
+foreach ($file in $expectedFiles) {
+    $safePath = [System.IO.Path]::GetFullPath($file.FilePath)
+    Write-Host "Checking path: $safePath"
+
+    if ($safePath -match "\(") {
+        Write-Host "Path contains parentheses, checking quotes..."
+    }
+
+    if (Test-Path "$safePath") {
+        Write-Host "File found: $safePath"
+    } else {
+        Write-Host "Invalid or missing file: $safePath"
+        exit 1
+    }
+}
 
 foreach ($file in $expectedFiles) {
     if (-not (Test-Path $file.FilePath)) {
