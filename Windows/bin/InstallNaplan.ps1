@@ -379,78 +379,142 @@ if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
 }
 
     Write-Host "MSI is signed by a trusted entity and signature is valid. Proceeding with installation..."
-    # Install the MSI
-    Write-Host "Installing Naplan..."
-    # Start the MSI installation and capture the process object
-    $installProcess = Start-Process "msiexec.exe" -ArgumentList "/i `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
-    
-    # Wait for the process to exit
-    Write-Host "Waiting for installation to complete..."
-    $installProcess.WaitForExit()
 
-    # Define the firewall rule name
-     $RuleName = "NAPLockedDownBrowserOutbound"
+# Install the MSI
+$InstallPath = "C:\Program Files\NAP Locked Down Browser" # Adjust this if needed
+$RuleName = "NAPLockedDownBrowserOutbound"
 
-    # Try to find the install path from the registry (32-bit and 64-bit locations)
-     $RegistryPaths = @(
-    "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\NAPLockedDownBrowser",
-    "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\NAPLockedDownBrowser"
-)
+# Function: Get File Hash (SHA-256)
+function Get-FileHashSHA256($filePath) {
+    if (Test-Path $filePath) {
+        return (Get-FileHash -Path $filePath -Algorithm SHA256).Hash
+    }
+    return $null
+}
 
-$AppPath = $null
+# Step 1: Extract MSI Manifest
+Write-Host "Extracting file manifest from MSI..."
+$installer = New-Object -ComObject WindowsInstaller.Installer
+$database = $installer.OpenDatabase($Setup, 0)
 
-foreach ($RegPath in $RegistryPaths) {
-    if (Test-Path $RegPath) {
-        $InstallLocation = (Get-ItemProperty -Path $RegPath).InstallLocation
-        if ($InstallLocation) {
-            $AppPath = Join-Path -Path $InstallLocation -ChildPath "NAP Locked Down Browser.exe"
-            break
+# SQL Query to extract file details
+$view = $database.OpenView("SELECT FileName, FileSize, File.Component_ FROM File")
+$view.Execute()
+
+# Store expected files and details
+$expectedFiles = @()
+$record = $view.Fetch()
+while ($null -ne $record) {
+    $FileName = $record.StringData(1)
+    $FileSize = $record.IntegerData(2)
+    $Component = $record.StringData(3)
+
+    $expectedFiles += [PSCustomObject]@{
+        FileName = $FileName
+        FileSize = $FileSize
+        Component = $Component
+        FilePath = Join-Path $InstallPath $FileName
+    }
+    $record = $view.Fetch()
+}
+$view.Close()
+
+# Step 2: Install the MSI
+Write-Host "Installing Naplan..."
+$installProcess = Start-Process "msiexec.exe" -ArgumentList "/i `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
+$installProcess.WaitForExit()
+Write-Host "Installation process completed."
+
+# Step 3: Validate Installed Files
+Write-Host "🔍 Validating installed files..."
+$missingFiles = @()
+$mismatchedFiles = @()
+
+foreach ($file in $expectedFiles) {
+    if (-not (Test-Path $file.FilePath)) {
+        $missingFiles += $file.FilePath
+    } else {
+        $actualSize = (Get-Item $file.FilePath).Length
+        $expectedSize = $file.FileSize
+
+        if ($actualSize -ne $expectedSize) {
+            $mismatchedFiles += "$($file.FileName) (Expected: $expectedSize bytes, Found: $actualSize bytes)"
+        } else {
+            # Optional Hash Check
+            $expectedHash = Get-FileHashSHA256 $file.FilePath
+            Write-Host "Verified: $($file.FileName) - SHA256: $expectedHash"
         }
     }
 }
 
-# Fallback paths (if registry doesn't contain install path)
-if (-not $AppPath -or -not (Test-Path $AppPath)) {
-    $FallbackPaths = @(
-    "${env:ProgramFiles(x86)}\NAP Locked Down Browser\NAP Locked Down Browser.exe",
-    "$env:ProgramFiles\NAP Locked Down Browser\NAP Locked Down Browser.exe"
-)
+# Step 4: Handle Missing/Mismatched Files (Trigger Repair)
+if ($missingFiles.Count -gt 0 -or $mismatchedFiles.Count -gt 0) {
+    Write-Host "Issues detected with installed files."
+    
+    if ($missingFiles.Count -gt 0) {
+        Write-Host "Missing Files:"
+        $missingFiles | ForEach-Object { Write-Host $_ }
+    }
+    
+    if ($mismatchedFiles.Count -gt 0) {
+        Write-Host "Size Mismatched Files:"
+        $mismatchedFiles | ForEach-Object { Write-Host $_ }
+    }
 
-    foreach ($Path in $FallbackPaths) {
-        if (Test-Path $Path) {
-            $AppPath = $Path
-            break
+    Write-Host "Attempting MSI repair..."
+    $repairProcess = Start-Process "msiexec.exe" -ArgumentList "/f `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
+    $repairProcess.WaitForExit()
+
+    # Recheck after repair
+    $validationFailed = $false
+    foreach ($file in $expectedFiles) {
+        if (-not (Test-Path $file.FilePath)) {
+            Write-Host "Repair failed: $($file.FileName) is still missing."
+            $validationFailed = $true
         }
     }
+
+    if ($validationFailed) {
+        Write-Host "Repair unsuccessful. Manual intervention required!"
+        exit 1
+    } else {
+        Write-Host "Repair successful. All files verified."
+    }
+} else {
+    Write-Host "All installed files match the MSI manifest."
 }
 
-# Check if we have a valid path before adding firewall rule
-if ($AppPath -and (Test-Path $AppPath)) {
-
-    # Log it as installed 
-    $currentDateString = Get-Date -Format "yyyyMMdd"
-    $currentDateString | Set-Content -Path $lastUpdateFile -Force
-    
-    # Check if the rule already exists
+# Step 5: Firewall Setup (Only if installation was successful)
+if ($missingFiles.Count -eq 0 -and $mismatchedFiles.Count -eq 0) {
+    Write-Host "Configuring firewall rule..."
     $ruleExists = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyContinue
 
     if (-not $ruleExists) {
         New-NetFirewallRule -DisplayName $RuleName `
                             -Description "Outbound rule for NAP Locked Down Browser" `
-                            -Program $AppPath `
+                            -Program "$InstallPath\NAP Locked Down Browser.exe" `
                             -Direction Outbound `
                             -Action Allow `
                             -Profile Any
-
-        Write-Host "Outbound rule for NAP Locked Down Browser has been added."
+        Write-Host "Firewall rule added."
     } else {
-        Write-Host "Firewall rule '$RuleName' already exists. No action taken."
-    }
-} else {
-    Write-Host "Could not determine NAPLAN LDB install location. Firewall rule NOT added."
+        Write-Host "Firewall rule already exists."
     }
 
-    # Clean up MSI file after installation completes
+    # Log Install Date
+    $currentDateString = Get-Date -Format "yyyyMMdd"
+    $currentDateString | Set-Content -Path $lastUpdateFile -Force
+}
+
+# Step 6: Cleanup MSI File
+Write-Host "Cleaning up MSI file..."
+Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
+
+Write-Host "Installation and verification completed successfully."  
+
+     
+    
+# Clean up MSI file after installation completes
     Write-Host "Installation completed. Cleaning up..."
     Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
     Write-Host "Refreshing icon cache..."
