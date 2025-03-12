@@ -381,7 +381,7 @@ if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
     Write-Host "MSI is signed by a trusted entity and signature is valid. Proceeding with installation..."
 
 # Install the MSI
-$InstallPath = "C:\Program Files\NAP Locked Down Browser" # Adjust this if needed
+$installPath = "${env:ProgramFiles(x86)}\NAP Locked Down Browser" # Adjust this if needed
 $RuleName = "NAPLockedDownBrowserOutbound"
 
 # Function: Get File Hash (SHA-256)
