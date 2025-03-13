@@ -1,27 +1,40 @@
 # Define paths
 $scriptDir = "C:\ProgramData\Naplan"
-$Year = (Get-Date -Format "yyyy)
+$Year = (Get-Date -Format "yyyy")
 $cmdFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.cmd"
 $psFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.ps1"
 $iconPath = "C:\Program Files (x86)\NAP Locked down browser\Content\replay.ico"
-$shortcutFile = "C:\Users\Public\Desktop\NAPLAN $year Launcher.lnk"  # Launcher shortcut for all users
-$OshortcutFile = "C:\Users\Public\Desktop\NAP*er.lnk" #Old shortcut for all users
+$shortcutFile = "C:\Users\Public\Desktop\NAPLAN $Year Launcher.lnk"  # Launcher shortcut for all users
+# Define the file pattern
+$shortcutPattern = "NAP*er.lnk"
+
 # Ensure necessary directories exist
 if (!(Test-Path $scriptDir)) {
     New-Item -Path $scriptDir -ItemType Directory -Force | Out-Null
 }
-# Get all matching shortcut files
-$shortcuts = Get-ChildItem -Path $OshortcutFile -File
 
-# Remove each found shortcut
-if ($shortcuts) {
-    $shortcuts | ForEach-Object {
-        Remove-Item -Path $_.FullName -Force
-        Write-Host "Removed: $($_.FullName)"
-    }
-} else {
-    Write-Host "No matching shortcuts found."
+# Remove from Public Desktop
+$publicDesktop = "C:\Users\Public\Desktop"
+Get-ChildItem -Path $publicDesktop -Filter $shortcutPattern -File | ForEach-Object { 
+    Remove-Item -Path $_.FullName -Force 
+    Write-Host "Removed: $($_.FullName)"
 }
+
+# Remove from all user-specific Desktops
+$userDesktops = Get-ChildItem -Path "C:\Users" -Directory | ForEach-Object { 
+    Join-Path -Path $_.FullName -ChildPath "Desktop"
+}
+
+foreach ($desktop in $userDesktops) {
+    if (Test-Path $desktop) {
+        Get-ChildItem -Path $desktop -Filter $shortcutPattern -File | ForEach-Object { 
+            Remove-Item -Path $_.FullName -Force 
+            Write-Host "Removed: $($_.FullName)"
+        }
+    }
+}
+
+Write-Host "Cleanup complete."
 
 # Create CMD file (launcher)
 $cmdContent = "@echo off`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0NAPLAN_Launcher.ps1`"`r`nexit /b"
@@ -56,5 +69,9 @@ if (Test-Path $iconPath) {
 
 $shortcut.Save()
 
+ie4uinit.exe -ClearIconCache
+
 Write-Host "Shortcut created at: $shortcutFile"
 Write-Host "CMD and PowerShell scripts saved in: $scriptDir"
+
+
