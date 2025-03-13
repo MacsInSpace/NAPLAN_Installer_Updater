@@ -1,21 +1,26 @@
 # Define paths
 $scriptDir = "C:\ProgramData\Naplan"
+$Year = (Get-Date -Format "yyyy)
 $cmdFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.cmd"
 $psFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.ps1"
 $iconPath = "C:\Program Files (x86)\NAP Locked down browser\Content\replay.ico"
-$shortcutFile = "C:\Users\Public\Desktop\NAPLAN Launcher.lnk"  # Launcher shortcut for all users
-$OshortcutFile = "C:\Users\Public\Desktop\NAPLAN Locked down browser.lnk" #Old shortcut for all users
+$shortcutFile = "C:\Users\Public\Desktop\NAPLAN $year Launcher.lnk"  # Launcher shortcut for all users
+$OshortcutFile = "C:\Users\Public\Desktop\NAP*er.lnk" #Old shortcut for all users
 # Ensure necessary directories exist
 if (!(Test-Path $scriptDir)) {
     New-Item -Path $scriptDir -ItemType Directory -Force | Out-Null
 }
+# Get all matching shortcut files
+$shortcuts = Get-ChildItem -Path $shortcutPattern -File
 
-# Only remove the file if it exists
-if (Test-Path $OshortcutFile) {
-    Remove-Item -Path $OshortcutFile -Force
-    Write-Host "Old shortcut removed: $OshortcutFile"
+# Remove each found shortcut
+if ($shortcuts) {
+    $shortcuts | ForEach-Object {
+        Remove-Item -Path $_.FullName -Force
+        Write-Host "Removed: $($_.FullName)"
+    }
 } else {
-    Write-Host "No old shortcut found: $OshortcutFile"
+    Write-Host "No matching shortcuts found."
 }
 
 # Create CMD file (launcher)
