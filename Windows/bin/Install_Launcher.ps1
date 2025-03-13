@@ -2,9 +2,9 @@
 $scriptDir = "C:\ProgramData\Naplan"
 $Year = (Get-Date -Format "yyyy")
 $cmdFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.cmd"
-$psFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.ps1"
 $iconPath = "C:\Program Files (x86)\NAP Locked down browser\Content\replay.ico"
 $shortcutFile = "C:\Users\Public\Desktop\NAPLAN $Year Launcher.lnk"  # Launcher shortcut for all users
+
 # Define the file pattern
 $shortcutPattern = "NAP*er.lnk"
 
@@ -40,18 +40,6 @@ Write-Host "Cleanup complete."
 $cmdContent = "@echo off`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0NAPLAN_Launcher.ps1`"`r`nexit /b"
 Set-Content -Path $cmdFile -Value $cmdContent -Encoding ASCII
 
-# Create CMD file (launcher)
-$cmdContent = "@echo off`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0NAPLAN_Launcher.ps1`"`r`nexit /b"
-Set-Content -Path $cmdFile -Value $cmdContent -Encoding ASCII
-
-# Create PowerShell script (placeholder for now)
-$psContent = @'
-# Placeholder PowerShell script for launching NAPLAN LDB
-Write-Host "Launching NAPLAN Locked Down Browser..."
-# Add logic here to check prerequisites and launch the app
-'@
-Set-Content -Path $psFile -Value $psContent -Encoding UTF8
-
 # Create Shortcut to CMD file on Public Desktop
 $WScriptShell = New-Object -ComObject WScript.Shell
 $shortcut = $WScriptShell.CreateShortcut($shortcutFile)
@@ -73,5 +61,4 @@ ie4uinit.exe -ClearIconCache
 
 Write-Host "Shortcut created at: $shortcutFile"
 Write-Host "CMD and PowerShell scripts saved in: $scriptDir"
-
 
