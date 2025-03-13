@@ -11,7 +11,7 @@ if (!(Test-Path $scriptDir)) {
     New-Item -Path $scriptDir -ItemType Directory -Force | Out-Null
 }
 # Get all matching shortcut files
-$shortcuts = Get-ChildItem -Path $shortcutPattern -File
+$shortcuts = Get-ChildItem -Path $OshortcutFile -File
 
 # Remove each found shortcut
 if ($shortcuts) {
