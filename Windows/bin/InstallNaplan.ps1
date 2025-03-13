@@ -538,6 +538,8 @@ if ($missingFiles.Count -gt 0 -or $mismatchedFiles.Count -gt 0) {
 
 # Step 5: Firewall Setup (Only if installation was successful)
 if ($missingFiles.Count -eq 0 -and $mismatchedFiles.Count -eq 0) {
+ `
+ 
     Write-Host "Configuring firewall rule..."
     $ruleExists = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyContinue
 
@@ -603,12 +605,16 @@ if (Test-Path $ExtractBasePath) {
 
     ## Refreshing icon cache option 3
     
-    (New-Object -ComObject Shell.Application).MinimizeAll()
-    Start-Sleep -Milliseconds 500
+    #(New-Object -ComObject Shell.Application).MinimizeAll()
+    #Start-Sleep -Milliseconds 500
     ie4uinit.exe -ClearIconCache
-    (New-Object -ComObject Shell.Application).UndoMinimizeAll()
+    #(New-Object -ComObject Shell.Application).UndoMinimizeAll()
 } 
     Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
+
+    Write-Host "Installing launcher icon"
+    irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/Install_Launcher.ps1" | iex
+
 } else {
     Write-Host "No update needed. Last update was within the required interval."
 }
