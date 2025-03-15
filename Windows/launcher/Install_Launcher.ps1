@@ -17,13 +17,14 @@ $NAPLANLauncherURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Insta
 $NAPLANLaunchercmdFileURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLANLaunchercmdFile.cmd
 
 # Define the file pattern
-$shortcutPattern = "NAP*er.lnk"
+$shortcutPattern = 'NAP*er.lnk'
 
-# Ensure NAPLAN is inststalled directories exist
-if (!(Test-Path $iconPath)) {
+# Ensure NAPLAN is installed and the directory exists
+if (!(Test-Path -Path $iconPath -PathType Leaf)) {
     Write-Host "Naplan does not appear to be installed in the standard location. Exiting..."
     exit 1
 }
+
 # Ensure necessary directories exist
 if (!(Test-Path $scriptDir)) {
     New-Item -Path $scriptDir -ItemType Directory -Force | Out-Null
