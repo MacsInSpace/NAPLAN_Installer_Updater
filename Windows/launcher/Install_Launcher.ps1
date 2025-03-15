@@ -9,7 +9,7 @@ $BranchName = "main"
 # Define paths
 $scriptDir = "C:\ProgramData\Naplan"
 $Year = (Get-Date -Format "yyyy")
-$cmdFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.cmd"
+$NAPLANLaunchercmdFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.cmd"
 $iconPath = "C:\Program Files (x86)\NAP Locked down browser\Content\replay.ico"
 $shortcutFile = "C:\Users\Public\Desktop\NAPLAN $Year Launcher.lnk"  # Launcher shortcut for all users
 $LauncherScriptPath = Join-Path $StoragePath "NAPLAN_Launcher.ps1"
@@ -32,7 +32,7 @@ if (!(Test-Path $scriptDir)) {
 
 # Download the Launcher script
 try {
-    Invoke-WebRequest -Uri $LauncherURL -OutFile $LauncherScriptPath -UseBasicParsing
+    Invoke-WebRequest -Uri $NAPLANLauncherURL -OutFile $LauncherScriptPath -UseBasicParsing
     Write-Host "Proxy script downloaded successfully: $LauncherScriptPath"
 } catch {
     Write-Host "Failed to download launcher script: $_"
@@ -40,7 +40,7 @@ try {
 
 # Download the Launcher CMD script
 try {
-    Invoke-WebRequest -Uri $NAPLANLauncherURL -OutFile $NAPLANLaunchercmdFile -UseBasicParsing
+    Invoke-WebRequest -Uri $NAPLANLaunchercmdFileURL -OutFile $NAPLANLaunchercmdFile -UseBasicParsing
     Write-Host "Proxy script downloaded successfully: $NAPLANLaunchercmdFile"
 } catch {
     Write-Host "Failed to download launcher script: $_"
