@@ -14,13 +14,6 @@ $ForceUpdate = $true # default to $false. # $true will force the update regardle
 # Force an update of the scheduled task
 $Updatetasktoo = $true #default to $false. # true will force the update task.
 
-# Force an update (uninstall and reinstall regardless of time, date)
-$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
-
-# Force an update of the scheduled task
-$Updatetasktoo = $false #default to $false. # true will force the update task.
-
-
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
 #=======================================================================
@@ -71,6 +64,16 @@ If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 
 #=======================================================================
 
+# Function to check if a transcript is running
+function Start-ConditionalTranscript {
+    if ($global:transcript -ne $null) {
+        Write-Host "Transcript is already running. Skipping Start-Transcript."
+    } else {
+        Start-Transcript -Path "$NaplanInstall" -Append
+        $global:transcript = $true  # Mark transcript as active
+    }
+}
+
 # Call the function to conditionally start transcript
 Start-ConditionalTranscript
 
@@ -87,7 +90,6 @@ $napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Up
 
 $scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
 
-# Define the storage paths
 $StoragePath = Join-Path $env:ProgramData "Naplan"
 
 $ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
@@ -102,7 +104,6 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
-
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
     New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
@@ -113,16 +114,6 @@ if (-not (Test-Path $StoragePath)) {
 if (-not (Test-Path $LocalTempDir)) {
     New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
     Write-Host "Created directory: $LocalTempDir"
-}
-
-# Function to check if a transcript is running
-function Start-ConditionalTranscript {
-    if ($global:transcript -ne $null) {
-        Write-Host "Transcript is already running. Skipping Start-Transcript."
-    } else {
-        Start-Transcript -Path "$NaplanInstall" -Append
-        $global:transcript = $true  # Mark transcript as active
-    }
 }
 
 # Function to stop transcript safely
