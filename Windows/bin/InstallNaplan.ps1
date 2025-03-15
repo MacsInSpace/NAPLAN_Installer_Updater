@@ -527,6 +527,8 @@ if ($missingFiles.Count -gt 0 -or $mismatchedFiles.Count -gt 0) {
         # irm  -UseBasicParsing -Uri "$napnukeurl" | iex
         $repairProcess = Start-Process "msiexec.exe" -ArgumentList "/f `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
         $repairProcess.WaitForExit()
+        $missingFiles = @()
+        $mismatchedFiles = @()
     } else {
         Write-Host "Repair successful. All files verified."
     }
