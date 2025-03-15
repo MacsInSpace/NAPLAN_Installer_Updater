@@ -95,13 +95,14 @@ try {
     Write-Host "Failed to download proxy script: $_"
 }
 
-# Download the proxy script
+# Download the Launcher script
 try {
     Invoke-WebRequest -Uri $LauncherURL -OutFile $LauncherScriptPath -UseBasicParsing
     Write-Host "Proxy script downloaded successfully: $LauncherScriptPath"
 } catch {
-    Write-Host "Failed to download proxy script: $_"
+    Write-Host "Failed to download launcher script: $_"
 }
+
 # Create the script file to run the command
 $PowerShellCommand = @"
 Write-Host `"Running live Naplan installer scheduled task...`"
