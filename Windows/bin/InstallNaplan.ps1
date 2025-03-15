@@ -612,8 +612,8 @@ if (Test-Path $ExtractBasePath) {
 } 
     Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
 
-    Write-Host "Installing launcher icon"
-    irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/Install_Launcher.ps1" | iex
+# Write-Host "Installing launcher icon"
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/launcher/Install_Launcher.ps1" | iex
 
 } else {
     Write-Host "No update needed. Last update was within the required interval."
