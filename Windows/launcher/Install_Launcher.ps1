@@ -4,7 +4,7 @@
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1" | iex
 
 # Git branch
-$BranchName = "testing"
+$BranchName = "main"
 
 # Define paths
 $scriptDir = "C:\ProgramData\Naplan"
