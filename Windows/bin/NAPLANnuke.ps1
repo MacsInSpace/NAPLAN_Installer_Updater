@@ -86,19 +86,43 @@ Write-Host "Removing tracing logs..."
 Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32" -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS" -Force -ErrorAction SilentlyContinue
 
+# Define the file pattern
+$shortcutPattern = "NAP*er.lnk"
+
 # Remove shortcuts from All Users Start Menu
 Write-Host "Removing shortcuts from All Users Start Menu..."
-Remove-Item -Path "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\NAP*.lnk" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
 
 # Delete installation directory and shortcuts
 Write-Host "Removing installation directories and shortcuts..."
 Remove-Item -Path "C:\Program Files (x86)\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "C:\Users\Public\Desktop\NAP*.lnk" -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "$env:USERPROFILE\Desktop\NAP*.lnk" -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\NAP*.lnk" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "C:\Users\Public\Desktop\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "$env:USERPROFILE\Desktop\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
+Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
+
+# Remove from Public Desktop
+$publicDesktop = "C:\Users\Public\Desktop"
+Get-ChildItem -Path $publicDesktop -Filter $shortcutPattern -File | ForEach-Object { 
+    Remove-Item -Path $_.FullName -Force 
+    Write-Host "Removed: $($_.FullName)"
+}
+
+# Remove from all user-specific Desktops
+$userDesktops = Get-ChildItem -Path "C:\Users" -Directory | ForEach-Object { 
+    Join-Path -Path $_.FullName -ChildPath "Desktop"
+}
+
+foreach ($desktop in $userDesktops) {
+    if (Test-Path $desktop) {
+        Get-ChildItem -Path $desktop -Filter $shortcutPattern -File | ForEach-Object { 
+            Remove-Item -Path $_.FullName -Force 
+            Write-Host "Removed: $($_.FullName)"
+        }
+    }
+}
 
 # Re-enable Task Manager if disabled
 Write-Host "Ensuring Task Manager is enabled..."
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Force -ErrorAction SilentlyContinue
 
-Write-Host "Naplan cleanup complete! Thanks Rolfe!
+Write-Host "Naplan cleanup complete! Thanks Rolfe!"

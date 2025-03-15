@@ -3,7 +3,7 @@
 
 :: Default to 'main' if no input
 :: if "%branch%"=="" set branch=main
-set branch=main
+set branch=testing
 
 :: Check for Admin Rights
 net session >nul 2>&1

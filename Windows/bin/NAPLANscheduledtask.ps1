@@ -2,7 +2,10 @@
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1" | iex
+
+# Git branch
+$BranchName = "testing"
 
 # Define the storage paths
 $StoragePath = Join-Path $env:ProgramData "Naplan"
@@ -19,8 +22,13 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
-# Git branch
-$BranchName = "main"
+$TaskName = "InstallNaplan"
+
+$TaskDescription = "Installs the latest version of Naplan"
+
+$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
+
+$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/conf/proxy.ps1"
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
@@ -56,16 +64,6 @@ function Stop-ConditionalTranscript {
 
 # Call the function to conditionally start transcript
 Start-ConditionalTranscript
-
-# Scheduled Task Name
-$TaskName = "InstallNaplan"
-
-$TaskDescription = "Installs the latest version of Naplan"
-
-$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
-
-$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/conf/proxy.ps1"
-
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
