@@ -35,7 +35,7 @@ foreach ($desktop in $userDesktops) {
     }
 }
 
-Write-Host "Cleanup complete."
+Write-Host "Cleanup of original icons complete."
 
 # Create CMD file (launcher)
 $cmdContent = "@echo off`r`npowershell.exe -NoProfile -ExecutionPolicy Bypass -File `"%~dp0NAPLAN_Launcher.ps1`"`r`nexit /b"
