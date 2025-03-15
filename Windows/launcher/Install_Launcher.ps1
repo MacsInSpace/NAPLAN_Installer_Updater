@@ -14,7 +14,7 @@ $iconPath = "C:\Program Files (x86)\NAP Locked down browser\Content\replay.ico"
 $shortcutFile = "C:\Users\Public\Desktop\NAPLAN $Year Launcher.lnk"  # Launcher shortcut for all users
 $LauncherScriptPath = Join-Path $StoragePath "NAPLAN_Launcher.ps1"
 $NAPLANLauncherURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLAN_Launcher.ps1"
-$NAPLANLaunchercmdFileURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLANLaunchercmdFile.cmd
+$NAPLANLaunchercmdFileURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLANLaunchercmdFile.cmd"
 
 # Define the file pattern
 $shortcutPattern = 'NAP*er.lnk'
