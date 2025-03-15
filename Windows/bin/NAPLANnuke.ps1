@@ -121,8 +121,6 @@ foreach ($desktop in $userDesktops) {
     }
 }
 
-Write-Host "Cleanup complete."
-
 # Re-enable Task Manager if disabled
 Write-Host "Ensuring Task Manager is enabled..."
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Force -ErrorAction SilentlyContinue
