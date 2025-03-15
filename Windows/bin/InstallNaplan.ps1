@@ -3,19 +3,16 @@
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/InstallNaplan.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1" | iex
 
 # Testing or main git branch?
-$BranchName = "testing"
+$BranchName = "main"
 
 # Force an update (uninstall and reinstall regardless of time, date)
 $ForceUpdate = $true # default to $false. # $true will force the update regardless of version number
 
 # Force an update of the scheduled task
 $Updatetasktoo = $true #default to $false. # true will force the update task.
-
-# Testing or main git branch?
-$BranchName = "main"
 
 # Force an update (uninstall and reinstall regardless of time, date)
 $ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
