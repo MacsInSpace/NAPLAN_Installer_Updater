@@ -22,8 +22,6 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
-$LauncherScriptPath = Join-Path $StoragePath "NAPLAN_Launcher.ps1"
-
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
     New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
@@ -68,8 +66,6 @@ $ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Upd
 
 $ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/conf/proxy.ps1"
 
-$LauncherURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLAN_Launcher.ps1"
-
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
     New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
@@ -93,14 +89,6 @@ try {
     Write-Host "Proxy script downloaded successfully: $ProxyScriptPath"
 } catch {
     Write-Host "Failed to download proxy script: $_"
-}
-
-# Download the Launcher script
-try {
-    Invoke-WebRequest -Uri $LauncherURL -OutFile $LauncherScriptPath -UseBasicParsing
-    Write-Host "Proxy script downloaded successfully: $LauncherScriptPath"
-} catch {
-    Write-Host "Failed to download launcher script: $_"
 }
 
 # Create the script file to run the command
