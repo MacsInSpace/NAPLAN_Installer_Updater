@@ -5,7 +5,7 @@
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1" | iex
 
 # Git branch
-$BranchName = "testing"
+$BranchName = "main"
 
 # Define the storage paths
 $StoragePath = Join-Path $env:ProgramData "Naplan"
