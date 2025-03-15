@@ -5,6 +5,16 @@
 
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1" | iex
 
+# Testing or main git branch?
+$BranchName = "main"
+
+# Force an update (uninstall and reinstall regardless of time, date)
+$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
+
+# Force an update of the scheduled task
+$Updatetasktoo = $false #default to $false. # true will force the update task.
+
+
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
 #=======================================================================
@@ -55,6 +65,22 @@ If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 
 #=======================================================================
 
+# Call the function to conditionally start transcript
+Start-ConditionalTranscript
+
+# Define the fallback local SMB path (only used if the internet check fails)
+$FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
+
+# NAPLAN key dates page
+$kdurl = "https://www.nap.edu.au/naplan/key-dates"
+
+# NAPLAN downloads page
+$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
+
+$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1"
+
+$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
+
 # Define the storage paths
 $StoragePath = Join-Path $env:ProgramData "Naplan"
 
@@ -70,13 +96,14 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
+
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
     New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
     Write-Host "Created directory: $StoragePath"
 }
 
-# Ensure the directory exists
+# Ensure the directory existsv
 if (-not (Test-Path $LocalTempDir)) {
     New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
     Write-Host "Created directory: $LocalTempDir"
@@ -105,31 +132,6 @@ function Stop-ConditionalTranscript {
 #=======================================================================
 # End user variables
 #=======================================================================
-
-# Call the function to conditionally start transcript
-Start-ConditionalTranscript
-
-# Define the fallback local SMB path (only used if the internet check fails)
-$FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
-
-# Force an update (uninstall and reinstall regardless of time, date)
-$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
-
-# Force an update of the scheduled task
-$Updatetasktoo = $false #default to $false. # true will force the update task.
-
-# Testing or main git branch?
-$BranchName = "main"
-
-# NAPLAN key dates page
-$kdurl = "https://www.nap.edu.au/naplan/key-dates"
-
-# NAPLAN downloads page
-$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
-
-$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1"
-
-$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
 
 $currentDate = Get-Date
 # Get the current year dynamically
