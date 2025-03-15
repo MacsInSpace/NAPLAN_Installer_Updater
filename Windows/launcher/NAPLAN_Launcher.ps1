@@ -91,12 +91,14 @@ function Test-Internet {
 function Test-BatteryLevel {
     $battery = Get-WmiObject Win32_Battery | Select-Object -ExpandProperty EstimatedChargeRemaining
     $charging = Get-WmiObject Win32_Battery | Select-Object -ExpandProperty BatteryStatus
-
+if ($battery -and $charging) {
     if ($battery -lt 50 -and $charging -ne 2) {
         [System.Windows.Forms.MessageBox]::Show("Battery is below 50%. Please plug in your charger.", "Battery Check", 0, 48)
         return $false
     }
     return $true
+}
+return $true
 }
 
 # Function to check screen resolution
