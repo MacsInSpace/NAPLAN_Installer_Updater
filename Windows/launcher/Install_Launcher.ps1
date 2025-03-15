@@ -53,16 +53,6 @@ Get-ChildItem -Path $publicDesktop -Filter $shortcutPattern -File | ForEach-Obje
     Write-Host "Removed: $($_.FullName)"
 }
 
-# Create Shortcut to CMD file on Public Desktop
-$WScriptShell = New-Object -ComObject WScript.Shell
-$shortcut = $WScriptShell.CreateShortcut($shortcutFile)
-$shortcut.TargetPath = $cmdFile
-$shortcut.WorkingDirectory = $scriptDir
-$shortcut.Arguments = ""
-$shortcut.WindowStyle = 7  # Minimized window
-$shortcut.IconLocation = "$iconPath,0"
-$shortcut.Save()
-
 # Remove from all user-specific Desktops
 $userDesktops = Get-ChildItem -Path "C:\Users" -Directory | ForEach-Object { 
     Join-Path -Path $_.FullName -ChildPath "Desktop"
@@ -78,6 +68,16 @@ foreach ($desktop in $userDesktops) {
 }
 
 Write-Host "Cleanup of original icons complete."
+
+# Create Shortcut to CMD file on Public Desktop
+$WScriptShell = New-Object -ComObject WScript.Shell
+$shortcut = $WScriptShell.CreateShortcut($shortcutFile)
+$shortcut.TargetPath = $cmdFile
+$shortcut.WorkingDirectory = $scriptDir
+$shortcut.Arguments = ""
+$shortcut.WindowStyle = 7  # Minimized window
+$shortcut.IconLocation = "$iconPath,0"
+$shortcut.Save()
 
 ie4uinit.exe -ClearIconCache
 
