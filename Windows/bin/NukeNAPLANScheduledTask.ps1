@@ -19,6 +19,8 @@ if ($task) {
     Write-Host "Task '$TaskName' does not exist. Skipping removal."
 }
 
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1" | iex
+
 $RuleName = "NAPLockedDownBrowserOutbound"
 
 # Check if the rule exists before removing it
@@ -33,21 +35,19 @@ if ($ruleExists) {
 
 # Define paths
 $StoragePath = Join-Path $env:ProgramData "Naplan"
-$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
 
 # Run Proxy Script if it exists
-if (Test-Path "$ProxyScriptPath") {
+if (Test-Path "$StoragePath") {
     try {
-        Write-Host "Removing Proxy Script: $ProxyScriptPath"
-        Remove-Item -Path ProxyScriptPath -Force
-                Remove-Item -Path $StoragePath -Force
+        Write-Host "Removing Path: $StoragePath"
+        Stop-Transcript
+        Remove-Item -Path $StoragePath -Recurse -Force
     } catch {
-        Write-Host "Failed to remove proxy script: $_"
+        Write-Host "Failed to remove $StoragePath"
     }
 } else {
-    Write-Host "Proxy script not found at: $ProxyScriptPath. Skipping removal."
+    Write-Host "Nothing found at: $StoragePath. Skipping removal."
+    Stop-Transcript
 }
-
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1" | iex
 
 Stop-Transcript
