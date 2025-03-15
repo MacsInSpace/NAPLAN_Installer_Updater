@@ -44,6 +44,14 @@ try {
 } catch {
     Write-Host "Failed to download launcher script: $_"
 }
+
+# Remove from Public Desktop
+$publicDesktop = "C:\Users\Public\Desktop"
+Get-ChildItem -Path $publicDesktop -Filter $shortcutPattern -File | ForEach-Object { 
+    Remove-Item -Path $_.FullName -Force 
+    Write-Host "Removed: $($_.FullName)"
+}
+
 # Create Shortcut to CMD file on Public Desktop
 $WScriptShell = New-Object -ComObject WScript.Shell
 $shortcut = $WScriptShell.CreateShortcut($shortcutFile)
@@ -53,14 +61,6 @@ $shortcut.Arguments = ""
 $shortcut.WindowStyle = 7  # Minimized window
 $shortcut.IconLocation = "$iconPath,0"
 $shortcut.Save()
-
-
-# Remove from Public Desktop
-$publicDesktop = "C:\Users\Public\Desktop"
-Get-ChildItem -Path $publicDesktop -Filter $shortcutPattern -File | ForEach-Object { 
-    Remove-Item -Path $_.FullName -Force 
-    Write-Host "Removed: $($_.FullName)"
-}
 
 # Remove from all user-specific Desktops
 $userDesktops = Get-ChildItem -Path "C:\Users" -Directory | ForEach-Object { 
