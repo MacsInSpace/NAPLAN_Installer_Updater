@@ -2,7 +2,10 @@
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/testing/Windows/bin/NAPLANscheduledtask.ps1" | iex
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1" | iex
+
+# Git branch
+$BranchName = "testing"
 
 # Define the storage paths
 $StoragePath = Join-Path $env:ProgramData "Naplan"
@@ -20,9 +23,6 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
 $LauncherScriptPath = Join-Path $StoragePath "NAPLAN_Launcher.ps1"
-
-# Git branch
-$BranchName = "testing"
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
