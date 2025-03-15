@@ -4,6 +4,10 @@
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NukeNAPLANScheduledTask.ps1" | iex
 
+Get-PSSession | ForEach-Object {
+    Invoke-Command -Session $_ { Stop-Transcript }
+}
+
 Start-Transcript -Path "C:\Windows\Temp\NaplanNukeScheduledTask.log" -Append
 
 $TaskName = "InstallNaplan"
@@ -40,14 +44,12 @@ $StoragePath = Join-Path $env:ProgramData "Naplan"
 if (Test-Path "$StoragePath") {
     try {
         Write-Host "Removing Path: $StoragePath"
-        Stop-Transcript
         Remove-Item -Path $StoragePath -Recurse -Force
     } catch {
         Write-Host "Failed to remove $StoragePath"
     }
 } else {
     Write-Host "Nothing found at: $StoragePath. Skipping removal."
-    Stop-Transcript
-}
 
+}
 Stop-Transcript
