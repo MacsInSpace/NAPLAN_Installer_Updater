@@ -22,6 +22,14 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
+$TaskName = "InstallNaplan"
+
+$TaskDescription = "Installs the latest version of Naplan"
+
+$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
+
+$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/conf/proxy.ps1"
+
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
     New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
@@ -56,15 +64,6 @@ function Stop-ConditionalTranscript {
 
 # Call the function to conditionally start transcript
 Start-ConditionalTranscript
-
-# Scheduled Task Name
-$TaskName = "InstallNaplan"
-
-$TaskDescription = "Installs the latest version of Naplan"
-
-$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
-
-$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/conf/proxy.ps1"
 
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
