@@ -28,6 +28,25 @@ if (!(Test-Path $scriptDir)) {
     New-Item -Path $scriptDir -ItemType Directory -Force | Out-Null
 }
 
+# Download the Launcher script
+try {
+    Invoke-WebRequest -Uri $LauncherURL -OutFile $LauncherScriptPath -UseBasicParsing
+    Write-Host "Proxy script downloaded successfully: $LauncherScriptPath"
+} catch {
+    Write-Host "Failed to download launcher script: $_"
+}
+
+# Create Shortcut to CMD file on Public Desktop
+$WScriptShell = New-Object -ComObject WScript.Shell
+$shortcut = $WScriptShell.CreateShortcut($shortcutFile)
+$shortcut.TargetPath = $cmdFile
+$shortcut.WorkingDirectory = $scriptDir
+$shortcut.Arguments = ""
+$shortcut.WindowStyle = 7  # Minimized window
+$shortcut.IconLocation = "$iconPath,0"
+$shortcut.Save()
+
+
 # Remove from Public Desktop
 $publicDesktop = "C:\Users\Public\Desktop"
 Get-ChildItem -Path $publicDesktop -Filter $shortcutPattern -File | ForEach-Object { 
@@ -49,26 +68,7 @@ foreach ($desktop in $userDesktops) {
     }
 }
 
-
 Write-Host "Cleanup of original icons complete."
-
-# Download the Launcher script
-try {
-    Invoke-WebRequest -Uri $LauncherURL -OutFile $LauncherScriptPath -UseBasicParsing
-    Write-Host "Proxy script downloaded successfully: $LauncherScriptPath"
-} catch {
-    Write-Host "Failed to download launcher script: $_"
-}
-
-# Create Shortcut to CMD file on Public Desktop
-$WScriptShell = New-Object -ComObject WScript.Shell
-$shortcut = $WScriptShell.CreateShortcut($shortcutFile)
-$shortcut.TargetPath = $cmdFile
-$shortcut.WorkingDirectory = $scriptDir
-$shortcut.Arguments = ""
-$shortcut.WindowStyle = 7  # Minimized window
-$shortcut.IconLocation = "$iconPath,0"
-$shortcut.Save()
 
 ie4uinit.exe -ClearIconCache
 
