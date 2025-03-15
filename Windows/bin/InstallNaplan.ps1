@@ -14,6 +14,16 @@ $ForceUpdate = $true # default to $false. # $true will force the update regardle
 # Force an update of the scheduled task
 $Updatetasktoo = $true #default to $false. # true will force the update task.
 
+# Testing or main git branch?
+$BranchName = "main"
+
+# Force an update (uninstall and reinstall regardless of time, date)
+$ForceUpdate = $false # default to $false. # $true will force the update regardless of version number
+
+# Force an update of the scheduled task
+$Updatetasktoo = $false #default to $false. # true will force the update task.
+
+
 #=======================================================================
 #CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
 #=======================================================================
@@ -95,13 +105,14 @@ $NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask
 
 $NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
 
+
 # Ensure the directory exists
 if (-not (Test-Path $StoragePath)) {
     New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
     Write-Host "Created directory: $StoragePath"
 }
 
-# Ensure the directory exists
+# Ensure the directory existsv
 if (-not (Test-Path $LocalTempDir)) {
     New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
     Write-Host "Created directory: $LocalTempDir"
