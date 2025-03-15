@@ -67,14 +67,7 @@ $shortcut.TargetPath = $cmdFile
 $shortcut.WorkingDirectory = $scriptDir
 $shortcut.Arguments = ""
 $shortcut.WindowStyle = 7  # Minimized window
-
-# Assign full absolute icon path without variables
-if (Test-Path $iconPath) {
-    $shortcut.IconLocation = "$iconPath,0"
-} else {
-    Write-Host "WARNING: Icon file missing, shortcut will use default icon."
-}
-
+$shortcut.IconLocation = "$iconPath,0"
 $shortcut.Save()
 
 ie4uinit.exe -ClearIconCache
