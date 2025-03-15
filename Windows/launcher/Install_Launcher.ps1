@@ -13,7 +13,8 @@ $cmdFile = Join-Path -Path $scriptDir -ChildPath "NAPLAN_Launcher.cmd"
 $iconPath = "C:\Program Files (x86)\NAP Locked down browser\Content\replay.ico"
 $shortcutFile = "C:\Users\Public\Desktop\NAPLAN $Year Launcher.lnk"  # Launcher shortcut for all users
 $LauncherScriptPath = Join-Path $StoragePath "NAPLAN_Launcher.ps1"
-$LauncherURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLAN_Launcher.ps1"
+$NAPLANLauncherURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLAN_Launcher.ps1"
+$NAPLANLaunchercmdFileURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/launcher/NAPLANLaunchercmdFile.cmd
 
 # Define the file pattern
 $shortcutPattern = "NAP*er.lnk"
@@ -36,6 +37,13 @@ try {
     Write-Host "Failed to download launcher script: $_"
 }
 
+# Download the Launcher CMD script
+try {
+    Invoke-WebRequest -Uri $NAPLANLauncherURL -OutFile $NAPLANLaunchercmdFile -UseBasicParsing
+    Write-Host "Proxy script downloaded successfully: $NAPLANLaunchercmdFile"
+} catch {
+    Write-Host "Failed to download launcher script: $_"
+}
 # Create Shortcut to CMD file on Public Desktop
 $WScriptShell = New-Object -ComObject WScript.Shell
 $shortcut = $WScriptShell.CreateShortcut($shortcutFile)
