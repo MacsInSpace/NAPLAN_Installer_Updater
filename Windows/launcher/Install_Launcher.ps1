@@ -1,3 +1,8 @@
+# run *THIS* with:
+# You may need to enable TLS for secure downloads on PS version 5ish
+# [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1" | iex
+
 # Git branch
 $BranchName = "testing"
 
@@ -13,6 +18,11 @@ $LauncherURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_U
 # Define the file pattern
 $shortcutPattern = "NAP*er.lnk"
 
+# Ensure NAPLAN is inststalled directories exist
+if (!(Test-Path $iconPath)) {
+    Write-Host "Naplan does not appear to be installed in the standard location. Exiting..."
+    exit 1
+}
 # Ensure necessary directories exist
 if (!(Test-Path $scriptDir)) {
     New-Item -Path $scriptDir -ItemType Directory -Force | Out-Null
