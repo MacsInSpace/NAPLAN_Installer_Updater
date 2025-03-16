@@ -86,6 +86,7 @@ Write-Host "Removing tracing logs..."
 Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32" -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS" -Force -ErrorAction SilentlyContinue
 
+# Repair touch related settings if they already exist. May only apply to certain Lenovo devices
 # Function to check if a registry value exists
 function Test-RegistryValue {
     param (
