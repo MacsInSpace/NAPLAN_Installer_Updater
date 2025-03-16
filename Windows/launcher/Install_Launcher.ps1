@@ -33,7 +33,7 @@ if (!(Test-Path $scriptDir)) {
 # Download the Launcher script
 try {
     Invoke-WebRequest -Uri $NAPLANLauncherURL -OutFile $LauncherScriptPath -UseBasicParsing
-    Write-Host "Proxy script downloaded successfully: $LauncherScriptPath"
+    Write-Host "Launcher script downloaded successfully: $LauncherScriptPath"
 } catch {
     Write-Host "Failed to download launcher script: $_"
 }
