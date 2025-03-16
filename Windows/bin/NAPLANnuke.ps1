@@ -86,6 +86,105 @@ Write-Host "Removing tracing logs..."
 Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32" -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS" -Force -ErrorAction SilentlyContinue
 
+# Function to check if a registry value exists
+function Test-RegistryValue {
+    param (
+        [string]$Path,
+        [string]$Name
+    )
+    try {
+        $value = Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+# Function to update registry value only if it exists
+function Set-RegistryValueIfExists {
+    param (
+        [string]$Path,
+        [string]$Name,
+        [string]$Type = "DWORD",
+        [string]$Value = "1"
+    )
+
+    if (Test-RegistryValue -Path $Path -Name $Name) {
+        Set-ItemProperty -Path $Path -Name $Name -Type $Type -Value $Value -Force
+        Write-Host "Updated: $Path\$Name to $Value"
+    } else {
+        Write-Host "Skipping: $Path\$Name does not exist."
+    }
+}
+
+# Registry paths
+$registryPaths = @(
+    "HKCU\SOFTWARE\Microsoft\Wisp\Touch",
+    "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
+)
+
+# Registry values to check and update
+$registryValues = @(
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Wisp\Touch"; Name = "TouchGate" },
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "ThreeFingerSlideEnabled" },
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "FourFingerSlideEnabled" }
+)
+
+# Iterate and update if needed
+foreach ($reg in $registryValues) {
+    Set-RegistryValueIfExists -Path $reg.Path -Name $reg.Name
+}
+
+# Delete miscellaneous reg keys
+# Function to check if a registry value exists
+function Test-RegistryValue {
+    param (
+        [string]$Path,
+        [string]$Name
+    )
+    try {
+        $value = Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+# Function to update registry value only if it exists
+function Set-RegistryValueIfExists {
+    param (
+        [string]$Path,
+        [string]$Name,
+        [string]$Type = "DWORD",
+        [string]$Value = "1"
+    )
+
+    if (Test-RegistryValue -Path $Path -Name $Name) {
+        Set-ItemProperty -Path $Path -Name $Name -Type $Type -Value $Value -Force
+        Write-Host "Updated: $Path\$Name to $Value"
+    } else {
+        Write-Host "Skipping: $Path\$Name does not exist."
+    }
+}
+
+# Registry paths
+$registryPaths = @(
+    "HKCU\SOFTWARE\Microsoft\Wisp\Touch",
+    "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
+)
+
+# Registry values to check and update
+$registryValues = @(
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Wisp\Touch"; Name = "TouchGate" },
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "ThreeFingerSlideEnabled" },
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "FourFingerSlideEnabled" }
+)
+
+# Iterate and update if needed
+foreach ($reg in $registryValues) {
+    Set-RegistryValueIfExists -Path $reg.Path -Name $reg.Name
+}
+
 # Define the file pattern
 $shortcutPattern = "NAP*er.lnk"
 
@@ -124,5 +223,6 @@ foreach ($desktop in $userDesktops) {
 # Re-enable Task Manager if disabled
 Write-Host "Ensuring Task Manager is enabled..."
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Force -ErrorAction SilentlyContinue
+
 
 Write-Host "Naplan cleanup complete! Thanks Rolfe!"
