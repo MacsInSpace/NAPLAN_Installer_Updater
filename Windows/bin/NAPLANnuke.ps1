@@ -186,6 +186,67 @@ foreach ($reg in $registryValues) {
     Set-RegistryValueIfExists -Path $reg.Path -Name $reg.Name
 }
 
+# Function to delete a registry key if it exists
+function Remove-RegistryKey {
+    param (
+        [string]$Path
+    )
+    if (Test-Path "Registry::$Path") {
+        Remove-Item -Path "Registry::$Path" -Recurse -Force
+        Write-Host "Deleted registry key: $Path"
+    } else {
+        Write-Host "Skipping: Registry key $Path does not exist."
+    }
+}
+
+# Cleanup of final reg keys.
+# Function to delete a registry value if it exists
+function Remove-RegistryValue {
+    param (
+        [string]$Path,
+        [string]$Name
+    )
+    if (Test-Path "Registry::$Path") {
+        $value = Get-ItemProperty -Path "Registry::$Path" -Name $Name -ErrorAction SilentlyContinue
+        if ($value) {
+            Remove-ItemProperty -Path "Registry::$Path" -Name $Name -Force
+            Write-Host "Deleted registry value: $Path\$Name"
+        } else {
+            Write-Host "Skipping: Registry value $Path\$Name does not exist."
+        }
+    } else {
+        Write-Host "Skipping: Registry path $Path does not exist."
+    }
+}
+
+# List of registry keys to delete
+$registryKeys = @(
+    "HKCR\napldb",
+    "HKCU\SOFTWARE\Janison",
+    "HKLM\SOFTWARE\Classes\napldb",
+    "HKEY_USERS\.DEFAULT\Software\NAP Locked down browser",
+    "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32",
+    "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS"
+)
+
+# Delete registry keys
+foreach ($regKey in $registryKeys) {
+    Remove-RegistryKey -Path $regKey
+}
+
+# List of registry values to delete (inside an existing key)
+$registryValues = @(
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableTaskMgr" },
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableLockWorkstation" }
+)
+
+# Delete registry values
+foreach ($reg in $registryValues) {
+    Remove-RegistryValue -Path $reg.Path -Name $reg.Name
+}
+
+Write-Host "Registry cleanup complete."
+
 # Define the file pattern
 $shortcutPattern = "NAP*er.lnk"
 
