@@ -1,3 +1,4 @@
+# Installs the scheduled task to install NAPLAN
 # run *THIS* with:
 # You may need to enable TLS for secure downloads on PS version 5ish
 # [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
