@@ -1,10 +1,3 @@
-# uninstalls all versions
-# cheers Rolfe for all the leg work
-# run *THIS* with:
-# You may need to enable TLS for secure downloads on PS version 5ish
-# [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANnuke.ps1" | iex
-
 Write-Host "Starting Naplan removal process..."
 
 # **Uninstall known MSI versions**
@@ -38,7 +31,7 @@ foreach ($Service in $Services) {
     sc.exe delete $Service | Out-Null
 }
 
-# **Kill Remaining Processes**
+# **Kill Running Processes**
 $Processes = @("SafeExamBrowser", "NAPLAN_LDB", "SEBWindowsService", "NAPLDBService")
 foreach ($Process in $Processes) {
     Get-Process -Name $Process -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
@@ -53,7 +46,12 @@ $RegistryKeys = @(
     "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32",
     "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS",
     "HKLM\SYSTEM\CurrentControlSet\Services\NAPLDBService",
-    "HKLM\SYSTEM\CurrentControlSet\Services\SEBWindowsService"
+    "HKLM\SYSTEM\CurrentControlSet\Services\SEBWindowsService",
+    "HKCR\Installer\Products\0B329A91503A2D140A1048685578FF30",
+    "HKCR\Installer\Products\129F443D99915EF43A7DCB7812D1FDFE",
+    "HKCR\Installer\Products\58B1506DAADFF9A4DA741E5D8479EC5F",
+    "HKCR\Installer\Products\207AA2B59C398D1429E4E5BD46B65DF0",
+    "HKCR\Installer\Products\13FB0903758FE664A957D9ABE605B638"
 )
 
 foreach ($RegKey in $RegistryKeys) {
@@ -77,18 +75,28 @@ foreach ($reg in $TouchSettings) {
     }
 }
 
-# **Re-enable Task Manager, Shutdown & Restart**
+# **Re-enable Task Manager, Shutdown, Restart & Lock Workstation**
 Write-Host "Re-enabling Shutdown, Restart, and Task Manager..."
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoClose" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Force -ErrorAction SilentlyContinue
+$ReEnableRegistry = @(
+    @{ Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"; Name = "NoClose"; Value = 0 },
+    @{ Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableTaskMgr"; Value = 0 },
+    @{ Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableLockWorkstation"; Value = 0 }
+)
+
+foreach ($entry in $ReEnableRegistry) {
+    if (Test-Path $entry.Path) {
+        Set-ItemProperty -Path $entry.Path -Name $entry.Name -Value $entry.Value -Force -ErrorAction SilentlyContinue
+        Write-Host "Restored: $($entry.Path)\$($entry.Name) to $($entry.Value)"
+    }
+}
 
 # **Remove AppData Folders for All Users**
 Write-Host "Removing Naplan AppData for all users..."
 $UserProfiles = Get-ChildItem "C:\Users" -Directory
 foreach ($User in $UserProfiles) {
-    Remove-Item -Path "$($User.FullName)\AppData\Local\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "$($User.FullName)\AppData\Roaming\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "$($User.FullName)\Desktop\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$($User.FullName)\AppData\Roaming\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$($User.FullName)\AppData\Roaming\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 # **Remove Desktop Shortcuts**
@@ -106,4 +114,4 @@ foreach ($Shortcut in $ShortcutPaths) {
 Write-Host "Removing Naplan installation directory..."
 Remove-Item -Path "C:\Program Files (x86)\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
 
-Write-Host "Naplan cleanup complete! Thanks Rolfe!"
+Write-Host "Naplan cleanup complete!"
