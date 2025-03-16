@@ -41,7 +41,7 @@ try {
 # Download the Launcher CMD script
 try {
     Invoke-WebRequest -Uri $NAPLANLaunchercmdFileURL -OutFile $NAPLANLaunchercmdFile -UseBasicParsing
-    Write-Host "Proxy script downloaded successfully: $NAPLANLaunchercmdFile"
+    Write-Host "Launcher CMD script downloaded successfully: $NAPLANLaunchercmdFile"
 } catch {
     Write-Host "Failed to download launcher script: $_"
 }
