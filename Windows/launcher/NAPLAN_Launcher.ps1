@@ -101,11 +101,15 @@ if ($battery -and $charging) {
 return $true
 }
 
+#Requirements
+#$MinVerticalScreenRes = 1050
+#$MinHorizontalScreenRes = 1680
+
 # Function to check screen resolution
 function Test-Resolution {
     $screen = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
-    $minWidth = 1024
-    $minHeight = 768
+    $minWidth = 1680
+    $minHeight = 1050
 
     if ($screen.Width -lt $minWidth -or $screen.Height -lt $minHeight) {
         [System.Windows.Forms.MessageBox]::Show("Screen resolution is below recommended settings. Adjust resolution before launching.", "Resolution Check", 0, 48)
