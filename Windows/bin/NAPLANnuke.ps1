@@ -7,9 +7,7 @@
 
 Write-Host "Starting Naplan removal process..."
 
-$BranchName = "main"
-
-# Uninstall known MSI versions
+# **Uninstall known MSI versions**
 $UninstallGUIDs = @(
     "{96441ACD-EBF0-4355-9A6C-634FA4B4D4A5}", "{936DA4FF-CA28-4EFE-839C-0FE1F11F6C53}",
     "{437FE330-1798-4A96-8BEE-388D7DDED9EC}", "{19A923B0-A305-41D2-A001-84865587FF03}",
@@ -21,270 +19,91 @@ $UninstallGUIDs = @(
 )
 
 foreach ($GUID in $UninstallGUIDs) {
-    Write-Host "Attempting to uninstall $GUID..."
+    Write-Host "Uninstalling $GUID..."
     Start-Process "msiexec.exe" -ArgumentList "/X $GUID /qn /norestart" -NoNewWindow -Wait
 }
 
-# Uninstall EXE version (if exists)
+# **Uninstall EXE version (if exists)**
 $BootstrapperPath = "C:\ProgramData\Package Cache\{a666099a-8347-47c9-a753-5240e7dc7a1f}\JanisonNaplanBootstrapper.exe"
 if (Test-Path $BootstrapperPath) {
     Write-Host "Uninstalling EXE version..."
     Start-Process $BootstrapperPath -ArgumentList "/uninstall /silent" -NoNewWindow -Wait
 }
 
-# Delete leftover registry keys
-$RegKeys = @(
-    "HKCR\Installer\Products\0B329A91503A2D140A1048685578FF30",
-    "HKCR\Installer\Products\129F443D99915EF43A7DCB7812D1FDFE",
-    "HKCR\Installer\Products\58B1506DAADFF9A4DA741E5D8479EC5F",
-    "HKCR\Installer\Products\207AA2B59C398D1429E4E5BD46B65DF0",
-    "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{96441ACD-EBF0-4355-9A6C-634FA4B4D4A5}",
-    "HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{3090BF31-F857-466E-9A75-9DBA6E506B83}"
-)
-
-foreach ($RegKey in $RegKeys) {
-    Write-Host "Deleting registry key: $RegKey"
-    Remove-Item -Path "Registry::$RegKey" -Recurse -Force -ErrorAction SilentlyContinue
-}
-
-# Kill running services
+# **Stop and Remove Running Services**
 $Services = @("SEBWindowsService", "NAPLDBService")
 foreach ($Service in $Services) {
-    Write-Host "Stopping service: $Service"
+    Write-Host "Stopping service: $Service..."
     Stop-Service -Name $Service -Force -ErrorAction SilentlyContinue
-    Get-Process | Where-Object { $_.Path -like "*$Service*" } | Stop-Process -Force -ErrorAction SilentlyContinue
-    Write-Host "Deleting service: $Service"
     sc.exe delete $Service | Out-Null
 }
 
-# Delete remaining registry service entries
-$ServiceRegKeys = @(
-    "HKLM\SYSTEM\CurrentControlSet\Services\NAPLDBService",
-    "HKLM\SYSTEM\CurrentControlSet\Services\SEBWindowsService"
-)
-
-foreach ($ServiceRegKey in $ServiceRegKeys) {
-    Write-Host "Deleting registry service key: $ServiceRegKey"
-    Remove-Item -Path "Registry::$ServiceRegKey" -Recurse -Force -ErrorAction SilentlyContinue
+# **Kill Remaining Processes**
+$Processes = @("SafeExamBrowser", "NAPLAN_LDB", "SEBWindowsService", "NAPLDBService")
+foreach ($Process in $Processes) {
+    Get-Process -Name $Process -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
-# Delete AppData folders for all users
-Write-Host "Removing AppData folders..."
-$UserProfiles = Get-ChildItem "C:\Users" -Directory
-foreach ($User in $UserProfiles) {
-    Remove-Item -Path "$($User.FullName)\AppData\Local\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "$($User.FullName)\AppData\Roaming\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
-}
-
-# ReEnable Shutdown, Restart buttons if disabled
-# https://www.reddit.com/r/SJSU/comments/yzzvk7/psa_respondus_lockdown_browser_messes_with_power/
-Write-Host "ReEnabling Shutdown, Restart and Power buttons if disabled..."
-Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoClose" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-
-# Remove registry tracing logs
-Write-Host "Removing tracing logs..."
-Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32" -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "Registry::HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS" -Force -ErrorAction SilentlyContinue
-
-# Repair touch related settings if they already exist. May only apply to certain Lenovo devices
-# Function to check if a registry value exists
-function Test-RegistryValue {
-    param (
-        [string]$Path,
-        [string]$Name
-    )
-    try {
-        $value = Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop
-        return $true
-    } catch {
-        return $false
-    }
-}
-
-# Function to update registry value only if it exists
-function Set-RegistryValueIfExists {
-    param (
-        [string]$Path,
-        [string]$Name,
-        [string]$Type = "DWORD",
-        [string]$Value = "1"
-    )
-
-    if (Test-RegistryValue -Path $Path -Name $Name) {
-        Set-ItemProperty -Path $Path -Name $Name -Type $Type -Value $Value -Force
-        Write-Host "Updated: $Path\$Name to $Value"
-    } else {
-        Write-Host "Skipping: $Path\$Name does not exist."
-    }
-}
-
-# Registry paths
-$registryPaths = @(
-    "HKCU\SOFTWARE\Microsoft\Wisp\Touch",
-    "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
-)
-
-# Registry values to check and update
-$registryValues = @(
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Wisp\Touch"; Name = "TouchGate" },
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "ThreeFingerSlideEnabled" },
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "FourFingerSlideEnabled" }
-)
-
-# Iterate and update if needed
-foreach ($reg in $registryValues) {
-    Set-RegistryValueIfExists -Path $reg.Path -Name $reg.Name
-}
-
-# Delete miscellaneous reg keys
-# Function to check if a registry value exists
-function Test-RegistryValue {
-    param (
-        [string]$Path,
-        [string]$Name
-    )
-    try {
-        $value = Get-ItemProperty -Path $Path -Name $Name -ErrorAction Stop
-        return $true
-    } catch {
-        return $false
-    }
-}
-
-# Function to update registry value only if it exists
-function Set-RegistryValueIfExists {
-    param (
-        [string]$Path,
-        [string]$Name,
-        [string]$Type = "DWORD",
-        [string]$Value = "1"
-    )
-
-    if (Test-RegistryValue -Path $Path -Name $Name) {
-        Set-ItemProperty -Path $Path -Name $Name -Type $Type -Value $Value -Force
-        Write-Host "Updated: $Path\$Name to $Value"
-    } else {
-        Write-Host "Skipping: $Path\$Name does not exist."
-    }
-}
-
-# Registry paths
-$registryPaths = @(
-    "HKCU\SOFTWARE\Microsoft\Wisp\Touch",
-    "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"
-)
-
-# Registry values to check and update
-$registryValues = @(
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Wisp\Touch"; Name = "TouchGate" },
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "ThreeFingerSlideEnabled" },
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "FourFingerSlideEnabled" }
-)
-
-# Iterate and update if needed
-foreach ($reg in $registryValues) {
-    Set-RegistryValueIfExists -Path $reg.Path -Name $reg.Name
-}
-
-# Function to delete a registry key if it exists
-function Remove-RegistryKey {
-    param (
-        [string]$Path
-    )
-    if (Test-Path "Registry::$Path") {
-        Remove-Item -Path "Registry::$Path" -Recurse -Force
-        Write-Host "Deleted registry key: $Path"
-    } else {
-        Write-Host "Skipping: Registry key $Path does not exist."
-    }
-}
-
-# Cleanup of final reg keys.
-# Function to delete a registry value if it exists
-function Remove-RegistryValue {
-    param (
-        [string]$Path,
-        [string]$Name
-    )
-    if (Test-Path "Registry::$Path") {
-        $value = Get-ItemProperty -Path "Registry::$Path" -Name $Name -ErrorAction SilentlyContinue
-        if ($value) {
-            Remove-ItemProperty -Path "Registry::$Path" -Name $Name -Force
-            Write-Host "Deleted registry value: $Path\$Name"
-        } else {
-            Write-Host "Skipping: Registry value $Path\$Name does not exist."
-        }
-    } else {
-        Write-Host "Skipping: Registry path $Path does not exist."
-    }
-}
-
-# List of registry keys to delete
-$registryKeys = @(
+# **Delete Remaining Registry Entries**
+$RegistryKeys = @(
     "HKCR\napldb",
     "HKCU\SOFTWARE\Janison",
     "HKLM\SOFTWARE\Classes\napldb",
     "HKEY_USERS\.DEFAULT\Software\NAP Locked down browser",
     "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32",
-    "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS"
+    "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS",
+    "HKLM\SYSTEM\CurrentControlSet\Services\NAPLDBService",
+    "HKLM\SYSTEM\CurrentControlSet\Services\SEBWindowsService"
 )
 
-# Delete registry keys
-foreach ($regKey in $registryKeys) {
-    Remove-RegistryKey -Path $regKey
-}
-
-# List of registry values to delete (inside an existing key)
-$registryValues = @(
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableTaskMgr" },
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableLockWorkstation" }
-)
-
-# Delete registry values
-foreach ($reg in $registryValues) {
-    Remove-RegistryValue -Path $reg.Path -Name $reg.Name
-}
-
-Write-Host "Registry cleanup complete."
-
-# Define the file pattern
-$shortcutPattern = "NAP*er.lnk"
-
-# Remove shortcuts from All Users Start Menu
-Write-Host "Removing shortcuts from All Users Start Menu..."
-Remove-Item -Path "$env:ALLUSERSPROFILE\Microsoft\Windows\Start Menu\Programs\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
-
-# Delete installation directory and shortcuts
-Write-Host "Removing installation directories and shortcuts..."
-Remove-Item -Path "C:\Program Files (x86)\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "C:\Users\Public\Desktop\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "$env:USERPROFILE\Desktop\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
-Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
-
-# Remove from Public Desktop
-$publicDesktop = "C:\Users\Public\Desktop"
-Get-ChildItem -Path $publicDesktop -Filter $shortcutPattern -File | ForEach-Object { 
-    Remove-Item -Path $_.FullName -Force 
-    Write-Host "Removed: $($_.FullName)"
-}
-
-# Remove from all user-specific Desktops
-$userDesktops = Get-ChildItem -Path "C:\Users" -Directory | ForEach-Object { 
-    Join-Path -Path $_.FullName -ChildPath "Desktop"
-}
-
-foreach ($desktop in $userDesktops) {
-    if (Test-Path $desktop) {
-        Get-ChildItem -Path $desktop -Filter $shortcutPattern -File | ForEach-Object { 
-            Remove-Item -Path $_.FullName -Force 
-            Write-Host "Removed: $($_.FullName)"
-        }
+foreach ($RegKey in $RegistryKeys) {
+    if (Test-Path "Registry::$RegKey") {
+        Remove-Item -Path "Registry::$RegKey" -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Host "Deleted registry key: $RegKey"
     }
 }
 
-# Re-enable Task Manager if disabled
-Write-Host "Ensuring Task Manager is enabled..."
+# **Restore Touch & PrecisionTouchPad Settings**
+$TouchSettings = @(
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Wisp\Touch"; Name = "TouchGate" },
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "ThreeFingerSlideEnabled" },
+    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "FourFingerSlideEnabled" }
+)
+
+foreach ($reg in $TouchSettings) {
+    if (Test-Path "Registry::$($reg.Path)") {
+        Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value 1 -Type DWORD -Force
+        Write-Host "Restored: $($reg.Path)\$($reg.Name) to 1"
+    }
+}
+
+# **Re-enable Task Manager, Shutdown & Restart**
+Write-Host "Re-enabling Shutdown, Restart, and Task Manager..."
+Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" -Name "NoClose" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
 Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Force -ErrorAction SilentlyContinue
 
+# **Remove AppData Folders for All Users**
+Write-Host "Removing Naplan AppData for all users..."
+$UserProfiles = Get-ChildItem "C:\Users" -Directory
+foreach ($User in $UserProfiles) {
+    Remove-Item -Path "$($User.FullName)\AppData\Local\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$($User.FullName)\AppData\Roaming\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$($User.FullName)\Desktop\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
+}
+
+# **Remove Desktop Shortcuts**
+$ShortcutPaths = @(
+    "C:\Users\Public\Desktop\NAP*er.lnk",
+    "$env:USERPROFILE\Desktop\NAP*er.lnk",
+    "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\NAP*er.lnk"
+)
+
+foreach ($Shortcut in $ShortcutPaths) {
+    Remove-Item -Path $Shortcut -Force -ErrorAction SilentlyContinue
+}
+
+# **Final Cleanup: Delete Installation Folder**
+Write-Host "Removing Naplan installation directory..."
+Remove-Item -Path "C:\Program Files (x86)\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host "Naplan cleanup complete! Thanks Rolfe!"
