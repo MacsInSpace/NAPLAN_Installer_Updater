@@ -73,7 +73,7 @@ To Do:
 - Test the sheduling section.
 
 ## ❌ Uninstallation
-To remove **all** existing versions of NAPLAN LDB, update tasks, and associated task files and scripts:
+To remove **all** existing versions of NAPLAN LDB, scheduled tasks, and associated task files and scripts:
 
 ### **Windows (Deep Clean)**
 Run the following command in **PowerShell (RunAs Admin)**:
@@ -91,7 +91,7 @@ curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Update
 ```
 This will:
 - Uninstall NAPLAN LDB.
-- Remove associated configurations and cached data.
+- Remove associated configurations, launch daemons, and cached data.
 
 ## 🌟 Features
 - **Automated install & update** (Windows: Scheduled Task, MacOS: Launch Daemon).
@@ -107,7 +107,7 @@ This will:
 ## 🎉 Thanks & Credits
 Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which has been adapted to powershell.
 
-**Brad van Ree** (Melbourne) for the going through ([`Profile Creator`](https://github.com/ProfileCreator/ProfileCreator)) and creating a mobile confid to assist with most of the testing element restrictions.
+**Brad van Ree** (Melbourne) for the going through ([`Profile Creator`](https://github.com/ProfileCreator/ProfileCreator)) and creating a mobileconfig profile to assist with /most/ of the testing element restrictions.
 
 
 ---
