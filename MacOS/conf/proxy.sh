@@ -11,7 +11,7 @@ pac_url=$(scutil --proxy | awk -F' : ' '/ProxyAutoConfigURLString/ {print $2}')
 # Function to clear proxy and use direct connection
 clear_proxy() {
     unset http_proxy https_proxy
-    echo "❌ Proxy unreachable. Using direct connection."
+    echo "Proxy unreachable. Using direct connection."
 }
 
 # If manual proxy is detected, check connectivity
@@ -22,7 +22,7 @@ if [[ -n "$proxy_address" && -n "$proxy_port" ]]; then
     if ping -c 1 -W 1 "$proxy_address" &>/dev/null; then
         export http_proxy="http://$proxy_address:$proxy_port"
         export https_proxy="http://$proxy_address:$proxy_port"
-        echo "✅ Proxy reachable. Using: $http_proxy"
+        echo "Proxy reachable. Using: $http_proxy"
     else
         clear_proxy
     fi
@@ -45,7 +45,7 @@ else
                 if ping -c 1 -W 1 "$proxy_host" &>/dev/null; then
                     export http_proxy="http://$last_proxy"
                     export https_proxy="http://$last_proxy"
-                    echo "✅ PAC Proxy reachable. Using: $http_proxy"
+                    echo "PAC Proxy reachable. Using: $http_proxy"
                 else
                     clear_proxy
                 fi
