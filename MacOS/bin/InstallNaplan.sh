@@ -19,8 +19,12 @@ FORCE_UPDATE_PROXY_SCRIPT=false
 FORCE_UPDATE_NAPLAN=false
 PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 
-echo "🔄 Running proxy test..."
+if [[ -f $PROXY_SCRIPT_PATH ]]; then
+echo "Running proxy test..."
 /usr/local/bin/proxy.sh
+else
+echo "no proxy test to run."
+fi 
 
 fetch_naplan_dates() {
     local key_dates_url="https://www.nap.edu.au/naplan/key-dates"
@@ -41,7 +45,7 @@ fetch_naplan_dates() {
     if [[ -z "$test_window" || -z "$current_year" ]]; then
         test_window="March 12–24"
         current_year="$system_year" # Use the current system year as a fallback
-        echo "⚠️ Using fallback test window: $test_window $current_year" | tee -a "$LOG_FILE"
+        echo "Using fallback test window: $test_window $current_year" | tee -a "$LOG_FILE"
     fi
 
     # Print the final formatted test window with the correct year
@@ -182,20 +186,20 @@ fi
 install_naplan_ldb() {
 
     if ! pkgutil --check-signature "$PKG_PATH"; then
-        echo "⚠️ Invalid or missing PKG signature. Exiting." | tee -a /var/log/naplan_update.log
+        echo "Invalid or missing PKG signature. Exiting." | tee -a /var/log/naplan_update.log
         exit 1
     fi
     # Check the certificate name
     signer=$(pkgutil --check-signature "$PKG_PATH" | grep "Developer ID Installer" | awk -F': ' '{print $2}')
 
     if [[ "$signer" != *"ACARA"* ]]; then
-    echo "❌ WARNING: PKG is NOT signed by ACARA. Exiting."
+    echo "WARNING: PKG is NOT signed by ACARA. Exiting."
         exit 1
     fi
 
-echo "✅ PKG is signed by a trusted entity. Proceeding with installation..."
+echo "PKG is signed by a trusted entity. Proceeding with installation..."
 
-echo "✅ PKG signature is valid. Proceeding with installation..."
+echo "PKG signature is valid. Proceeding with installation..."
     check_for_rosetta
     echo "$(date): Starting NAPLAN LDB installation/update..." >> "$LOG_FILE"
     dl_naplan_ldb    
