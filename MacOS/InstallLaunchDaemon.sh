@@ -26,8 +26,8 @@ fi
 # **Remove old LaunchDaemon if it exists**
 if [ -f "$PLIST_PATH" ]; then
     echo "Removing existing LaunchDaemon..."
-    sudo launchctl bootout system "$PLIST_PATH" 2>/dev/null
-    sudo rm -f "$PLIST_PATH"
+    launchctl bootout system "$PLIST_PATH" 2>/dev/null
+    rm -f "$PLIST_PATH"
 fi
 
 # **Write update script**
