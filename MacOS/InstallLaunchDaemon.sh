@@ -38,7 +38,7 @@ LOG_FILE="/var/log/naplan_update.log"
 INSTALL_SCRIPT_URL="https://api.github.com/repos/MacsInSpace/NAPLAN_Installer_Updater/contents/MacOS/bin/InstallNaplan.sh"
 PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 
-echo "🔄 Running proxy test..."
+echo "Running proxy test..."
 /usr/local/bin/proxy.sh
 
 # Ensure we have internet
@@ -51,7 +51,7 @@ fi
 
 echo "$(date) - Downloading and executing InstallNaplan.sh..." >> "$LOG_FILE"
 
-echo "✅ Proxy script executed!"
+echo "Proxy script executed!"
 curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
     -H "Accept-Language: en-US,en;q=0.9" \
     -H "Connection: keep-alive" \
@@ -78,9 +78,9 @@ chmod +x "$PROXY_SCRIPT_PATH"
 
 # Verify download
 if [[ -f "$PROXY_SCRIPT_PATH" ]]; then
-    echo "✅ Proxy script downloaded successfully to: $PROXY_SCRIPT_PATH"
+    echo "Proxy script downloaded successfully to: $PROXY_SCRIPT_PATH"
 else
-    echo "❌ Failed to download proxy script!"
+    echo "Failed to download proxy script!"
     exit 1
 fi
 
