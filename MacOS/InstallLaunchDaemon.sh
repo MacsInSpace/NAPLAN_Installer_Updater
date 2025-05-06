@@ -15,6 +15,8 @@ SCRIPT_PATH="/usr/local/bin/naplan_update.sh"
 PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 PLIST_PATH="/Library/LaunchDaemons/com.naplan.installer.plist"
 LOG_FILE="/var/log/naplan_update.log"
+PROXY_SCRIPT_WEBPATH="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/conf/proxy.sh"
+INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/bin/InstallNaplan.sh"
 
 # Ensure /usr/local/bin exists
 if [ ! -d "/usr/local/bin" ]; then
@@ -35,7 +37,7 @@ cat << 'EOF' > "$SCRIPT_PATH"
 #!/bin/bash
 
 LOG_FILE="/var/log/naplan_update.log"
-INSTALL_SCRIPT_URL="https://api.github.com/repos/MacsInSpace/NAPLAN_Installer_Updater/contents/MacOS/bin/InstallNaplan.sh"
+INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/bin/InstallNaplan.sh"
 PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 
 echo "Running proxy test..."
