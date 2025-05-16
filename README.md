@@ -107,7 +107,7 @@ This will:
 ## 🎉 Thanks & Credits
 Special thanks to **Rolfe Hodges** (Melbourne) for the **original NapNuke script**, which has been adapted to powershell.
 
-**Brad van Ree** (Melbourne) for the going through ([`Profile Creator`](https://github.com/ProfileCreator/ProfileCreator)) and creating a mobileconfig profile to assist with /most/ of the testing element restrictions.
+**Trent Boyd and Brad van Ree** (Melbourne) for the going through ([`Profile Creator`](https://github.com/ProfileCreator/ProfileCreator)) and creating a mobileconfig profile to assist with /most/ of the testing element restrictions.
 
 
 ---
