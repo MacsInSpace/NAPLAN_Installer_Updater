@@ -1,20 +1,24 @@
 @echo off
 rem
-rem DATE 2025-03-14
-rem version 0.6.0
+rem DATE 2026-01-12
+rem version 0.6.01
+rem
+rem Latest Naplan installer valid for:
+rem
+rem NAP Locked down browser - Release - 5.11.0.msi
 rem
 rem NAPNuke.bat File to remove all known versions of Naplan off a device.
 rem Starts with graceful removal by invoking the windows uninstall process
 rem but then brute-force removes files, registry keys and service configurations for broken installations.
 rem Also resets a number of registry entries that the browser sets during operation but doesnt
 rem always fix on exit.
-rem a followup installation of the current browser version should then be possible.
+rem A followup installation of the current browser version should then be possible.
 rem
-rem find uninstall keys at HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\
+rem Find uninstall keys at HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\
 rem
-rem run graceful msiexec uninstall process for all known versions.
+rem Run graceful msiexec uninstall process for all known versions.
 rem
-rem old testing version 2016/17
+rem Old testing version 2016/17
 MsiExec.exe /X{96441ACD-EBF0-4355-9A6C-634FA4B4D4A5} /qn
 rem wpad version 2018
 MsiExec.exe /X{936DA4FF-CA28-4EFE-839C-0FE1F11F6C53} /qn
@@ -40,6 +44,8 @@ rem nov 24 version 5.8.19
 MsiExec.exe /X{74C4ACE7-0DEC-44FB-B366-C4573FB80D52} /qn
 rem Feb 25 version 5.9.2
 MsiExec.exe /X{3090BF31-F857-466E-9A75-9DBA6E506B83} /qn
+rem Jan 26 version 5.11.0
+MsiExec.exe /X{250939BF-C7CB-4B67-88D5-9E080F60E288} /qn
 
 rem
 rem need further information regarding other exe installation versions.
@@ -79,6 +85,10 @@ REG DELETE HKCR\Installer\Products\7ECA4C47CED0BF443B664C75F38BD025 /f
 rem version 5.9.2
 rem Computer\HKEY_CLASSES_ROOT\Installer\Products\13FB0903758FE664A957D9ABE605B638
 REG DELETE HKCR\Installer\Products\13FB0903758FE664A957D9ABE605B638 /f
+rem Version 5.11.0
+rem Computer\HKEY_CLASSES_ROOT\Installer\Products\FB939052BC7C76B4885DE980F0062E88
+REG DELETE HKCR\Installer\Products\FB939052BC7C76B4885DE980F0062E88 /f
+
 
 Rem delete uninstall keys for broken installations (same reg location as uninstall strings.)
 rem find keys at HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\
@@ -108,6 +118,8 @@ rem nov 24 version 5.8.19
 REG DELETE HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{74C4ACE7-0DEC-44FB-B366-C4573FB80D52} /f
 rem Feb 25 version 5.9.2
 REG DELETE HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{3090BF31-F857-466E-9A75-9DBA6E506B83} /f
+rem Jan 26 version 5.11.0
+REG DELETE HKLM\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{250939BF-C7CB-4B67-88D5-9E080F60E288} /f
 
 rem delete miscellaneous reg keys
 REG DELETE HKCR\napldb /f
