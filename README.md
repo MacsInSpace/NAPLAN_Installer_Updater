@@ -58,6 +58,19 @@ This will:
 To Do:
 - Test the icon cache fix. - Try not to have to totally delete the cache.
 
+irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1" | iex
+### **Windows (Just install latest Naplan)**
+Run the following command in **PowerShell (RunAs Admin)**:
+
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1)")
+```
+
+This will:
+- **Just** download/update/install to the latest NAPLAN LDB.
+
+
+
 ### **MacOS (Launch Daemon)** - (still testing)
 Run the following command in **Terminal**:
 
