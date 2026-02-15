@@ -58,7 +58,6 @@ This will:
 To Do:
 - Test the icon cache fix. - Try not to have to totally delete the cache.
 
-irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1" | iex
 ### **Windows (Just install latest Naplan)**
 Run the following command in **PowerShell (RunAs Admin)**:
 
