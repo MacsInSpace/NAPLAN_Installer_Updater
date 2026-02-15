@@ -58,7 +58,7 @@ This will:
 To Do:
 - Test the icon cache fix. - Try not to have to totally delete the cache.
 
-### **Windows (Just install latest Naplan)**
+### **Windows (Just install/update latest Naplan)**
 Run the following command in **PowerShell (RunAs Admin)**:
 
 ```powershell
@@ -83,6 +83,20 @@ This will:
   
 To Do:
 - Test the sheduling section.
+
+### **MacOS (Just Install/Update NAPLAN)** -
+Run the following command in **Terminal**:
+
+```bash
+curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/bin/InstallNaplan.sh" | sudo bash
+```
+
+This will:
+- **Just** download/update/install to the latest NAPLAN LDB.
+
+<br>
+<br>
+
 
 ## ❌ Uninstallation
 To remove **all** existing versions of NAPLAN LDB, scheduled tasks, and associated task files and scripts:
