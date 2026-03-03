@@ -64,6 +64,18 @@ If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
 
 #=======================================================================
 
+$StoragePath = Join-Path $env:ProgramData "Naplan"
+
+$LocalTempDir = Join-Path $StoragePath "Temp"
+
+$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
+
+$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
+
+$NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask.log"
+
+$NaplanInstall = Join-Path $StoragePath "NaplanInstall.log"
+
 # Function to check if a transcript is running
 function Start-ConditionalTranscript {
     if ($global:transcript -ne $null) {
