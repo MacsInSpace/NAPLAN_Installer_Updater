@@ -132,24 +132,26 @@ rem remove the lock to taskmanager that is not cleanly removed if naplan fails t
 REG DELETE HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v DisableTaskMgr /f
 REG DELETE HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v DisableLockWorkstation /f
 
-rem
-rem repair touch related settings if they already exist.
-rem
-rem Values may only apply to certain Lenovo devices. Naplan sets these to value 0. Revert to value 1
-rem
-reg query "HKCU\SOFTWARE\Microsoft\Wisp\Touch" /v "TouchGate" >nul 2>&1
-IF %ERRORLEVEL% EQU 0 (
-reg add "HKCU\SOFTWARE\Microsoft\Wisp\Touch" /v "TouchGate" /t REG_DWORD /d "1" /f
-)
-reg query "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "ThreeFingerSlideEnabled" >nul 2>&1
-IF %ERRORLEVEL% EQU 0 (
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "ThreeFingerSlideEnabled" /t REG_DWORD /d "1" /f
-)
-reg query "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "FourFingerSlideEnabled" >nul 2>&1
-IF %ERRORLEVEL% EQU 0 (
-reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "FourFingerSlideEnabled" /t REG_DWORD /d "1" /f
-)
+for /f "tokens=2 delims==" %%A in ('wmic computersystem get manufacturer /value ^| find "="') do set MFG=%%A
 
+echo %MFG% | find /I "Lenovo" >nul
+if %errorlevel%==0 (
+
+    reg query "HKCU\SOFTWARE\Microsoft\Wisp\Touch" /v "TouchGate" >nul 2>&1
+    IF %ERRORLEVEL% EQU 0 (
+        reg add "HKCU\SOFTWARE\Microsoft\Wisp\Touch" /v "TouchGate" /t REG_DWORD /d "1" /f
+    )
+
+    reg query "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "ThreeFingerSlideEnabled" >nul 2>&1
+    IF %ERRORLEVEL% EQU 0 (
+        reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "ThreeFingerSlideEnabled" /t REG_DWORD /d "1" /f
+    )
+
+    reg query "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "FourFingerSlideEnabled" >nul 2>&1
+    IF %ERRORLEVEL% EQU 0 (
+        reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" /v "FourFingerSlideEnabled" /t REG_DWORD /d "1" /f
+    )
+)
 
 rem kill the running service to prevent file locks
 
