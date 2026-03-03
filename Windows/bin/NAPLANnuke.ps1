@@ -71,17 +71,24 @@ foreach ($RegKey in $RegistryKeys) {
     }
 }
 
-# **Restore Touch & PrecisionTouchPad Settings**
-$TouchSettings = @(
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Wisp\Touch"; Name = "TouchGate" },
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "ThreeFingerSlideEnabled" },
-    @{ Path = "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad"; Name = "FourFingerSlideEnabled" }
-)
+# Get manufacturer
+$manufacturer = (Get-CimInstance -ClassName Win32_ComputerSystem).Manufacturer
 
-foreach ($reg in $TouchSettings) {
-    if (Test-Path "Registry::$($reg.Path)") {
-        Set-ItemProperty -Path $reg.Path -Name $reg.Name -Value 1 -Type DWORD -Force
-        Write-Host "Restored: $($reg.Path)\$($reg.Name) to 1"
+if ($manufacturer -match "Lenovo") {
+
+    # TouchGate
+    if (Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Wisp\Touch" -Name "TouchGate" -ErrorAction SilentlyContinue) {
+        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Wisp\Touch" -Name "TouchGate" -Type DWord -Value 1
+    }
+
+    # ThreeFingerSlideEnabled
+    if (Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "ThreeFingerSlideEnabled" -ErrorAction SilentlyContinue) {
+        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "ThreeFingerSlideEnabled" -Type DWord -Value 1
+    }
+
+    # FourFingerSlideEnabled
+    if (Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "FourFingerSlideEnabled" -ErrorAction SilentlyContinue) {
+        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "FourFingerSlideEnabled" -Type DWord -Value 1
     }
 }
 
