@@ -400,9 +400,11 @@ Write-Host "Installation process completed."
 # Step 3: Validate Installed Files
 Write-Host "Validating installed files..."
 $ExtractBase = "C:\ProgramData\Naplan\Temp\Naplan_Extract\"
+$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
 
 # Ensure the extraction path exists
 if (!(Test-Path $ExtractBase)) { New-Item -ItemType Directory -Path $ExtractBase -Force }
+if (!(Test-Path $ExtractPath)) { New-Item -ItemType Directory -Path $ExtractPath -Force }
 
 # Run MSI Extraction
 Start-Process -FilePath "msiexec.exe" -ArgumentList "/a `"$MSIPath`" TARGETDIR=`"$ExtractBase`" /qn" -Wait -NoNewWindow
@@ -411,7 +413,6 @@ Write-Host "MSI Extracted to: $ExtractPath"
 
 $MSIPath = "C:\ProgramData\Naplan\Temp\Naplan_Setup.msi"
 $InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"
-$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
 
 # Ensure extracted path exists
 if (-not (Test-Path $ExtractPath)) {
