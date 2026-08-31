@@ -10,33 +10,18 @@
 			<key>PayloadDisplayName</key>
 			<string>naplan.pppc</string>
 			<key>PayloadIdentifier</key>
-			<string>9BE19716-205F-4118-916C-D18BFC016963</string>
+			<string>6D1B559A-BADC-4736-881C-69906221C6A6</string>
 			<key>PayloadOrganization</key>
 			<string>au.edu.assessform.naplan</string>
 			<key>PayloadType</key>
 			<string>com.apple.TCC.configuration-profile-policy</string>
 			<key>PayloadUUID</key>
-			<string>8CD32EDD-E89B-439B-A175-70DC99E94A39</string>
+			<string>A5805A1C-9560-42F5-9BE6-6D71BADDD61E</string>
 			<key>PayloadVersion</key>
 			<integer>1</integer>
 			<key>Services</key>
 			<dict>
 				<key>Accessibility</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>AddressBook</key>
 				<array>
 					<dict>
 						<key>Authorization</key>
@@ -108,247 +93,7 @@
 						<string>bundleID</string>
 					</dict>
 				</array>
-				<key>BluetoothAlways</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>Calendar</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>FileProviderPresence</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>MediaLibrary</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>Photos</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>PostEvent</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>Reminders</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SpeechRecognition</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
 				<key>SystemPolicyAllFiles</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicyAppBundles</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicyAppData</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicyDesktopFolder</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicyDocumentsFolder</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicyDownloadsFolder</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicyNetworkVolumes</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicyRemovableVolumes</key>
-				<array>
-					<dict>
-						<key>Authorization</key>
-						<string>Allow</string>
-						<key>CodeRequirement</key>
-						<string>identifier "au.com.janison.mac.naplan" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = KU9HRE5GET</string>
-						<key>Comment</key>
-						<string></string>
-						<key>Identifier</key>
-						<string>au.com.janison.mac.naplan</string>
-						<key>IdentifierType</key>
-						<string>bundleID</string>
-					</dict>
-				</array>
-				<key>SystemPolicySysAdminFiles</key>
 				<array>
 					<dict>
 						<key>Authorization</key>
@@ -371,7 +116,7 @@
 	<key>PayloadDisplayName</key>
 	<string>naplan.pppc</string>
 	<key>PayloadIdentifier</key>
-	<string>9BE19716-205F-4118-916C-D18BFC016963</string>
+	<string>6D1B559A-BADC-4736-881C-69906221C6A6</string>
 	<key>PayloadOrganization</key>
 	<string>au.edu.assessform.naplan</string>
 	<key>PayloadScope</key>
@@ -379,7 +124,7 @@
 	<key>PayloadType</key>
 	<string>Configuration</string>
 	<key>PayloadUUID</key>
-	<string>352D6976-5B59-4FD4-875D-1E36D70D2DEB</string>
+	<string>13CBF392-AD78-4010-A393-0B2150CE20DE</string>
 	<key>PayloadVersion</key>
 	<integer>1</integer>
 </dict>
