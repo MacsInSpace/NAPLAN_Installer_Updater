@@ -429,6 +429,13 @@ function Invoke-NapUpdate {
             Write-NapLog 'Firewall rule set.'
         } catch { Write-NapLog "Could not set the firewall rule: $($_.Exception.Message)" 'WARN' }
 
+        # If the optional launcher is installed, students should use its shortcut,
+        # so remove the browser's own desktop shortcut that the MSI just put back.
+        if (Test-Path (Join-Path $NapCfg.StoragePath 'NAPLAN_Launcher.ps1')) {
+            Get-ChildItem -Path (Join-Path $env:PUBLIC 'Desktop') -Filter 'NAP Locked*.lnk' -File -ErrorAction SilentlyContinue |
+                Remove-Item -Force -ErrorAction SilentlyContinue
+        }
+
         # Refresh the icon cache so the new shortcut icon shows (hangs when run as SYSTEM, so skip there).
         if (-not $identity.IsSystem) {
             try { Start-Process -FilePath 'ie4uinit.exe' -ArgumentList '-ClearIconCache' -WindowStyle Hidden } catch { }
