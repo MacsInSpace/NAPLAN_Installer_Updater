@@ -1,54 +1,10 @@
 {
-  "years": {
-    "2025": {
-      "NAPLAN": {
-        "start": "2025-03-12",
-        "end": "2025-03-24"
-      },
-      "NAP-ICTL": {
-        "start": "2025-05-05",
-        "end": "2025-05-23"
-      }
-    },
-    "2026": {
-      "NAPLAN": {
-        "start": "2026-03-11",
-        "end": "2026-03-23"
-      },
-      "NAP-ICTL": {
-        "start": "2026-05-01",
-        "end": "2026-05-20"
-      }
-    },
-    "2027": {
-      "NAPLAN": {
-        "start": "2026-03-10",
-        "end": "2026-03-22"
-      },
-      "NAP-ICTL": {
-        "start": "2026-05-01",
-        "end": "2026-05-20"
-      }
-    },
-    "2028": {
-      "NAPLAN": {
-        "start": "2026-03-15",
-        "end": "2026-03-27"
-      },
-      "NAP-ICTL": {
-        "start": "2026-05-01",
-        "end": "2026-05-20"
-      }
-    },
-    "2028": {
-      "NAPLAN": {
-        "start": "2026-03-14",
-        "end": "2026-03-26"
-      },
-      "NAP-ICTL": {
-        "start": "2026-05-01",
-        "end": "2026-05-20"
-      }
-    }
-  }
+  "_comment": "Test windows during which an installed browser is never touched. One window per line (the macOS script reads this line by line). These are merged with the dates scraped from https://www.nap.edu.au/naplan/key-dates, so this file is a backup and a place to add windows the page does not list.",
+  "windows": [
+    { "name": "NAPLAN 2026", "start": "2026-03-11", "end": "2026-03-23" },
+    { "name": "NAP-CC field trial 2026", "start": "2026-10-14", "end": "2026-10-28" },
+    { "name": "NAPLAN 2027", "start": "2027-03-10", "end": "2027-03-22" },
+    { "name": "NAPLAN 2028", "start": "2028-03-15", "end": "2028-03-27" },
+    { "name": "NAPLAN 2029", "start": "2029-03-14", "end": "2029-03-26" }
+  ]
 }

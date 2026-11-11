@@ -1,204 +1,158 @@
-# Installs the scheduled task to install NAPLAN
-# run *THIS* with:
-# You may need to enable TLS for secure downloads on PS version 5ish
-# [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+# Installs the scheduled task that keeps the NAP Locked Down Browser up to date.
+#
+# Run this in an elevated PowerShell:
+#   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#   irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/bin/NAPLANscheduledtask.ps1" | iex
+#
+# What gets installed:
+#   Scheduled task "InstallNaplan" (runs as SYSTEM, daily and at startup)
+#   C:\ProgramData\Naplan\RunNaplanUpdate.ps1   (small runner the task starts)
+#   C:\ProgramData\Naplan\InstallNaplan.ps1     (cached copy of the installer)
+#   C:\ProgramData\Naplan\proxy.ps1             (proxy helper)
+#   C:\ProgramData\Naplan\NaplanUpdater.log
+#
+# Each run refreshes the cached installer from GitHub if it can, then runs it
+# with -Scheduled. If GitHub is unreachable the cached copy is used.
 
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANscheduledtask.ps1" | iex
-
-# Git branch
-$BranchName = "main"
-
-# Define the storage paths
-$StoragePath = Join-Path $env:ProgramData "Naplan"
-
-$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
-
-$LocalTempDir = Join-Path $StoragePath "Temp"
-
-$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
-
-$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
-
-$NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask.log"
-
-$NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
-
-$TaskName = "InstallNaplan"
-
-$TaskDescription = "Installs the latest version of Naplan"
-
-$ScriptURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/InstallNaplan.ps1"
-
-$ProxyURL = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/conf/proxy.ps1"
-
-# Ensure the directory exists
-if (-not (Test-Path $StoragePath)) {
-    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
-    Write-Host "Created directory: $StoragePath"
-}
-
-# Ensure the directory exists
-if (-not (Test-Path $LocalTempDir)) {
-    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
-    Write-Host "Created directory: $LocalTempDir"
-}
-
-# Function to check if a transcript is running
-function Start-ConditionalTranscript {
-    if ($global:transcript -ne $null) {
-        Write-Host "Transcript is already running. Skipping Start-Transcript."
-    } else {
-        Start-Transcript -Path "$NaplanInstallScheduledTask" -Append
-        $global:transcript = $true  # Mark transcript as active
-    }
-}
-
-# Function to stop transcript safely
-function Stop-ConditionalTranscript {
-    try {
-        Stop-Transcript
-    } catch {
-        Write-Host "No active transcript to stop."
-    }
-    $global:transcript = $null
-}
-
-# Call the function to conditionally start transcript
-Start-ConditionalTranscript
-
-# Ensure the directory exists
-if (-not (Test-Path $StoragePath)) {
-    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
-    Write-Host "Created directory: $StoragePath"
-}
-
-# Set permissions (SYSTEM and Administrators: FullControl)
-$acl = Get-Acl $StoragePath
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.AddAccessRule($rule)
-
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.AddAccessRule($rule)
-
-Set-Acl -Path $StoragePath -AclObject $acl
-Write-Host "Permissions set: SYSTEM and Administrators have FullControl"
-
-# Download the proxy script
-try {
-    Invoke-WebRequest -Uri $ProxyURL -OutFile $ProxyScriptPath -UseBasicParsing
-    Write-Host "Proxy script downloaded successfully: $ProxyScriptPath"
-} catch {
-    Write-Host "Failed to download proxy script: $_"
-}
-
-# Create the script file to run the command
-$PowerShellCommand = @"
-Write-Host `"Running live Naplan installer scheduled task...`"
-
-# Function to check if a transcript is running
-function Start-ConditionalTranscript {
-    if (`$global:transcript -eq `$true) {
-        Write-Host `"Transcript is already running. Skipping Start-Transcript.`"
-    } else {
-        Start-Transcript -Path '$NaplanInstall' -Append
-        `$global:transcript = `$true  # Mark transcript as active
-    }
-}
-
-# Function to stop transcript safely
-function Stop-ConditionalTranscript {
-    try {
-        Stop-Transcript
-    } catch {
-        Write-Host `"No active transcript to stop.`"
-    }
-    `$global:transcript = `$false
-}
-
-# Call the function to conditionally start transcript
-Start-ConditionalTranscript
-
-# Ensure TLS 1.2 is used for secure connections
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-# Define paths
-`$StoragePath = Join-Path `$env:ProgramData `"Naplan`"
-`$ProxyScriptPath = Join-Path `$StoragePath `"proxy.ps1`"
-
-# Run Proxy Script if it exists
-if (Test-Path `"`$ProxyScriptPath`") {
-    try {
-        Write-Host `"Executing Proxy Script inline: `$ProxyScriptPath"`
-        & '$ProxyScriptPath'  # Calls the script directly in the current session
-    } catch {
-        Write-Host `"Failed to execute proxy script: $_`"
-    }
-} else {
-    Write-Host `"Proxy script not found at: '$ProxyScriptPath'. Skipping.`"
-}
-
-# Run the main NAPLAN script
-try {
-    Write-Host `"Fetching and running NAPLAN installer script...`"
-    Invoke-WebRequest -UseBasicParsing -Uri '$ScriptURL' | Invoke-Expression
-} catch {
-    Write-Host `"Scheduled Task failed to retrieve or execute the script: `$_`"
-    exit 1
-}
-"@
-
-# Encode the command in Base64
-$EncodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($PowerShellCommand))
-
-# Define the scheduled task command
-$FullCommand = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand $EncodedCommand"
-
-# Create Scheduled Task Action
-$Action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c $FullCommand"
-
-# Create Triggers
-$Triggers = @(
-    $(New-ScheduledTaskTrigger -Daily -At (Get-Date -Hour (Get-Random -Minimum 9 -Maximum 16) -Minute (Get-Random -Minimum 0 -Maximum 59) -Second 0)),  # Runs daily at random time
-    $(New-ScheduledTaskTrigger -AtStartup)  # Runs at startup if missed
+param(
+    [string]$RepoBase = 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main',
+    [switch]$NoStart      # register/refresh the task but do not run it now
 )
 
-# Define Task Settings
-$Settings = New-ScheduledTaskSettingsSet `
-    -AllowStartIfOnBatteries `
-    -DontStopIfGoingOnBatteries `
-    -StartWhenAvailable `
-    -ExecutionTimeLimit (New-TimeSpan -Minutes 30) `
-    -RunOnlyIfNetworkAvailable `
-    -RestartCount 3 `
-    -RestartInterval (New-TimeSpan -Minutes 60) `
-    -MultipleInstances IgnoreNew
+function Install-NapTask {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $isAdmin = (New-Object Security.Principal.WindowsPrincipal($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (-not $isAdmin) {
+        Write-Host 'This script must be run as Administrator. Open PowerShell with "Run as administrator" and try again.' -ForegroundColor Red
+        return
+    }
 
-# Check if the Scheduled Task already exists
-$ExistingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $ProgressPreference = 'SilentlyContinue'
 
-if ($ExistingTask) {
-    Write-Host "Task '$TaskName' already exists. Updating..."
-    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-} else {
-    Write-Host "Creating scheduled task '$TaskName'..."
+    $TaskName    = 'InstallNaplan'
+    $StoragePath = Join-Path $env:ProgramData 'Naplan'
+    $Runner      = Join-Path $StoragePath 'RunNaplanUpdate.ps1'
+    $Installer   = Join-Path $StoragePath 'InstallNaplan.ps1'
+    $ProxyScript = Join-Path $StoragePath 'proxy.ps1'
+
+    # C:\ProgramData lets ordinary users create files by default. This folder holds
+    # scripts that run as SYSTEM, so lock it down first: SYSTEM + Administrators
+    # full, Users read-only. SIDs are used so this works on non-English Windows.
+    foreach ($dir in $StoragePath, (Join-Path $StoragePath 'Temp')) {
+        if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    }
+    & icacls.exe $StoragePath /setowner '*S-1-5-32-544' /T /C /Q 2>&1 | Out-Null
+    & icacls.exe $StoragePath /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-32-545:(OI)(CI)RX' /C /Q 2>&1 | Out-Null
+    & icacls.exe (Join-Path $StoragePath '*') /reset /T /C /Q 2>&1 | Out-Null
+
+    # Files left by older versions of this project.
+    Remove-Item (Join-Path $StoragePath 'NaplanLastUpdate.txt') -Force -ErrorAction SilentlyContinue
+
+    # --- get the installer and proxy helper (from next to this script, or GitHub) ----
+    function Get-NapFile([string]$RepoPath, [string]$LocalName, [string]$Destination) {
+        if ($PSScriptRoot) {
+            foreach ($candidate in (Join-Path $PSScriptRoot $LocalName), (Join-Path $PSScriptRoot "..\conf\$LocalName")) {
+                if ((Test-Path $candidate) -and ((Resolve-Path $candidate).Path -ne $Destination)) { Copy-Item $candidate $Destination -Force; return $true }
+            }
+        }
+        try {
+            Remove-Item "$Destination.new" -Force -ErrorAction SilentlyContinue
+            (New-Object Net.WebClient).DownloadFile("$RepoBase/$RepoPath", "$Destination.new")
+            Move-Item "$Destination.new" $Destination -Force
+            return $true
+        } catch {
+            Write-Host "Could not download $RepoPath : $($_.Exception.Message)"
+            return $false
+        }
+    }
+
+    if (-not (Get-NapFile 'Windows/bin/InstallNaplan.ps1' 'InstallNaplan.ps1' $Installer) -and -not (Test-Path $Installer)) {
+        Write-Host 'Could not get InstallNaplan.ps1. The scheduled task was NOT installed.' -ForegroundColor Red
+        return
+    }
+    if ((Get-Content $Installer -Raw) -notmatch 'NAPLAN-UPDATER-SCRIPT') {
+        Write-Host 'Downloaded InstallNaplan.ps1 does not look right. The scheduled task was NOT installed.' -ForegroundColor Red
+        Remove-Item $Installer -Force
+        return
+    }
+    if (-not (Get-NapFile 'Windows/conf/proxy.ps1' 'proxy.ps1' $ProxyScript)) {
+        Write-Host 'Proxy helper not available; continuing without it.'
+    }
+
+    # --- the runner the task starts -------------------------------------------------
+    $runnerText = @'
+# Written by NAPLANscheduledtask.ps1. Refreshes the cached installer, then runs it.
+$RepoBase  = '__REPOBASE__'
+$Storage   = Join-Path $env:ProgramData 'Naplan'
+$Installer = Join-Path $Storage 'InstallNaplan.ps1'
+$Proxy     = Join-Path $Storage 'proxy.ps1'
+$Log       = Join-Path $Storage 'NaplanUpdater.log'
+$ProgressPreference = 'SilentlyContinue'
+[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+
+if (Test-Path $Proxy) { try { & $Proxy *> $null } catch { } }
+
+# At startup the network may not be up yet: try for up to five minutes.
+$new = "$Installer.new"
+$ok = $false
+for ($i = 0; $i -lt 10 -and -not $ok; $i++) {
+    try {
+        Remove-Item $new -Force -ErrorAction SilentlyContinue
+        (New-Object Net.WebClient).DownloadFile("$RepoBase/Windows/bin/InstallNaplan.ps1", $new)
+        $ok = $true
+    } catch { Start-Sleep -Seconds 30 }
+}
+if ($ok) {
+    $text = Get-Content $new -Raw
+    $tokens = $null; $errors = $null
+    [void][System.Management.Automation.Language.Parser]::ParseInput($text, [ref]$tokens, [ref]$errors)
+    if ($text -match 'NAPLAN-UPDATER-SCRIPT' -and -not $errors) { Move-Item $new $Installer -Force } else { $ok = $false; Remove-Item $new -Force }
+}
+if (-not $ok) {
+    Add-Content $Log ("{0} [WARN] Could not refresh the installer from GitHub; using the cached copy." -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))
+}
+if (-not (Test-Path $Installer)) { exit 1 }
+
+& $Installer -Scheduled -RepoBase $RepoBase
+exit $LASTEXITCODE
+'@
+    Set-Content -Path $Runner -Value ($runnerText.Replace('__REPOBASE__', $RepoBase)) -Encoding ASCII
+
+    # --- the task: daily at a random school-hours time, and at startup ----------------------
+    $ps = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    $action = New-ScheduledTaskAction -Execute $ps -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$Runner`""
+
+    $dailyAt = Get-Date -Hour (Get-Random -Minimum 9 -Maximum 16) -Minute (Get-Random -Minimum 0 -Maximum 60) -Second 0
+    $daily = New-ScheduledTaskTrigger -Daily -At $dailyAt
+    $startup = New-ScheduledTaskTrigger -AtStartup
+    $startup.Delay = 'PT5M'
+
+    $settings = New-ScheduledTaskSettingsSet `
+        -AllowStartIfOnBatteries `
+        -DontStopIfGoingOnBatteries `
+        -StartWhenAvailable `
+        -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
+        -RunOnlyIfNetworkAvailable `
+        -MultipleInstances IgnoreNew
+
+    $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+
+    $existed = [bool](Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue)
+    Register-ScheduledTask -TaskName $TaskName -Description 'Keeps the NAP Locked Down Browser up to date' `
+        -Action $action -Trigger @($daily, $startup) -Settings $settings -Principal $principal -Force | Out-Null
+
+    if (-not (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue)) {
+        Write-Host "Failed to register scheduled task '$TaskName'." -ForegroundColor Red
+        return
+    }
+    Write-Host ("Scheduled task '{0}' {1}. It runs daily at {2:HH:mm} and at startup." -f $TaskName, $(if ($existed) { 'updated' } else { 'installed' }), $dailyAt)
+    Write-Host "Log: $(Join-Path $StoragePath 'NaplanUpdater.log')"
+
+    if (-not $NoStart) {
+        Start-ScheduledTask -TaskName $TaskName
+        Write-Host 'The first run has started now.'
+    }
 }
 
-# Enable logging for Task Scheduler
-wevtutil set-log Microsoft-Windows-TaskScheduler/Operational /enabled:true
-
-# Set to run as SYSTEM
-$Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-
-Register-ScheduledTask -TaskName $TaskName -Description $TaskDescription -Action $Action -Trigger $Triggers -Settings $Settings -Principal $Principal -Force
-
-if ($ExistingTask) {
-    Write-Host "Scheduled task '$TaskName' has been updated."
-} else {
-    # New task starts immediately
-    Write-Host "Scheduled task '$TaskName' has been added and will start shortly."
-
-    # Start the scheduled task in a detached process
-    Start-Process -FilePath "schtasks.exe" -ArgumentList "/Run /TN `"$TaskName`"" -NoNewWindow -Wait
-}
-# Stop the transcript only if it was started
-Stop-ConditionalTranscript
+Install-NapTask

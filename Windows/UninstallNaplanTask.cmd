@@ -1,19 +1,15 @@
 @echo off
-:: set /p branch=Enter github branch (default - main): 
-
-:: Default to 'main' if no input
-:: if "%branch%"=="" set branch=main
+rem Removes the updater scheduled task AND the NAP Locked Down Browser.
 set branch=main
 
-
-:: Check for Admin Rights
+rem Check for admin rights; relaunch elevated if needed.
 net session >nul 2>&1
 if %errorLevel% NEQ 0 (
-    echo Running as Administrator...
-    powershell -Command "Start-Process cmd -ArgumentList '/c %~s0' -Verb RunAs"
-    exit
+    echo Requesting administrator rights...
+    powershell -NoProfile -Command "Start-Process -FilePath '%~f0' -Verb RunAs"
+    exit /b
 )
 
-:: Install the Scheduled Task
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/%branch%/Windows/bin/NukeNAPLANScheduledTask.ps1' | iex"
+    "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; irm -UseBasicParsing -Uri 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/%branch%/Windows/bin/NukeNAPLANScheduledTask.ps1' | iex"
+pause
