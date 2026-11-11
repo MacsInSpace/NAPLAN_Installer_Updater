@@ -5,8 +5,6 @@
 
 # irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/NAPLANnuke.ps1" | iex
 
-# Testing or main git branch?
-$BranchName = "main"
 
 Write-Host "Starting Naplan removal process..."
 
@@ -34,17 +32,30 @@ if (Test-Path $BootstrapperPath) {
 }
 
 # **Stop and Remove Running Services**
+# Old NAP browsers (2018-2021) were built on Safe Exam Browser and installed a
+# service called SEBWindowsService. A genuine Safe Exam Browser install uses the
+# same name, so SEB items are only removed when they live in a NAP folder.
+function Test-NapOwned([string]$Path) { return ($Path -and $Path -match 'NAP Locked') }
+
 $Services = @("SEBWindowsService", "NAPLDBService")
 foreach ($Service in $Services) {
+    $svc = Get-CimInstance Win32_Service -Filter "Name='$Service'" -ErrorAction SilentlyContinue
+    if (-not $svc) { continue }
+    if ($Service -like 'SEB*' -and -not (Test-NapOwned $svc.PathName)) {
+        Write-Host "Leaving service $Service alone (it belongs to Safe Exam Browser, not NAP)."
+        continue
+    }
     Write-Host "Stopping service: $Service..."
     Stop-Service -Name $Service -Force -ErrorAction SilentlyContinue
     sc.exe delete $Service | Out-Null
 }
 
 # **Kill Running Processes**
-$Processes = @("SafeExamBrowser", "NAPLAN_LDB", "SEBWindowsService", "NAPLDBService")
+$Processes = @("SafeExamBrowser", "NAPLAN_LDB", "SEBWindowsService", "NAPLDBService", "NAP Locked Down Browser")
 foreach ($Process in $Processes) {
-    Get-Process -Name $Process -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Get-Process -Name $Process -ErrorAction SilentlyContinue |
+        Where-Object { $Process -notlike 'S*E*B*' -or (Test-NapOwned $_.Path) } |
+        Stop-Process -Force -ErrorAction SilentlyContinue
 }
 
 # **Delete Remaining Registry Entries**
@@ -56,7 +67,6 @@ $RegistryKeys = @(
     "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASAPI32",
     "HKLM\SOFTWARE\WOW6432Node\Microsoft\Tracing\SafeExamBrowser_RASMANCS",
     "HKLM\SYSTEM\CurrentControlSet\Services\NAPLDBService",
-    "HKLM\SYSTEM\CurrentControlSet\Services\SEBWindowsService",
     "HKCR\Installer\Products\0B329A91503A2D140A1048685578FF30",
     "HKCR\Installer\Products\129F443D99915EF43A7DCB7812D1FDFE",
     "HKCR\Installer\Products\58B1506DAADFF9A4DA741E5D8479EC5F",
@@ -71,41 +81,35 @@ foreach ($RegKey in $RegistryKeys) {
     }
 }
 
-# Get manufacturer
+# Per-user settings. This script often runs as SYSTEM or as an admin, not as the
+# student, so apply the fixes to every loaded user hive as well as the current one.
+$UserHives = @('HKCU:') + @(Get-ChildItem 'Registry::HKEY_USERS' -ErrorAction SilentlyContinue |
+    Where-Object { $_.PSChildName -match '^S-1-5-21-[\d-]+$' } |
+    ForEach-Object { "Registry::HKEY_USERS\$($_.PSChildName)" })
+
+function Set-NapUserValue([string]$SubKey, [string]$Name, [int]$Value) {
+    foreach ($hive in $UserHives) {
+        $path = "$hive\$SubKey"
+        if (Get-ItemProperty -Path $path -Name $Name -ErrorAction SilentlyContinue) {
+            Set-ItemProperty -Path $path -Name $Name -Type DWord -Value $Value -Force -ErrorAction SilentlyContinue
+            Write-Host "Restored: $path\$Name to $Value"
+        }
+    }
+}
+
+# Touch settings the browser changes on Lenovo devices
 $manufacturer = (Get-CimInstance -ClassName Win32_ComputerSystem).Manufacturer
-
 if ($manufacturer -match "Lenovo") {
-
-    # TouchGate
-    if (Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Wisp\Touch" -Name "TouchGate" -ErrorAction SilentlyContinue) {
-        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Wisp\Touch" -Name "TouchGate" -Type DWord -Value 1
-    }
-
-    # ThreeFingerSlideEnabled
-    if (Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "ThreeFingerSlideEnabled" -ErrorAction SilentlyContinue) {
-        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "ThreeFingerSlideEnabled" -Type DWord -Value 1
-    }
-
-    # FourFingerSlideEnabled
-    if (Get-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "FourFingerSlideEnabled" -ErrorAction SilentlyContinue) {
-        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad" -Name "FourFingerSlideEnabled" -Type DWord -Value 1
-    }
+    Set-NapUserValue 'SOFTWARE\Microsoft\Wisp\Touch' 'TouchGate' 1
+    Set-NapUserValue 'SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad' 'ThreeFingerSlideEnabled' 1
+    Set-NapUserValue 'SOFTWARE\Microsoft\Windows\CurrentVersion\PrecisionTouchPad' 'FourFingerSlideEnabled' 1
 }
 
 # **Re-enable Task Manager, Shutdown, Restart & Lock Workstation**
 Write-Host "Re-enabling Shutdown, Restart, and Task Manager..."
-$ReEnableRegistry = @(
-    @{ Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer"; Name = "NoClose"; Value = 0 },
-    @{ Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableTaskMgr"; Value = 0 },
-    @{ Path = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System"; Name = "DisableLockWorkstation"; Value = 0 }
-)
-
-foreach ($entry in $ReEnableRegistry) {
-    if (Test-Path $entry.Path) {
-        Set-ItemProperty -Path $entry.Path -Name $entry.Name -Value $entry.Value -Force -ErrorAction SilentlyContinue
-        Write-Host "Restored: $($entry.Path)\$($entry.Name) to $($entry.Value)"
-    }
-}
+Set-NapUserValue 'Software\Microsoft\Windows\CurrentVersion\Policies\Explorer' 'NoClose' 0
+Set-NapUserValue 'Software\Microsoft\Windows\CurrentVersion\Policies\System' 'DisableTaskMgr' 0
+Set-NapUserValue 'Software\Microsoft\Windows\CurrentVersion\Policies\System' 'DisableLockWorkstation' 0
 
 # **Remove AppData Folders for All Users**
 Write-Host "Removing Naplan AppData for all users..."
@@ -113,7 +117,7 @@ $UserProfiles = Get-ChildItem "C:\Users" -Directory
 foreach ($User in $UserProfiles) {
     Remove-Item -Path "$($User.FullName)\Desktop\NAP*er.lnk" -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "$($User.FullName)\AppData\Roaming\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "$($User.FullName)\AppData\Roaming\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$($User.FullName)\AppData\Local\NAP Locked down browser" -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 # **Remove Desktop Shortcuts**

@@ -1,130 +1,161 @@
-#!/usr/bin/env bash
-
-# Run this with:
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/InstallLaunchDaemon.sh" | sudo bash
-
-# Ensure script runs as root
-if [[ $EUID -ne 0 ]]; then
-    echo "This installer must be run as root. Please enter your Mac's admin password:"
-    exec sudo /bin/bash "$0" "$@"
-    exit 1
-fi
-
-# Define paths
-SCRIPT_PATH="/usr/local/bin/naplan_update.sh"
-PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
-PLIST_PATH="/Library/LaunchDaemons/com.naplan.installer.plist"
-LOG_FILE="/var/log/naplan_update.log"
-PROXY_SCRIPT_WEBPATH="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/conf/proxy.sh"
-INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/bin/InstallNaplan.sh"
-
-# Ensure /usr/local/bin exists
-if [ ! -d "/usr/local/bin" ]; then
-    echo "Creating /usr/local/bin..."
-    mkdir -p /usr/local/bin
-    chown $(whoami) /usr/local/bin
-fi
-
-# **Remove old LaunchDaemon if it exists**
-if [ -f "$PLIST_PATH" ]; then
-    echo "Removing existing LaunchDaemon..."
-    launchctl bootout system "$PLIST_PATH" 2>/dev/null
-    rm -f "$PLIST_PATH"
-fi
-
-# **Write update script**
-cat << 'EOF' > "$SCRIPT_PATH"
 #!/bin/bash
+#
+# Installs a LaunchDaemon that keeps the NAP Locked Down Browser up to date.
+#
+# Run this with:
+#   curl -fsSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/InstallLaunchDaemon.sh" | sudo bash
+#
+# What gets installed (everything is root-owned):
+#   /Library/LaunchDaemons/com.naplan.installer.plist
+#   /Library/Application Support/NAPLANUpdater/naplan_update.sh   (small wrapper the daemon runs)
+#   /Library/Application Support/NAPLANUpdater/InstallNaplan.sh   (cached copy of the installer)
+#   /Library/Application Support/NAPLANUpdater/proxy.sh           (proxy helper)
+#   /var/log/naplan_update.log
+#
+# The daemon runs once a day (and at boot). Each run refreshes the cached
+# installer from GitHub if it can, then runs it with --scheduled. If GitHub is
+# unreachable the cached copy is used.
 
+set -u
+export PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+
+main() {
+    local REPO_BASE="${NAPLAN_REPO_BASE:-https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main}"
+    local STATE_DIR="/Library/Application Support/NAPLANUpdater"
+    local LABEL="com.naplan.installer"
+    local PLIST_PATH="/Library/LaunchDaemons/$LABEL.plist"
+    local WRAPPER="$STATE_DIR/naplan_update.sh"
+    local INSTALLER="$STATE_DIR/InstallNaplan.sh"
+    local PROXY="$STATE_DIR/proxy.sh"
+
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "This installer must be run as root. Re-run it with sudo." >&2
+        return 1
+    fi
+
+    mkdir -p "$STATE_DIR" || return 1
+    chown root:wheel "$STATE_DIR"; chmod 755 "$STATE_DIR"
+
+    # Use the files next to this script when run from a copy of the repo,
+    # otherwise download them.
+    local src_dir=""
+    if [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+        src_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+    fi
+
+    get_file "bin/InstallNaplan.sh" "$INSTALLER" "$src_dir" "$REPO_BASE" || { echo "Failed to get InstallNaplan.sh" >&2; return 1; }
+    if ! grep -q "NAPLAN-UPDATER-SCRIPT" "$INSTALLER" || ! bash -n "$INSTALLER"; then
+        echo "Downloaded InstallNaplan.sh does not look right. Aborting." >&2
+        rm -f "$INSTALLER"
+        return 1
+    fi
+    get_file "conf/proxy.sh" "$PROXY" "$src_dir" "$REPO_BASE" || echo "Proxy helper not available; continuing without it."
+    if [ -f "$PROXY" ] && ! bash -n "$PROXY"; then rm -f "$PROXY"; fi
+
+    # --- the wrapper the daemon runs ------------------------------------------------
+    cat > "$WRAPPER" <<EOF
+#!/bin/bash
+# Written by InstallLaunchDaemon.sh. Refreshes the cached installer, then runs it.
+export PATH="/usr/bin:/bin:/usr/sbin:/sbin"
+REPO_BASE="$REPO_BASE"
+STATE_DIR="$STATE_DIR"
+EOF
+    cat >> "$WRAPPER" <<'EOF'
+INSTALLER="$STATE_DIR/InstallNaplan.sh"
 LOG_FILE="/var/log/naplan_update.log"
-INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/bin/InstallNaplan.sh"
-PROXY_SCRIPT_PATH="/usr/local/bin/proxy.sh"
 
-echo "Running proxy test..."
-/usr/local/bin/proxy.sh
+[ -f "$STATE_DIR/proxy.sh" ] && . "$STATE_DIR/proxy.sh" >/dev/null 2>&1
 
-# Ensure we have internet
-ping -c 1 8.8.8.8 &>/dev/null
-if [ $? -ne 0 ]; then
-    echo "$(date) - No internet connection. Check your proxy settings.
-    Try https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/MacOS/conf/proxy.sh" >> "$LOG_FILE"
-    exit 1
+# At boot the network may not be up yet: try for up to five minutes.
+tmp="$INSTALLER.new"
+ok=false
+for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    if curl -fsSL --connect-timeout 15 --max-time 60 -o "$tmp" "$REPO_BASE/MacOS/bin/InstallNaplan.sh" 2>/dev/null; then
+        ok=true; break
+    fi
+    sleep 30
+done
+
+if $ok && grep -q "NAPLAN-UPDATER-SCRIPT" "$tmp" && bash -n "$tmp" 2>/dev/null; then
+    chown root:wheel "$tmp"; chmod 755 "$tmp"
+    mv -f "$tmp" "$INSTALLER"
+else
+    rm -f "$tmp"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - Could not refresh the installer from GitHub; using the cached copy." >> "$LOG_FILE"
 fi
 
-echo "$(date) - Downloading and executing InstallNaplan.sh..." >> "$LOG_FILE"
-
-echo "Proxy script executed!"
-curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
-    -H "Accept-Language: en-US,en;q=0.9" \
-    -H "Connection: keep-alive" \
-    -H "Cache-Control: no-cache, no-store, must-revalidate" \
-    -H "Pragma: no-cache" \
-    -H "Expires: 0" \
-    --compressed "$INSTALL_SCRIPT_URL"  | grep -o '"content": "[^"]*' | cut -d '"' -f 4 | base64 --decode | bash 2>&1 >> "$LOG_FILE"
-
-exit 0
+[ -f "$INSTALLER" ] || exit 1
+exec /bin/bash "$INSTALLER" --scheduled
 EOF
 
-# Download the script and save it to /usr/local/bin
-curl -sSLA "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" \
-    -H "Accept-Language: en-US,en;q=0.9" \
-    -H "Connection: keep-alive" \
-    -H "Cache-Control: no-cache, no-store, must-revalidate" \
-    -H "Pragma: no-cache" \
-    -H "Expires: 0" \
-    --compressed "$PROXY_SCRIPT_WEBPATH" -o "$PROXY_SCRIPT_PATH"
+    chown root:wheel "$WRAPPER" "$INSTALLER"; chmod 755 "$WRAPPER" "$INSTALLER"
+    [ -f "$PROXY" ] && { chown root:wheel "$PROXY"; chmod 755 "$PROXY"; }
 
-# Set execute permissions
-chmod +x "$SCRIPT_PATH"
-chmod +x "$PROXY_SCRIPT_PATH"
+    # --- remove the previous daemon and files from older versions of this project ---
+    launchctl bootout "system/$LABEL" 2>/dev/null
+    rm -f "$PLIST_PATH"
+    rm -f /usr/local/bin/naplan_update.sh
+    if [ -f /usr/local/bin/proxy.sh ] && grep -q "scutil --proxy" /usr/local/bin/proxy.sh 2>/dev/null; then
+        rm -f /usr/local/bin/proxy.sh
+    fi
 
-# Verify download
-if [[ -f "$PROXY_SCRIPT_PATH" ]]; then
-    echo "Proxy script downloaded successfully to: $PROXY_SCRIPT_PATH"
-else
-    echo "Failed to download proxy script!"
-    exit 1
-fi
-
-echo "Installation script saved to $SCRIPT_PATH"
-echo "Proxy script saved to $PROXY_SCRIPT_PATH"
-
-# **Write new LaunchDaemon plist**
-cat << EOF > "$PLIST_PATH"
+    # --- the LaunchDaemon: daily at a random school-hours time, and at boot -----------
+    local hour=$(( 9 + RANDOM % 7 )) minute=$(( RANDOM % 60 ))
+    cat > "$PLIST_PATH" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
     <key>Label</key>
-    <string>com.naplan.installer</string>
+    <string>$LABEL</string>
     <key>ProgramArguments</key>
     <array>
       <string>/bin/bash</string>
-      <string>$SCRIPT_PATH</string>
+      <string>$WRAPPER</string>
     </array>
-    <key>StartInterval</key>
-    <integer>86400</integer>
+    <key>StartCalendarInterval</key>
+    <dict>
+      <key>Hour</key>
+      <integer>$hour</integer>
+      <key>Minute</key>
+      <integer>$minute</integer>
+    </dict>
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/var/log/naplan_update.log</string>
+    <string>/var/log/naplan_update.launchd.log</string>
     <key>StandardErrorPath</key>
-    <string>/var/log/naplan_update.log</string>
+    <string>/var/log/naplan_update.launchd.log</string>
   </dict>
 </plist>
 EOF
+    chown root:wheel "$PLIST_PATH"; chmod 644 "$PLIST_PATH"
+    if ! plutil -lint "$PLIST_PATH" >/dev/null; then
+        echo "Generated LaunchDaemon plist is invalid. Aborting." >&2
+        rm -f "$PLIST_PATH"
+        return 1
+    fi
 
-# Validate the plist file
-plutil -lint "$PLIST_PATH"
+    if ! launchctl bootstrap system "$PLIST_PATH"; then
+        echo "Failed to load the LaunchDaemon." >&2
+        return 1
+    fi
+    launchctl enable "system/$LABEL"
 
-# Set correct permissions
-chown root:wheel "$PLIST_PATH"
-chmod 644 "$PLIST_PATH"
+    printf 'NAPLAN updater installed. It runs daily at %02d:%02d and at boot.\n' "$hour" "$minute"
+    echo "The first run has started now. Log: /var/log/naplan_update.log"
+    return 0
+}
 
-# **Reinstall and reload the LaunchDaemon**
-sudo launchctl bootstrap system "$PLIST_PATH"
-sudo launchctl enable system/com.naplan.installer
+# get_file <repo-relative path under MacOS/> <destination> <local source dir or ""> <repo base>
+get_file() {
+    local rel="$1" dest="$2" src_dir="$3" base="$4"
+    if [ -n "$src_dir" ] && [ -f "$src_dir/$rel" ]; then
+        cp -f "$src_dir/$rel" "$dest"
+        return $?
+    fi
+    curl -fsSL --retry 3 --retry-delay 5 --connect-timeout 20 --max-time 120 -o "$dest.dl" "$base/MacOS/$rel" && mv -f "$dest.dl" "$dest"
+}
 
-echo "NAPLAN Update script installed and scheduled successfully."
-
-exit 0
+main "$@"
+exit $?

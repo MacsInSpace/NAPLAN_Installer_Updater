@@ -1,102 +1,90 @@
-#!/usr/bin/env bash
+#!/bin/bash
+#
+# NAPLANnuke.sh - completely removes the NAP Locked Down Browser AND this
+# updater (LaunchDaemon, scripts, logs) from macOS.
+#
+# Run this with:
+#   curl -fsSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/MacOS/NAPLANnuke.sh" | sudo bash
 
-# Run this with 
-# curl -sSL "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/testing/MacOS/NAPLANnuke.sh" | sudo bash
+set -u
+export PATH="/usr/bin:/bin:/usr/sbin:/sbin"
 
-# NAPLANnuke.sh - Completely removes NAPLAN LDB from macOS
-# Run this script as root (sudo) to ensure complete removal
+main() {
+    local LOG_FILE="/var/log/naplan_nuke.log"
+    local STATE_DIR="/Library/Application Support/NAPLANUpdater"
+    local LABEL="com.naplan.installer"
+    local APP="/Applications/NAP Locked down browser.app"
+    local UNINSTALLER_APP="/Applications/NAP Locked down browser Uninstaller.app"
 
-LOG_FILE="/var/log/naplan_nuke.log"
-echo "Starting NAPLAN LDB uninstallation..." | tee -a "$LOG_FILE"
+    if [ "$(id -u)" -ne 0 ]; then
+        echo "This script must be run as root. Re-run it with sudo." >&2
+        return 1
+    fi
 
-# Search for any existing NAPLAN-related LaunchDaemons
-echo "Searching for NAPLAN-related LaunchDaemons..." | tee -a "$LOG_FILE"
-FOUND_LAUNCHD=$(ls /Library/LaunchDaemons | grep -i naplan)
+    say() { echo "$1" | tee -a "$LOG_FILE"; }
 
-if [ -n "$FOUND_LAUNCHD" ]; then
-    echo "Found LaunchDaemons related to NAPLAN:" | tee -a "$LOG_FILE"
-    echo "$FOUND_LAUNCHD" | tee -a "$LOG_FILE"
-    for plist in $FOUND_LAUNCHD; do
-        echo "Unloading and removing: $plist" | tee -a "$LOG_FILE"
-        launchctl unload "/Library/LaunchDaemons/$plist" 2>/dev/null
-        rm -f "/Library/LaunchDaemons/$plist"
+    say "$(date '+%Y-%m-%d %H:%M:%S') Starting NAPLAN LDB removal..."
+
+    # --- the updater's LaunchDaemon ---------------------------------------------
+    launchctl bootout "system/$LABEL" 2>/dev/null && say "Stopped LaunchDaemon $LABEL."
+    local plist
+    for plist in /Library/LaunchDaemons/*; do
+        case "$(basename "$plist" | tr '[:upper:]' '[:lower:]')" in
+            *naplan*)
+                launchctl bootout system "$plist" 2>/dev/null
+                rm -f "$plist" && say "Removed $plist"
+                ;;
+        esac
     done
-else
-    echo "No NAPLAN-related LaunchDaemons found." | tee -a "$LOG_FILE"
-fi
 
-# Specifically remove the known NAPLAN installer scheduled task
-INSTALLER_LAUNCHD="/Library/LaunchDaemons/com.naplan.installer.plist"
-if [ -f "$INSTALLER_LAUNCHD" ]; then
-    echo "Removing scheduled task: com.naplan.installer.plist" | tee -a "$LOG_FILE"
-    launchctl unload "$INSTALLER_LAUNCHD" 2>/dev/null
-    rm -f "$INSTALLER_LAUNCHD"
-else
-    echo "No scheduled task com.naplan.installer.plist found." | tee -a "$LOG_FILE"
-fi
-
-# Kill any running NAPLAN processes
-NAPLAN_PROCESS="NAP Locked Down Browser"
-if pgrep -f "$NAPLAN_PROCESS" > /dev/null; then
-    echo "Terminating running NAPLAN LDB processes..." | tee -a "$LOG_FILE"
-    pkill -f "$NAPLAN_PROCESS"
-fi
-
-# Remove application files and related directories
-NAPLAN_PATHS=(
-    "/Applications/NAP Locked Down Browser.app"
-    "/Applications/NAP Locked Down Browser Uninstaller.app"
-    "$HOME/.config/NAP Locked Down Browser"
-    "$HOME/.local/share/NAP Locked Down Browser"
-    "/usr/local/bin/naplan_update.sh"
-    "/var/log/naplan_update.log"
-)
-echo "Removing NAPLAN LDB files..." | tee -a "$LOG_FILE"
-for path in "${NAPLAN_PATHS[@]}"; do
-    if [ -e "$path" ]; then
-        rm -rf "$path"
-        echo "Deleted: $path" | tee -a "$LOG_FILE"
-    fi
-done
-
-# Remove logs and cached files
-echo "Cleaning up logs and cache..." | tee -a "$LOG_FILE"
-rm -rf /var/log/naplan_update.log
-rm -rf "$HOME/Library/Caches/NAPLAN"
-
-# Forget previous installations
-if [[ -z "$naplan_packages" ]]; then
-    echo "✅ No NAPLAN or LDB-related packages found." | tee -a "$LOG_FILE"
-    exit 0
-fi
-
-for pkg in $naplan_packages; do
-    echo "🔍 Found package: $pkg" | tee -a "$LOG_FILE"
-    
-    # Find installed files
-    files=$(pkgutil --files "$pkg")
-
-    # Remove files if they exist
-    if [[ -n "$files" ]]; then
-        echo "🗑 Removing files for $pkg..." | tee -a "$LOG_FILE"
-        while IFS= read -r file; do
-            rm -rf "/$file"
-        done <<< "$files"
+    # --- the browser itself --------------------------------------------------------
+    if pgrep -if "/Applications/NAP Locked down browser.app/Contents/MacOS/" >/dev/null 2>&1; then
+        say "Quitting the running browser..."
+        pkill -if "/Applications/NAP Locked down browser.app/Contents/MacOS/"
+        sleep 2
     fi
 
-    # Forget the package receipt
-    echo "❌ Forgetting package: $pkg" | tee -a "$LOG_FILE"
-    pkgutil --forget "$pkg" >> "$LOG_FILE" 2>&1
-done
+    local path
+    for path in "$APP" "$UNINSTALLER_APP" "$STATE_DIR" \
+                "/usr/local/bin/naplan_update.sh" \
+                "/var/log/naplan_update.log" "/var/log/naplan_update.log.old" "/var/log/naplan_update.launchd.log"; do
+        if [ -e "$path" ]; then
+            rm -rf "$path" && say "Deleted: $path"
+        fi
+    done
+    # proxy.sh from older versions of this project (only if it is ours).
+    if [ -f /usr/local/bin/proxy.sh ] && grep -q "scutil --proxy" /usr/local/bin/proxy.sh 2>/dev/null; then
+        rm -f /usr/local/bin/proxy.sh && say "Deleted: /usr/local/bin/proxy.sh"
+    fi
 
-echo "✅ Completed full uninstallation of NAPLAN/LDB." | tee -a "$LOG_FILE"
+    # --- per-user settings and caches ---------------------------------------------------
+    local home
+    for home in /Users/* /var/root; do
+        [ -d "$home" ] || continue
+        for path in "$home/.config/NAP Locked down browser" \
+                    "$home/.local/share/NAP Locked down browser" \
+                    "$home/Library/Caches/NAPLAN"; do
+            if [ -e "$path" ]; then
+                rm -rf "$path" && say "Deleted: $path"
+            fi
+        done
+    done
 
-# Final confirmation
-if [ ! -d "/Applications/NAP Locked Down Browser.app" ]; then
-    echo "✅ NAPLAN LDB has been successfully removed from your system." | tee -a "$LOG_FILE"
-else
-    echo "⚠️ Some files may still remain. Manual removal may be required." | tee -a "$LOG_FILE"
-fi
+    # --- installer receipts ------------------------------------------------------------
+    # Only the receipt is forgotten. Files are NOT deleted from the receipt's file
+    # list, because that list includes shared folders such as /Applications.
+    local pkg
+    for pkg in $(pkgutil --pkgs | grep -i -E '^au\.com\.janison\.' ); do
+        pkgutil --forget "$pkg" >> "$LOG_FILE" 2>&1 && say "Forgot package receipt: $pkg"
+    done
 
-echo "Uninstallation complete." | tee -a "$LOG_FILE"
-exit 0
+    if [ -d "$APP" ]; then
+        say "WARNING: $APP is still present. Manual removal may be required."
+        return 1
+    fi
+    say "NAPLAN LDB and the updater have been removed."
+    return 0
+}
+
+main "$@"
+exit $?

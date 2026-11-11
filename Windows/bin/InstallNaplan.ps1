@@ -1,646 +1,471 @@
-# installs the latest version
-# run *THIS* with:
-# You may need to enable TLS for secure downloads on PS version 5ish
-# [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12;
+# NAPLAN-UPDATER-SCRIPT  (marker checked by the scheduled task runner - do not remove)
+#
+# Installs or updates the NAP Locked Down Browser on Windows.
+#
+# Run once, manually ("just install/update the latest"), in an elevated PowerShell:
+#   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#   irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/bin/InstallNaplan.ps1" | iex
+#
+# With options:
+#   & ([scriptblock]::Create((irm -UseBasicParsing -Uri ".../Windows/bin/InstallNaplan.ps1"))) -Force
+#
+# Options:
+#   -Scheduled          Used by the scheduled task. Checks daily in the lead-up to a
+#                       test window and weekly for the rest of the year.
+#   -Force              Reinstall even if the installed version is already current.
+#   -IgnoreTestWindow   Allow replacing an installed browser during a test window.
+#                       (Never used by the scheduled task. Think twice.)
+#   -FallbackMsi        Optional path (e.g. an SMB share) to an MSI to use when the
+#                       ACARA site cannot be reached and no browser is installed.
+#
+# Rules this script always follows:
+#   * The new MSI is downloaded and its signature verified BEFORE the old browser
+#     is touched.
+#   * An installed browser is never replaced during a NAPLAN test window, and
+#     never while the browser is running.
+#   * A device with NO browser installed gets one, even during a test window.
 
-# irm -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/main/Windows/bin/InstallNaplan.ps1" | iex
+param(
+    [switch]$Scheduled,
+    [switch]$Force,
+    [switch]$IgnoreTestWindow,
+    [string]$RepoBase = 'https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main',
+    [string]$FallbackMsi = ''
+)
 
-# Testing or main git branch?
-$BranchName = "main"
+# ---------------------------------------------------------------------------
+# Settings
+# ---------------------------------------------------------------------------
+$NapCfg = @{
+    LdbPage       = 'https://www.assessform.edu.au/naplan-online/locked-down-browser'
+    KeyDatesUrl   = 'https://www.nap.edu.au/naplan/key-dates'
+    AllowedHostRe = '^https://([A-Za-z0-9-]+\.)*assessform\.edu\.au/'
+    SignerMatch   = '*JANISON SOLUTIONS PTY LTD*'
+    LeadUpDays    = 60     # check daily this many days before a test window
+    WeeklyDays    = 7      # otherwise check this often
+    WindowsMaxAge = 7      # days before the cached test windows are refreshed
+    FirewallRule  = 'NAPLockedDownBrowserOutbound'
+    TaskName      = 'InstallNaplan'
+    UserAgent     = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    StoragePath   = Join-Path $env:ProgramData 'Naplan'
+}
+$NapCfg.TempDir       = Join-Path $NapCfg.StoragePath 'Temp'
+$NapCfg.LogFile       = Join-Path $NapCfg.StoragePath 'NaplanUpdater.log'
+$NapCfg.LastCheckFile = Join-Path $NapCfg.StoragePath 'NaplanLastCheck.txt'
+$NapCfg.WindowsFile   = Join-Path $NapCfg.StoragePath 'NaplanTestWindows.txt'
+$NapCfg.Months        = 'January','February','March','April','May','June','July','August','September','October','November','December'
 
-# Force an update (uninstall and reinstall regardless of time, date)
-$ForceUpdate = $true # default to $false. # $true will force the update regardless of version number
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+function Write-NapLog {
+    param([string]$Message, [string]$Level = 'INFO')
+    $line = '{0} [{1}] {2}' -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Level, $Message
+    Write-Host $line
+    try { Add-Content -Path $NapCfg.LogFile -Value $line -Encoding UTF8 -ErrorAction Stop } catch { }
+}
 
-# Force an update of the scheduled task
-$Updatetasktoo = $true #default to $false. # true will force the update task.
+function Protect-NapStorage {
+    # C:\ProgramData lets ordinary users create files by default. This folder holds
+    # scripts that run as SYSTEM, so lock it down: SYSTEM + Administrators full,
+    # Users read-only. SIDs are used so this works on non-English Windows.
+    foreach ($dir in $NapCfg.StoragePath, $NapCfg.TempDir) {
+        if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    }
+    $p = $NapCfg.StoragePath
+    & icacls.exe $p /setowner '*S-1-5-32-544' /T /C /Q 2>&1 | Out-Null
+    & icacls.exe $p /inheritance:r /grant:r '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' '*S-1-5-32-545:(OI)(CI)RX' /C /Q 2>&1 | Out-Null
+    & icacls.exe (Join-Path $p '*') /reset /T /C /Q 2>&1 | Out-Null
+}
 
-#=======================================================================
-#CHECK IF SCRIPT IS RUN AS ADMINISTRATOR
-#=======================================================================
-
-# Get the ID and security principal of the current user account
-$myWindowsID=[System.Security.Principal.WindowsIdentity]::GetCurrent()
-$myWindowsPrincipal=new-object System.Security.Principal.WindowsPrincipal($myWindowsID)
- 
-# Get the security principal for the Administrator role
-$adminRole=[System.Security.Principal.WindowsBuiltInRole]::Administrator
- 
-# Check to see if we are currently running "as Administrator"
-if ($myWindowsPrincipal.IsInRole($adminRole))
-   {
-   # We are running "as Administrator" - so change the title and background color to indicate this
-   #$Host.UI.RawUI.WindowTitle = $myInvocation.MyCommand.Definition + "(Elevated)"
-   # $Host.UI.RawUI.BackgroundColor = "DarkBlue"
-   clear-host
-   }
-else
-   {
-   # We are not running "as Administrator" - so relaunch as administrator
-   # Create a new process object that starts PowerShell
-   $newProcess = new-object System.Diagnostics.ProcessStartInfo "PowerShell";
-   
-   # Specify the current script path and name as a parameter
-   $newProcess.Arguments = $myInvocation.MyCommand.Definition;
-   
-   # Indicate that the process should be elevated
-   $newProcess.Verb = "runas";
-   
-   # Start the new process
-   [System.Diagnostics.Process]::Start($newProcess);
-   
-   # Exit from the current, unelevated, process
-   exit
-   }
-
-Clear-Host
-
-$sig = '[DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);'
-
-Add-Type -MemberDefinition $sig -name NativeMethods -namespace Win32
-
-$PSId = @(Get-Process | Where-Object {$_.Name -like "*Powershell*"} -ErrorAction SilentlyContinue)[0].MainWindowHandle
-
-If ($PSId -ne $NULL) { [Win32.NativeMethods]::ShowWindowAsync($PSId,2)}
-
-#=======================================================================
-
-$StoragePath = Join-Path $env:ProgramData "Naplan"
-
-$LocalTempDir = Join-Path $StoragePath "Temp"
-
-$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
-
-$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
-
-$NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask.log"
-
-$NaplanInstall = Join-Path $StoragePath "NaplanInstall.log"
-
-# Function to check if a transcript is running
-function Start-ConditionalTranscript {
-    if ($global:transcript -ne $null) {
-        Write-Host "Transcript is already running. Skipping Start-Transcript."
-    } else {
-        Start-Transcript -Path "$NaplanInstall" -Append
-        $global:transcript = $true  # Mark transcript as active
+function Invoke-NapRetry {
+    param([scriptblock]$Action, [int]$Tries = 3, [int]$DelaySeconds = 10)
+    for ($i = 1; $i -le $Tries; $i++) {
+        try { return (& $Action) }
+        catch {
+            if ($i -eq $Tries) { throw }
+            Start-Sleep -Seconds $DelaySeconds
+        }
     }
 }
 
-# Call the function to conditionally start transcript
-Start-ConditionalTranscript
-
-# Define the fallback local SMB path (only used if the internet check fails)
-$FallbackSMB = "\\XXXXWDS01\Deploymentshare$\Applications\Naplan.msi"
-
-# NAPLAN key dates page
-$kdurl = "https://www.nap.edu.au/naplan/key-dates"
-
-# NAPLAN downloads page
-$dlurls = "https://www.assessform.edu.au/naplan-online/locked-down-browser"
-
-$napnukeurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANnuke.ps1"
-
-$scheduledtaskurl = "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/refs/heads/$BranchName/Windows/bin/NAPLANscheduledtask.ps1"
-
-$StoragePath = Join-Path $env:ProgramData "Naplan"
-
-$ProxyScriptPath = Join-Path $StoragePath "proxy.ps1"
-
-$LocalTempDir = Join-Path $StoragePath "Temp"
-
-$Setup = Join-Path $LocalTempDir "Naplan_Setup.msi"
-
-$lastUpdateFile = Join-Path $StoragePath "NaplanLastUpdate.txt"
-
-$NaplanInstallScheduledTask = Join-Path $StoragePath "NaplanInstallScheduledTask.log"
-
-$NaplanInstall =  Join-Path $StoragePath "NaplanInstall.log"
-
-# Ensure the directory exists
-if (-not (Test-Path $StoragePath)) {
-    New-Item -ItemType Directory -Path $StoragePath -Force | Out-Null
-    Write-Host "Created directory: $StoragePath"
+function Get-NapWebText {
+    param([string]$Url)
+    Invoke-NapRetry {
+        (Invoke-WebRequest -UseBasicParsing -Uri $Url -TimeoutSec 60 -UserAgent $NapCfg.UserAgent -ErrorAction Stop).Content
+    }
 }
 
-# Ensure the directory existsv
-if (-not (Test-Path $LocalTempDir)) {
-    New-Item -ItemType Directory -Path $LocalTempDir -Force | Out-Null
-    Write-Host "Created directory: $LocalTempDir"
-}
-
-# Function to stop transcript safely
-function Stop-ConditionalTranscript {
+function ConvertTo-NapVersion {
+    # '5.11.0' and '5.11.0.0' must compare equal, so pad to four parts.
+    param([string]$Text)
     try {
-        Stop-Transcript
-    } catch {
-        Write-Host "No active transcript to stop."
+        $parts = @($Text.Trim() -split '\.' | ForEach-Object { [int]$_ })
+        while ($parts.Count -lt 4) { $parts += 0 }
+        return [version]($parts[0..3] -join '.')
+    } catch { return $null }
+}
+
+function Get-NapInstalled {
+    # Callers must wrap this in @(): Windows PowerShell 5.1 unrolls a single result,
+    # and .Count on a lone registry object is empty there.
+    # The browser is a 32-bit MSI, so it normally registers under WOW6432Node.
+    $keys = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\*',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*'
+    @(Get-ItemProperty -Path $keys -ErrorAction SilentlyContinue |
+        Where-Object { $_.DisplayName -like 'NAP Locked Down Browser*' -and $_.PSChildName -match '^\{[0-9A-Fa-f-]{36}\}$' })
+}
+
+function Get-NapInstallDir {
+    param($Installed)
+    foreach ($entry in @($Installed)) {
+        if ($entry.InstallLocation -and (Test-Path $entry.InstallLocation)) { return $entry.InstallLocation.TrimEnd('\') }
     }
-    $global:transcript = $null
+    $pf = if (${env:ProgramFiles(x86)}) { ${env:ProgramFiles(x86)} } else { $env:ProgramFiles }
+    return (Join-Path $pf 'NAP Locked Down Browser')
 }
 
-#=======================================================================
-# End user variables
-#=======================================================================
-
-$currentDate = Get-Date
-# Get the current year dynamically
-$currentYear = (Get-Date).Year
-
-# Set some backup testing dates
-$testStartDateFallback = Get-Date "$currentYear-03-1"  # Approximate fallback
-$testEndDateFallback =  Get-Date "$currentYear-04-30"
-
-# Set permissions (SYSTEM and Administrators: FullControl)
-$acl = Get-Acl $StoragePath
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("SYSTEM", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.AddAccessRule($rule)
-
-$rule = New-Object System.Security.AccessControl.FileSystemAccessRule("Administrators", "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-$acl.AddAccessRule($rule)
-
-Set-Acl -Path $StoragePath -AclObject $acl
-Write-Host "Permissions set: SYSTEM and Administrators have FullControl"
-
-# Set download directory for SYSTEM compatibility
-Write-Host "Force Update NAPLAN set to: $ForceUpdate "
-Write-Host "Update scheduled task set to: $Updatetasktoo"
-
-#=======================================================================
-# Script core
-#=======================================================================
-
-# Check if we have an active internet connection
-$InternetAvailable = $false
-try {
-    $pingTest = Test-Connection -ComputerName "8.8.8.8" -Count 1 -Quiet
-    if ($pingTest) { $InternetAvailable = $true }
-} catch {
-    Write-Host "Internet check failed. Falling back to local SMB."
-     Stop-Transcript;exit 1
+function Test-NapBrowserRunning {
+    param([string]$InstallDir)
+    # The browser installs a background Windows service (NAPLDBService ->
+    # JanisonReplayService.exe) that runs all the time, so service processes do
+    # not count. Anything else running from the folder means a student has it open.
+    $prefix = $InstallDir.TrimEnd('\') + '\'
+    $servicePids = @(Get-CimInstance Win32_Service -ErrorAction SilentlyContinue |
+        Where-Object { $_.ProcessId -gt 0 } | ForEach-Object { $_.ProcessId })
+    $procs = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue |
+        Where-Object { $_.ExecutablePath -and $_.ExecutablePath.StartsWith($prefix, [StringComparison]::OrdinalIgnoreCase) -and
+                       $servicePids -notcontains $_.ProcessId })
+    return ($procs.Count -gt 0)
 }
 
-# Securely download and execute the script with TLS 1.2
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+function Get-NapWindowsFromHtml {
+    # The ACARA page lists a year in one table cell and "10-22 March" in the next,
+    # so the year is carried forward from the most recent cell holding only a year.
+    param([string]$Html)
+    $text = [regex]::Replace($Html, '(?s)<(script|style)\b.*?</\1>', '')
+    $text = [regex]::Replace($text, '<[^>]+>', "`n")
+    $text = [System.Net.WebUtility]::HtmlDecode($text).Replace([string][char]0xA0, ' ')
+    $monthRe = $NapCfg.Months -join '|'
+    $year = $null
+    $out = @()
+    foreach ($raw in ($text -split "`n")) {
+        $line = $raw.Trim()
+        if ($line -match '^(20\d\d)$') { $year = [int]$Matches[1]; continue }
+        if ($year -and $line -match "(\d{1,2})\s*\p{Pd}\s*(\d{1,2})\s+($monthRe)") {
+            $d1 = [int]$Matches[1]; $d2 = [int]$Matches[2]
+            $month = [array]::IndexOf($NapCfg.Months, $Matches[3]) + 1
+            if ($d1 -ge 1 -and $d1 -le $d2 -and $d2 -le 31) {
+                $out += ('{0:D4}{1:D2}{2:D2} {0:D4}{1:D2}{3:D2}' -f $year, $month, $d1, $d2)
+            }
+        }
+    }
+    return $out
+}
 
-# Check the currently installed version
-Write-Host "Checking for old version..."
-$Installed = Get-ItemProperty HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
-    Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
-    
-# Retry logic for fetching the webpage
-$maxRetries = 3
-$retryCount = 0
-$webContent = $null
-$success = $false
+function Get-NapWindowsFromJson {
+    param([string]$Json)
+    $out = @()
+    foreach ($w in @((ConvertFrom-Json $Json).windows)) {
+        if ($w.start -match '^(\d{4})-(\d{2})-(\d{2})$') { $s = $Matches[1] + $Matches[2] + $Matches[3] } else { continue }
+        if ($w.end -match '^(\d{4})-(\d{2})-(\d{2})$') { $e = $Matches[1] + $Matches[2] + $Matches[3] } else { continue }
+        $out += "$s $e"
+    }
+    return $out
+}
 
-while (-not $success -and $retryCount -lt $maxRetries) {
+function Get-NapTestWindows {
+    # Returns objects with Start/End [datetime]. Cached for a week; sources are the
+    # ACARA key-dates page plus this repo's conf/dates.json; falls back to "all of March".
+    $file = $NapCfg.WindowsFile
+    $fresh = (Test-Path $file) -and ((Get-Item $file).Length -gt 0) -and
+             (((Get-Date) - (Get-Item $file).LastWriteTime).TotalDays -lt $NapCfg.WindowsMaxAge)
+    if (-not $fresh) {
+        $lines = @()
+        try { $lines += Get-NapWindowsFromHtml (Get-NapWebText $NapCfg.KeyDatesUrl) }
+        catch { Write-NapLog "Could not read the ACARA key dates page: $($_.Exception.Message)" 'WARN' }
+        try { $lines += Get-NapWindowsFromJson (Get-NapWebText "$RepoBase/conf/dates.json") }
+        catch { Write-NapLog "Could not read conf/dates.json: $($_.Exception.Message)" 'WARN' }
+
+        $thisYear = (Get-Date).Year
+        $min = '{0}0101' -f ($thisYear - 1); $max = '{0}1231' -f ($thisYear + 5)
+        $lines = @($lines | Where-Object { $_ -match '^\d{8} \d{8}$' } |
+            Where-Object { $p = $_ -split ' '; $p[0] -ge $min -and $p[1] -le $max -and $p[0] -le $p[1] } | Sort-Object -Unique)
+
+        if ($lines.Count -gt 0) {
+            Set-Content -Path $file -Value $lines -Encoding ASCII
+            Write-NapLog ("Test windows refreshed: " + ($lines -join '; '))
+        } elseif ((Test-Path $file) -and (Get-Item $file).Length -gt 0) {
+            Write-NapLog 'Could not refresh test windows; using the cached list.' 'WARN'
+        } else {
+            Write-NapLog 'Could not load test windows; assuming all of March.' 'WARN'
+            $lines = @(('{0}0301 {0}0331' -f $thisYear), ('{0}0301 {0}0331' -f ($thisYear + 1)))
+            Set-Content -Path $file -Value $lines -Encoding ASCII
+            # Old timestamp so the next run tries the real sources again.
+            (Get-Item $file).LastWriteTime = (Get-Date).AddDays(-30)
+        }
+    }
+    $result = @()
+    foreach ($line in @(Get-Content $file -ErrorAction SilentlyContinue)) {
+        if ($line -match '^(\d{8}) (\d{8})$') {
+            $result += [pscustomobject]@{
+                Start = [datetime]::ParseExact($Matches[1], 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture)
+                End   = [datetime]::ParseExact($Matches[2], 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture)
+            }
+        }
+    }
+    return $result
+}
+
+function Get-NapLatestMsi {
+    # Returns @{ Url; Version } for the highest-versioned .msi link on the ACARA page.
+    $resp = Invoke-NapRetry {
+        Invoke-WebRequest -UseBasicParsing -Uri $NapCfg.LdbPage -TimeoutSec 60 -UserAgent $NapCfg.UserAgent -ErrorAction Stop
+    }
+    $urls = @()
+    $urls += @($resp.Links | ForEach-Object { $_.href } | Where-Object { $_ -match '\.msi$' })
+    $urls += @([regex]::Matches($resp.Content, 'https://[^"''<> ]+\.msi') | ForEach-Object { $_.Value })
+    $best = $null
+    foreach ($url in ($urls | Sort-Object -Unique)) {
+        $decoded = [System.Uri]::UnescapeDataString($url)
+        if ($decoded -match '(\d+(?:\.\d+)+)\.msi$') {
+            $ver = ConvertTo-NapVersion $Matches[1]
+            if ($ver -and ((-not $best) -or $ver -gt $best.Version)) {
+                $best = @{ Url = $url; Version = $ver; VersionText = $Matches[1] }
+            }
+        }
+    }
+    return $best
+}
+
+function Invoke-NapMsi {
+    param([string]$Arguments)
+    $p = Start-Process -FilePath 'msiexec.exe' -ArgumentList $Arguments -Wait -PassThru -NoNewWindow
+    return $p.ExitCode
+}
+
+function Invoke-NapNuke {
+    Write-NapLog 'Running the deep clean (NAPLANnuke.ps1)...'
     try {
-        $webContent = Invoke-WebRequest -Uri $kdurl -UseBasicParsing -TimeoutSec 10
-        $success = $true
-    } catch {
-        $retryCount++
-        Write-Host "Failed to retrieve NAPLAN key dates page (Attempt $retryCount of $maxRetries): $_"
-        Start-Sleep -Seconds 5  # Wait before retrying
+        $nuke = Invoke-NapRetry { Invoke-RestMethod -UseBasicParsing -Uri "$RepoBase/Windows/bin/NAPLANnuke.ps1" -ErrorAction Stop }
+        & ([scriptblock]::Create($nuke)) | Out-Null
+    } catch { Write-NapLog "Deep clean failed: $($_.Exception.Message)" 'WARN' }
+}
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+function Invoke-NapUpdate {
+    $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
+    $isAdmin = (New-Object Security.Principal.WindowsPrincipal($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (-not $isAdmin) {
+        Write-Host 'This script must be run as Administrator. Open PowerShell with "Run as administrator" and try again.' -ForegroundColor Red
+        return 1
     }
-}
+    # Anything running as SYSTEM (the scheduled task, including tasks installed by
+    # older versions of this project) is treated as a scheduled run.
+    $isScheduled = $Scheduled -or $identity.IsSystem
 
-# If the request failed after retries, use fallback dates
-if (-not $success) {
-    Write-Host "ACARA website unreachable. Using fallback test dates."
-    $testStartDate = $testStartDateFallback
-    $testEndDate = $testEndDateFallback
-} else {
-     $contentString = $webContent.Content
-     # Apply regex
-     $pattern = "(\d{1,2})\s*[\p{Pd}]\s*(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)"
-     $matches = [regex]::Matches($contentString, $pattern)
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $ProgressPreference = 'SilentlyContinue'
 
-     Write-Host "Found $($matches.Count) matches."
-
-   
-if ($matches.Count -gt 0) {
-    # Extract start and end dates
-    $startDay = $matches[0].Groups[1].Value
-    $endDay = $matches[0].Groups[2].Value
-    $month = $matches[0].Groups[3].Value
-
-    # Convert the month name to a numerical format
-    $monthNumber = @{
-        "January" = 1; "February" = 2; "March" = 3; "April" = 4; "May" = 5;
-        "June" = 6; "July" = 7; "August" = 8; "September" = 9;
-        "October" = 10; "November" = 11; "December" = 12
-    }[$month]
-
-   # Construct full date strings, ensuring they remain DateTime objects
-   $testStartDate = [datetime]::ParseExact("$startDay/$monthNumber/$currentYear", "dd/M/yyyy", $null)
-   $testEndDate = [datetime]::ParseExact("$endDay/$monthNumber/$currentYear", "dd/M/yyyy", $null)
-
-   # Output in Australian format for readability
-   Write-Host "Detected NAPLAN test window: $($testStartDate.ToString('dd/MM/yyyy')) to $($testEndDate.ToString('dd/MM/yyyy'))"
-
-} else {
-    Write-Host "Failed to parse NAPLAN test dates from the webpage."
-    $testStartDate = $testStartDateFallback
-    $testEndDate = $testEndDateFallback
-}
-}
-# --- Now use these dates for update logic ---
-
-# If today falls in the test window, log and exit
-if ($currentDate -ge $testStartDate -and $currentDate -le $testEndDate -or $ForceUpdate) {
-    if ($ForceUpdate ) {
-    Write-Host "We are in the detected testing period but forcing the update. Hold on tight..." 
-    } else {
-     Write-Host "$(Get-Date) - Not running due to NAPLAN testing window."
-     Stop-Transcript;exit 0
+    Protect-NapStorage
+    if ((Test-Path $NapCfg.LogFile) -and (Get-Item $NapCfg.LogFile).Length -gt 1MB) {
+        Move-Item $NapCfg.LogFile ($NapCfg.LogFile + '.old') -Force -ErrorAction SilentlyContinue
     }
-}
 
-# Define high-frequency update period (e.g., 60 days before test start)
-$highFreqStartDate = $testStartDate.AddDays(-60)
-$highFreqEndDate = $testEndDate
+    # One run at a time.
+    $mutex = New-Object Threading.Mutex($false, 'Global\NaplanUpdater')
+    $haveMutex = $false
+    try { $haveMutex = $mutex.WaitOne(0) } catch [Threading.AbandonedMutexException] { $haveMutex = $true }
+    if (-not $haveMutex) { Write-NapLog 'Another run is in progress. Exiting.'; return 0 }
 
-# Set update interval
-if ($currentDate -ge $highFreqStartDate -and $currentDate -le $highFreqEndDate) {
-    $updateIntervalDays = 7  # Weekly updates
-} else {
-    $updateIntervalDays = 30  # Monthly updates
-}
+    $msi = $null
+    try {
+        Write-NapLog "---- NAPLAN LDB updater starting (scheduled=$isScheduled force=$Force) ----"
 
-Write-Host "Update interval set to every $updateIntervalDays days."
+        $installed = @(Get-NapInstalled)
+        $installedVersion = $null
+        if ($installed.Count -gt 0) {
+            $installedVersion = ConvertTo-NapVersion ([string]$installed[0].DisplayVersion)
+            Write-NapLog ("Installed version: {0} {1}" -f $installed[0].DisplayVersion, (($installed | ForEach-Object { $_.PSChildName }) -join ' '))
+        } else {
+            Write-NapLog 'Installed version: none'
+        }
+        $installDir = Get-NapInstallDir $installed
 
-# Check if an update is needed
-$updateNeeded = $false
+        # --- test windows ---------------------------------------------------
+        $today = (Get-Date).Date
+        $inWindow = $false; $inLeadUp = $false
+        foreach ($w in @(Get-NapTestWindows)) {
+            if ($today -ge $w.Start -and $today -le $w.End) {
+                $inWindow = $true
+                Write-NapLog ("Today is inside a test window ({0:dd/MM/yyyy} to {1:dd/MM/yyyy})." -f $w.Start, $w.End)
+            }
+            if ($today -ge $w.Start.AddDays(-$NapCfg.LeadUpDays) -and $today -lt $w.Start) {
+                $inLeadUp = $true
+                Write-NapLog ("Today is in the lead-up to the test window starting {0:dd/MM/yyyy}." -f $w.Start)
+            }
+        }
 
-## Read the last update date from the file
-if (Test-Path $lastUpdateFile) {
-    $lastUpdateString = Get-Content $lastUpdateFile | Where-Object { $_ -match "\S" } | Select-Object -Last 1
+        # --- rule: never replace an installed browser during a test window ----
+        if ($installed.Count -gt 0 -and $inWindow) {
+            if ($IgnoreTestWindow -and -not $isScheduled) {
+                Write-NapLog 'Inside a test window, but -IgnoreTestWindow was given. Continuing.' 'WARN'
+            } else {
+                Write-NapLog 'Browser is installed and we are inside a test window. Not touching it.'
+                return 0
+            }
+        }
 
-    if ($lastUpdateString) {
+        # --- cadence (scheduled runs only) ---------------------------------------
+        if ($isScheduled -and -not $Force -and $installed.Count -gt 0 -and -not $inLeadUp -and (Test-Path $NapCfg.LastCheckFile)) {
+            try {
+                $last = [datetime]::ParseExact((Get-Content $NapCfg.LastCheckFile -TotalCount 1).Trim(), 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture)
+                $age = ($today - $last).Days
+                if ($age -ge 0 -and $age -lt $NapCfg.WeeklyDays) {
+                    Write-NapLog "Last successful check was $age day(s) ago; next check is weekly outside the lead-up. Nothing to do."
+                    return 0
+                }
+            } catch { }
+        }
+
+        # --- what is the latest version? --------------------------------------------
+        $latest = $null
+        try { $latest = Get-NapLatestMsi }
+        catch { Write-NapLog "Could not load $($NapCfg.LdbPage): $($_.Exception.Message)" 'ERROR' }
+
+        $source = $null     # path or URL the MSI will come from
+        if ($latest) {
+            if ($latest.Url -notmatch $NapCfg.AllowedHostRe) {
+                Write-NapLog "Download link is not on assessform.edu.au, refusing: $($latest.Url)" 'ERROR'
+                return 1
+            }
+            Write-NapLog "Latest version online: $($latest.VersionText) ($($latest.Url))"
+            if ($installedVersion -and $installedVersion -eq $latest.Version -and -not $Force) {
+                Write-NapLog 'Already up to date.'
+                Set-Content -Path $NapCfg.LastCheckFile -Value (Get-Date -Format 'yyyyMMdd')
+                return 0
+            }
+            $source = $latest.Url
+        } elseif ($FallbackMsi -and $installed.Count -eq 0 -and (Test-Path $FallbackMsi)) {
+            Write-NapLog "ACARA site unreachable and nothing installed; using fallback MSI $FallbackMsi" 'WARN'
+            $source = $FallbackMsi
+        } else {
+            Write-NapLog 'No download link found (site unreachable or page layout changed). Nothing was changed; will try again next run.' 'ERROR'
+            return 1
+        }
+
+        # --- rule: never touch a running browser ----------------------------------------
+        if ($installed.Count -gt 0 -and (Test-NapBrowserRunning $installDir)) {
+            Write-NapLog 'The browser is running right now. Not touching it; will try again next run.'
+            return 0
+        }
+
+        # --- download and verify BEFORE touching anything -----------------------------------
+        Get-ChildItem $NapCfg.TempDir -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        $msi = Join-Path $NapCfg.TempDir 'Naplan_Setup.msi'
         try {
-            # Parse last update as YYYYMMDD
-            $lastUpdate = [datetime]::ParseExact($lastUpdateString, "yyyyMMdd", $null)
-            $daysSinceLastUpdate = ($currentDate - $lastUpdate).Days
-
-            Write-Host "Last update was on: $lastUpdate (Days since: $daysSinceLastUpdate)"
-
-            if ($daysSinceLastUpdate -ge $updateIntervalDays -or $ForceUpdate -or (-not $Installed)) {
-                $updateNeeded = $true
+            if ($source -match '^https://') {
+                Write-NapLog 'Downloading MSI...'
+                Invoke-NapRetry -Tries 3 -DelaySeconds 20 -Action {
+                    $wc = New-Object Net.WebClient
+                    $wc.Headers['User-Agent'] = $NapCfg.UserAgent
+                    try { $wc.DownloadFile($source, $msi) } finally { $wc.Dispose() }
+                } | Out-Null
+            } else {
+                Copy-Item -Path $source -Destination $msi -Force -ErrorAction Stop
             }
         } catch {
-            Write-Host "Failed to parse last update date. Forcing update."
-            $updateNeeded = $true
+            Write-NapLog "Download failed: $($_.Exception.Message). Nothing was changed." 'ERROR'
+            return 1
         }
-    } else {
-        Write-Host "Update file is empty or invalid. Forcing update."
-        $updateNeeded = $true
+
+        $sig = Get-AuthenticodeSignature -FilePath $msi
+        if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notlike $NapCfg.SignerMatch) {
+            Write-NapLog "MSI signature check failed (status: $($sig.Status); signer: $($sig.SignerCertificate.Subject)). Nothing was changed." 'ERROR'
+            return 1
+        }
+        Write-NapLog "MSI signature OK ($($sig.SignerCertificate.Subject -replace ',.*$', ''))."
+
+        # --- remove the old version(s) ---------------------------------------------------------
+        foreach ($entry in $installed) {
+            Write-NapLog "Removing old version $($entry.DisplayVersion) $($entry.PSChildName)..."
+            $code = Invoke-NapMsi "/x $($entry.PSChildName) /qn /norestart"
+            if ($code -eq 1618) {
+                Write-NapLog 'Another installation is in progress on this PC. Nothing was changed; will try again next run.' 'WARN'
+                return 1
+            }
+            if ($code -notin 0, 1605, 1641, 3010) { Write-NapLog "Uninstall returned $code." 'WARN' }
+        }
+        if (@(Get-NapInstalled).Count -gt 0) {
+            Write-NapLog 'Old version did not uninstall cleanly.' 'WARN'
+            Invoke-NapNuke
+        }
+
+        # --- install ---------------------------------------------------------------------------------
+        $msiLog = Join-Path $NapCfg.StoragePath 'NaplanMsiInstall.log'
+        Write-NapLog 'Installing...'
+        $code = Invoke-NapMsi "/i `"$msi`" /qn /norestart /l*v `"$msiLog`""
+        if ($code -notin 0, 1641, 3010) {
+            Write-NapLog "Install returned $code. Running the deep clean and trying once more." 'WARN'
+            Invoke-NapNuke
+            $code = Invoke-NapMsi "/i `"$msi`" /qn /norestart /l*v `"$msiLog`""
+        }
+        $now = @(Get-NapInstalled)
+        if ($code -notin 0, 1641, 3010 -or $now.Count -eq 0) {
+            Write-NapLog "Install FAILED (msiexec exit code $code). See $msiLog." 'ERROR'
+            return 1
+        }
+        Write-NapLog "Installed version is now: $($now[0].DisplayVersion)"
+        if ($code -ne 0) { Write-NapLog 'Windows reports a restart is needed to finish the install.' 'WARN' }
+
+        # --- firewall rule ----------------------------------------------------------------------------
+        try {
+            $exe = Join-Path (Get-NapInstallDir $now) 'NAP Locked Down Browser.exe'
+            Get-NetFirewallRule -DisplayName $NapCfg.FirewallRule -ErrorAction SilentlyContinue | Remove-NetFirewallRule -ErrorAction SilentlyContinue
+            New-NetFirewallRule -DisplayName $NapCfg.FirewallRule -Description 'Outbound rule for NAP Locked Down Browser' `
+                -Program $exe -Direction Outbound -Action Allow -Profile Any -ErrorAction Stop | Out-Null
+            Write-NapLog 'Firewall rule set.'
+        } catch { Write-NapLog "Could not set the firewall rule: $($_.Exception.Message)" 'WARN' }
+
+        # Refresh the icon cache so the new shortcut icon shows (hangs when run as SYSTEM, so skip there).
+        if (-not $identity.IsSystem) {
+            try { Start-Process -FilePath 'ie4uinit.exe' -ArgumentList '-ClearIconCache' -WindowStyle Hidden } catch { }
+        }
+
+        Set-Content -Path $NapCfg.LastCheckFile -Value (Get-Date -Format 'yyyyMMdd')
+        Write-NapLog 'Done.'
+        return 0
     }
-} else {
-    Write-Host "No previous update record found. Forcing update."
-    $updateNeeded = $true
+    catch {
+        Write-NapLog "Unexpected error: $($_.Exception.Message) at line $($_.InvocationInfo.ScriptLineNumber)" 'ERROR'
+        return 1
+    }
+    finally {
+        if ($msi -and (Test-Path $msi)) { Remove-Item $msi -Force -ErrorAction SilentlyContinue }
+        try { $mutex.ReleaseMutex() } catch { }
+        $mutex.Dispose()
+    }
 }
 
-# Perform update if needed
-if ($updateNeeded -or $ForceUpdate) {
-    if ($ForceUpdate) {
-        Write-Host "Initiating NAPLAN LDB due to Forced update flag set."
-    }
-    Write-Host "Initiating NAPLAN LDB update..."
-# Try to get the latest MSI download URL if internet is available
-if ($InternetAvailable) {
+function Update-NapLegacyTask {
+    # Scheduled tasks installed by older versions of this project ran everything
+    # through "cmd.exe /c powershell -EncodedCommand ...". Replace them in place
+    # with the current task definition.
     try {
-        # Fetch the MSI download link
-        $URL = ((Invoke-WebRequest -UseBasicParsing -Uri $dlurls).Links | 
-        Where-Object {$_.href -match "\.msi$"}).href
-
-        if ($URL) {
-            # Decode URL to replace %20 with spaces
-            $DecodedURL = [System.Uri]::UnescapeDataString($URL)
-
-            # Extract the version number from filename
-            if ($DecodedURL -match '(\d+)[-_.](\d+)[-_.](\d+)') {
-                $RemoteVersion = "$($matches[1]).$($matches[2]).$($matches[3])"
-                Write-Host "Latest Naplan Version Found Online: $RemoteVersion"
-            } else {
-                Write-Host "Failed to extract version number from MSI URL: $DecodedURL"
-                 Stop-Transcript;exit 1
-            }
-        } else {
-            Write-Host "No MSI URL found."
-             Stop-Transcript;exit 1
+        $task = Get-ScheduledTask -TaskName $NapCfg.TaskName -ErrorAction SilentlyContinue
+        if ($task -and $task.Actions[0].Execute -match 'cmd(\.exe)?$') {
+            Write-NapLog 'Old-style scheduled task found. Replacing it with the current one.'
+            $script = Invoke-NapRetry { Invoke-RestMethod -UseBasicParsing -Uri "$RepoBase/Windows/bin/NAPLANscheduledtask.ps1" -ErrorAction Stop }
+            & ([scriptblock]::Create($script)) -RepoBase $RepoBase -NoStart | Out-Null
         }
-
-    } catch {
-        Write-Host "Failed to retrieve MSI URL. Falling back to local SMB. Error: $_"
-        $InternetAvailable = $false
-         Stop-Transcript;exit 1
-    }
+    } catch { Write-NapLog "Could not replace the old scheduled task: $($_.Exception.Message)" 'WARN' }
 }
 
-if (-not $Installed -and [Environment]::Is64BitOperatingSystem) {
-    $Installed = Get-ItemProperty HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* -ErrorAction SilentlyContinue |
-        Where-Object { $_.DisplayName -match "NAP Locked Down Browser" }
-}
-if ($Installed) {
-    Write-Host "Installed Version: $($Installed.DisplayVersion)"
-    Write-Host "Installed GUID: $($Installed.PSChildName)"  # GUID of the installed app
-    $InstalledGUID = $($Installed.PSChildName)
-    $OldVersion = $($Installed.DisplayVersion)
-    } else {
-    Write-Host "No InstallLocation property found or NAP Locked Down Browser is not installed."
-}
+$NapExitCode = [int](Invoke-NapUpdate | Select-Object -Last 1)
+if ([Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) { Update-NapLegacyTask }
 
-    # Log it as installed 
-    $currentDateString = Get-Date -Format "yyyyMMdd"
-    $currentDateString | Set-Content -Path $lastUpdateFile -Force
-    
-# Compare versions and proceed only if an update is needed
-if ($ForceUpdate -or $OldVersion -ne $RemoteVersion) {
-    # Uninstall old version
-    if ($ForceUpdate -and $Installed) {
-    Write-Host "Force update called. Installing new version"
-    
-    }   
-    if ($InstalledGUID) {
-        Write-Host "Removing old version: $InstalledGUID"
-        Start-Process "msiexec.exe" -ArgumentList "/X $InstalledGUID /qn /norestart" -NoNewWindow -Wait
-        #Nap Nuke
-        Write-Host "Calling clean-up of old versions of Naplan"
-        irm  -UseBasicParsing -Uri "$napnukeurl" | iex
-    }
-    Write-Host "InternetAvailable = $InternetAvailable"
-    Write-Host "Downloading and Installing from Url: $URL"
-    
-    if ($InternetAvailable -and $URL) {
-        Write-Host "Downloading latest version from: $URL"
-        Start-BitsTransfer -Source $URL -Destination $Setup
-    } elseif (Test-Path $FallbackSMB) {
-        Write-Host "Internet unavailable. Installing from local SMB: $FallbackSMB"
-        Copy-Item "$FallbackSMB" -Destination "$Setup" -Force
-    } else {
-        Write-Host "No valid installation source found. Exiting."
-         Stop-Transcript;exit 1
-    }
-    $signature = Get-AuthenticodeSignature -FilePath "$Setup"
-
-    
-    if ($signature.Status -ne "Valid" -or $signature.SignerCertificate.Subject -notlike "*JANISON SOLUTIONS PTY LTD*") {
-    Write-Host "WARNING: MSI is NOT signed by ACARA(JANISON). Exiting."
-     Stop-Transcript;exit 1
-}
-
-    Write-Host "MSI is signed by a trusted entity and signature is valid. Proceeding with installation..."
-
-# Install the MSI
-$installPath = "${env:ProgramFiles(x86)}\NAP Locked Down Browser" # Adjust this if needed
-$RuleName = "NAPLockedDownBrowserOutbound"
-
-# Function: Get File Hash (SHA-256)
-function Get-FileHashSHA256($filePath) {
-    if (Test-Path $filePath) {
-        return (Get-FileHash -Path $filePath -Algorithm SHA256).Hash
-    }
-    return $null
-}
-
-# Install the MSI
-Write-Host "Installing Naplan..."
-$installProcess = Start-Process "msiexec.exe" -ArgumentList "/i `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
-$installProcess.WaitForExit()
-Write-Host "Installation process completed."
-
-# Step 3: Validate Installed Files
-Write-Host "Validating installed files..."
-$ExtractBase = "C:\ProgramData\Naplan\Temp\Naplan_Extract\"
-$ExtractPath = "C:\ProgramData\Naplan\Temp\Naplan_Extract\NAP Locked down browser"
-
-# Ensure the extraction path exists
-if (!(Test-Path $ExtractBase)) { New-Item -ItemType Directory -Path $ExtractBase -Force }
-if (!(Test-Path $ExtractPath)) { New-Item -ItemType Directory -Path $ExtractPath -Force }
-
-# Run MSI Extraction
-Start-Process -FilePath "msiexec.exe" -ArgumentList "/a `"$MSIPath`" TARGETDIR=`"$ExtractBase`" /qn" -Wait -NoNewWindow
-
-Write-Host "MSI Extracted to: $ExtractPath"
-
-$MSIPath = "C:\ProgramData\Naplan\Temp\Naplan_Setup.msi"
-$InstallPath = "C:\Program Files (x86)\NAP Locked Down Browser"
-
-# Ensure extracted path exists
-if (-not (Test-Path $ExtractPath)) {
-    Write-Host "Extracted folder not found: $ExtractPath"
-    exit 1
-}
-
-# Get all files in both directories
-$installedFiles = Get-ChildItem -Path $InstallPath -Recurse | Where-Object { -not $_.PSIsContainer }
-$extractedFiles = Get-ChildItem -Path $ExtractPath -Recurse | Where-Object { -not $_.PSIsContainer }
-
-# Convert to a hash table for quick lookup
-$installedLookup = @{}
-$installedFiles | ForEach-Object { 
-    $relativePath = $_.FullName.Replace($InstallPath, "").TrimStart("\")
-    $installedLookup[$relativePath] = $_
-}
-
-$extractedLookup = @{}
-$extractedFiles | ForEach-Object { 
-    $relativePath = $_.FullName.Replace($ExtractPath, "").TrimStart("\")
-    $extractedLookup[$relativePath] = $_
-}
-
-# Track differences
-$missingFiles = @()
-$mismatchedFiles = @()
-
-# Compare extracted files against installed files
-foreach ($fileKey in $extractedLookup.Keys) {
-    $extractedFile = $extractedLookup[$fileKey]
-    $installedFile = $installedLookup[$fileKey]
-
-    if (-not $installedFile) {
-        # File exists in extracted but NOT in installed
-        $missingFiles += $fileKey
-    } else {
-        # Compare file sizes
-        if ($installedFile.Length -ne $extractedFile.Length) {
-            $mismatchedFiles += "$fileKey (Expected: $($extractedFile.Length) bytes, Found: $($installedFile.Length) bytes)"
-        } else {
-            # Optional: Verify file hash for integrity
-            $installedHash = (Get-FileHash -Path $installedFile.FullName -Algorithm SHA256).Hash
-            $extractedHash = (Get-FileHash -Path $extractedFile.FullName -Algorithm SHA256).Hash
-
-            if ($installedHash -ne $extractedHash) {
-                $mismatchedFiles += "$fileKey (SHA256 mismatch)"
-            }
-        }
-    }
-}
-
-# Report results
-Write-Host "Comparison Complete."
-
-if ($missingFiles.Count -gt 0) {
-    Write-Host "Missing Files:"
-    $missingFiles | ForEach-Object { Write-Host $_ }
-} else {
-    Write-Host "No Missing Files."
-}
-
-if ($mismatchedFiles.Count -gt 0) {
-    Write-Host "Mismatched Files (Size/Hash Differences):"
-    $mismatchedFiles | ForEach-Object { Write-Host $_ }
-} else {
-    Write-Host "No Mismatched Files."
-}
-
-if ($missingFiles.Count -eq 0 -and $mismatchedFiles.Count -eq 0) {
-    Write-Host "All installed files match the extracted MSI files."
-}
-
-# Step 4: Handle Missing/Mismatched Files (Trigger Repair)
-if ($missingFiles.Count -gt 0 -or $mismatchedFiles.Count -gt 0) {
-    Write-Host "Issues detected with installed files."
-    
-    if ($missingFiles.Count -gt 0) {
-        Write-Host "Missing Files:"
-        $missingFiles | ForEach-Object { Write-Host $_ }
-    }
-    
-    if ($mismatchedFiles.Count -gt 0) {
-        Write-Host "Size Mismatched Files:"
-        $mismatchedFiles | ForEach-Object { Write-Host $_ }
-    }
-
-    Write-Host "Attempting MSI repair..."
-    foreach ($file in $missingFiles) {
-    $source = Join-Path -Path $ExtractPath -ChildPath $file
-    $destination = Join-Path -Path $InstallPath -ChildPath $file
-
-    if (Test-Path $source) {
-        Copy-Item -Path $source -Destination $destination -Force
-        Write-Host "Restored: $file"
-    } else {
-        Write-Host "Could not restore: $file (Not found in extracted MSI)"
-    }
-}
-    $validationFailed = $false
-    foreach ($file in $expectedFiles) {
-        if (-not (Test-Path $file.FilePath)) {
-            Write-Host "Repair failed: $($file.FileName) is still missing."
-            $validationFailed = $true
-        }
-    }
-
-    if ($validationFailed) {
-       Write-Host "Verify failed. Manual intervention may be req'd..."
-        # Nap Nuke
-        # Write-Host "Calling clean-up all versions of Naplan due to failure of MSI"
-        # irm  -UseBasicParsing -Uri "$napnukeurl" | iex
-        $repairProcess = Start-Process "msiexec.exe" -ArgumentList "/f `"$Setup`" /qn /norestart" -NoNewWindow -PassThru
-        $repairProcess.WaitForExit()
-        $missingFiles = @()
-        $mismatchedFiles = @()
-    } else {
-        Write-Host "Repair successful. All files verified."
-    }
-} else {
-    Write-Host "All installed files match the MSI manifest."
-    
-}
-
-# Step 5: Firewall Setup (Only if installation was successful)
-if ($missingFiles.Count -eq 0 -and $mismatchedFiles.Count -eq 0) {
- `
- 
-    Write-Host "Configuring firewall rule..."
-    $ruleExists = Get-NetFirewallRule -DisplayName $RuleName -ErrorAction SilentlyContinue
-
-    if (-not $ruleExists) {
-        New-NetFirewallRule -DisplayName $RuleName `
-                            -Description "Outbound rule for NAP Locked Down Browser" `
-                            -Program "$InstallPath\NAP Locked Down Browser.exe" `
-                            -Direction Outbound `
-                            -Action Allow `
-                            -Profile Any
-        Write-Host "Firewall rule added."
-    } else {
-        Write-Host "Firewall rule already exists."
-    }
-
-    # Log Install Date
-    $currentDateString = Get-Date -Format "yyyyMMdd"
-    $currentDateString | Set-Content -Path $lastUpdateFile -Force
-}
-
-# Step 6: Cleanup MSI File
-Write-Host "Cleaning up MSI file..."
-Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
-
-Write-Host "Installation and verification completed successfully."  
-if (Test-Path $ExtractBasePath) {
-    Remove-Item -Path $ExtractBasePath -Recurse -Force
-    Write-Host "Cleanup complete: $ExtractBasePath has been removed."
-} else {
-    Write-Host "Nothing to clean: $ExtractBasePath does not exist."
-}     
-    
-# Clean up MSI file after installation completes
-    Write-Host "Installation completed. Cleaning up..."
-    Remove-Item "$Setup" -Force -ErrorAction SilentlyContinue -Verbose
-    Write-Host "Refreshing icon cache..."
-
-    ## Refreshing icon cache option 1
-    
-    #Write-Host "Stopping Windows Explorer..."
-    #Stop-Process -Name "explorer" -Force -ErrorAction SilentlyContinue
-
-    #Write-Host "Deleting icon cache for all users..."
-    #$UserProfiles = Get-ChildItem "C:\Users" -Directory
-
-    #foreach ($User in $UserProfiles) {
-    #    $ExplorerCachePath = "$($User.FullName)\AppData\Local\Microsoft\Windows\Explorer"
-
-    #    if (Test-Path $ExplorerCachePath) {
-    #        Write-Host "Clearing cache for user: $($User.Name)"
-    #        Remove-Item "$ExplorerCachePath\iconcache*" -Force -ErrorAction SilentlyContinue
-    #    }
-    #}
-
-    ## Refreshing icon cache option 2
-    
-    #ie4uinit.exe -ClearIconCache
-    #& ie4uinit.exe -show
-
-    #Write-Host "Restarting Windows Explorer..."
-    #Stop-Process -Name "explorer" -Force -ErrorAction SilentlyContinue
-    #Start-Process "explorer.exe"
-
-    ## Refreshing icon cache option 3
-    
-    #(New-Object -ComObject Shell.Application).MinimizeAll()
-    #Start-Sleep -Milliseconds 500
-    ie4uinit.exe -ClearIconCache
-    #(New-Object -ComObject Shell.Application).UndoMinimizeAll()
-} 
-    Write-Host "Update completed. Next update will be checked in $updateIntervalDays days."
-} else {
-    Write-Host "No update needed. Last update was within the required interval."
-}
-
-if ($Updatetasktoo) {
-    Write-Host "Self updating the scheduled task is set. Updating scheduled task."
-
-    # Properly formatted script block
-    $scriptBlock = @"
-        Start-Sleep 5
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        irm -UseBasicParsing -Uri $scheduledtaskurl | iex
-"@
-
-    # Corrected Start-Process call
-    Start-Process "powershell.exe" -WindowStyle Hidden -ArgumentList "-NoProfile -ExecutionPolicy Bypass -Command `"$scriptBlock`""
-}
-
-# Stop the transcript only if it was started
-Stop-ConditionalTranscript
+# Only end the PowerShell process when running unattended; "exit" in an
+# interactive "irm | iex" session would close the admin's window.
+if ($Scheduled -or [Security.Principal.WindowsIdentity]::GetCurrent().IsSystem) { exit $NapExitCode }
