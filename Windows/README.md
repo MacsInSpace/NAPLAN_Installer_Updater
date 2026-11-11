@@ -18,7 +18,7 @@ This automates the **installation, updating, and uninstallation** of the **NAPLA
 | [`conf/proxy.ps1`](conf/proxy.ps1) | Lets the SYSTEM user use the school proxy when run via the scheduled task. Applies to the updater only: machine proxy settings are not changed. |
 | [`conf/versions.txt`](conf/versions.txt) | Version record with product codes and checksums (reference only, not used by the scripts). |
 | [`conf/SetVol.ps1`](conf/SetVol.ps1) | Sets the volume before a test (not currently in use). |
-| [`launcher/`](launcher) | Experimental desktop launcher that checks volume, battery, internet and screen resolution before starting the browser. Not installed by the updater. |
+| [`launcher/`](launcher) | Optional desktop launcher that checks the device before starting the browser. See [Optional: NAPLAN Launcher](#optional-naplan-launcher). |
 
 ---
 
@@ -125,6 +125,41 @@ The scheduled task runs **daily** (at a random time in school hours) and **at st
 
 ### **Upgrading from an earlier version of this project**
 Nothing to do. Existing scheduled tasks pick up the new installer on their next run and replace themselves with the current task.
+
+---
+
+## Optional: NAPLAN Launcher
+The launcher replaces the browser's desktop shortcut with a **NAPLAN <year> Launcher** shortcut. When a student opens it, it checks the device and then starts the browser. It is separate from the updater: install it only if you want it.
+
+### What it checks
+1. The browser is installed and not already open.
+2. Volume is unmuted and set to 75%.
+3. The assessment platform can be reached (a real HTTPS request through the system proxy, not a ping).
+4. Battery is at least 50%, or the charger is plugged in.
+5. The screen meets ACARA's minimum resolution of 1024 x 768.
+6. Reminds the student to plug in headphones.
+
+If a check fails the student is told why and the browser is not started. The launcher runs as the student and needs no admin rights.
+
+### Install
+The browser must already be installed. Run in an **elevated PowerShell window**:
+
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-Expression (Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/launcher/Install_Launcher.ps1")
+```
+
+This will:
+- Save `NAPLAN_Launcher.ps1` and `NAPLAN_Launcher.cmd` in `C:\ProgramData\Naplan` (read-only for students).
+- Remove the browser's own desktop shortcuts and add **NAPLAN <year> Launcher** to the Public Desktop.
+
+When the updater installs a new browser version it removes the browser's own shortcut again, so students keep using the launcher. The shortcut name contains the year it was installed; re-run the install command to refresh it.
+
+### Remove
+```powershell
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; & ([scriptblock]::Create((Invoke-RestMethod -UseBasicParsing -Uri "https://raw.githubusercontent.com/MacsInSpace/NAPLAN_Installer_Updater/main/Windows/launcher/Install_Launcher.ps1"))) -Uninstall
+```
+
+This removes the launcher and puts the browser's own desktop shortcut back. The updater's full uninstall (`NukeNAPLANScheduledTask.ps1`) removes the launcher too.
 
 ---
 
